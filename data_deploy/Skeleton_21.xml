@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Profile version="1">
+    <NodeAssets>
+        <skeleton version="123" id="9c82b5014e004096:80dee260a66d11ed" type-id="25" height="1.63767">
+            <bones>
+                <bone type-id="1" id="1">
+                    <offset>0,0.837032,0</offset>
+                    <max_rotation>-1</max_rotation>
+                    <twist_limits>1,-1</twist_limits>
+                    <parent_id>0</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                    <markers>
+                        <marker id="5" name="WaistLFront">
+                            <offset>-0.146947,0.096437,0.0817034</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="6" name="WaistRFront">
+                            <offset>0.115381,0.0916162,0.0911845</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="7" name="WaistLBack">
+                            <offset>-0.158854,0.0985947,-0.0817035</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="8" name="WaistRBack">
+                            <offset>0.140393,0.077279,-0.0911846</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                    </markers>
+                </bone>
+                <bone type-id="1" id="2">
+                    <offset>0,0.0746051,0</offset>
+                    <max_rotation>1.1</max_rotation>
+                    <twist_limits>-1.39626,1.39626</twist_limits>
+                    <parent_id>1</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                </bone>
+                <bone type-id="1" id="3">
+                    <offset>0,0.190919,0</offset>
+                    <max_rotation>1.2</max_rotation>
+                    <twist_limits>-1.39626,1.39626</twist_limits>
+                    <parent_id>2</parent_id>
+                    <stretch_limits>0.5,1.8</stretch_limits>
+                    <markers>
+                        <marker id="9" name="BackTop">
+                            <offset>-0.00291008,0.285278,-0.042949</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="12" name="Chest">
+                            <offset>-0.0119156,0.0877818,0.172147</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="10" name="BackLeft">
+                            <offset>-0.0586798,0.0936731,-0.0874461</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="11" name="BackRight">
+                            <offset>0.0480292,0.0918713,-0.0806108</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                    </markers>
+                </bone>
+                <bone type-id="1" id="4">
+                    <offset>0,0.209115,0</offset>
+                    <max_rotation>1.4</max_rotation>
+                    <twist_limits>-1.5708,1.5708</twist_limits>
+                    <parent_id>3</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                </bone>
+                <bone type-id="1" id="5">
+                    <offset>0,0.141022,0.0181964</offset>
+                    <max_rotation>1.5</max_rotation>
+                    <twist_limits>-1.5708,1.5708</twist_limits>
+                    <parent_id>4</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                    <markers>
+                        <marker id="13" name="HeadTop">
+                            <offset>-5.96046e-08,0.237472,-0.0181965</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="14" name="HeadFront">
+                            <offset>-0.0689291,0.208924,0.102394</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="15" name="HeadSide">
+                            <offset>0.0523775,0.179109,0.0896838</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                    </markers>
+                </bone>
+                <bone type-id="1" id="6">
+                    <offset>-0.0355022,0.16546,-0.00670862</offset>
+                    <max_rotation>0.8</max_rotation>
+                    <twist_limits>-0.872665,0.872665</twist_limits>
+                    <parent_id>3</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                    <markers>
+                        <marker id="17" name="LShoulderBack">
+                            <offset>-0.135881,0.0101721,-0.0483367</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="16" name="LShoulderTop">
+                            <offset>-0.146912,0.118349,0.0310507</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                    </markers>
+                </bone>
+                <bone type-id="1" id="7">
+                    <offset>-0.134959,0,0</offset>
+                    <max_rotation>-1</max_rotation>
+                    <twist_limits>1,-1</twist_limits>
+                    <parent_id>6</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                    <markers>
+                        <marker id="18" name="LElbowOut">
+                            <offset>-0.293379,-0.0360018,-0.0527596</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="19" name="LUArmHigh">
+                            <offset>-0.202164,-0.0187544,-0.0522794</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                    </markers>
+                </bone>
+                <bone type-id="1" id="8">
+                    <offset>-0.296169,0,0</offset>
+                    <max_rotation>-1</max_rotation>
+                    <twist_limits>1,-1</twist_limits>
+                    <parent_id>7</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                </bone>
+                <bone type-id="1" id="9">
+                    <offset>-0.247676,0,0</offset>
+                    <max_rotation>1.7</max_rotation>
+                    <twist_limits>1,-1</twist_limits>
+                    <parent_id>8</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                    <markers>
+                        <marker id="20" name="LHandOut">
+                            <offset>-0.0719528,0.0112822,-0.035371</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="21" name="LWristOut">
+                            <offset>-0.0128125,0.0181203,-0.0322055</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="22" name="LWristIn">
+                            <offset>-0.003353,0.0181203,0.0348118</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                    </markers>
+                </bone>
+                <bone type-id="1" id="10">
+                    <offset>0.0372279,0.16546,-0.00670862</offset>
+                    <max_rotation>0.8</max_rotation>
+                    <twist_limits>-0.872665,0.872665</twist_limits>
+                    <parent_id>3</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                    <markers>
+                        <marker id="24" name="RShoulderBack">
+                            <offset>0.129431,-0.00325429,-0.0465666</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="23" name="RShoulderTop">
+                            <offset>0.154137,0.101049,0.0265931</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                    </markers>
+                </bone>
+                <bone type-id="1" id="11">
+                    <offset>0.134959,0,0</offset>
+                    <max_rotation>-1</max_rotation>
+                    <twist_limits>1,-1</twist_limits>
+                    <parent_id>10</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                    <markers>
+                        <marker id="25" name="RElbowOut">
+                            <offset>0.291799,-0.0500534,-0.0501316</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="26" name="RUArmHigh">
+                            <offset>0.148964,-0.0305768,-0.0499735</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                    </markers>
+                </bone>
+                <bone type-id="1" id="12">
+                    <offset>0.296169,0,0</offset>
+                    <max_rotation>-1</max_rotation>
+                    <twist_limits>1,-1</twist_limits>
+                    <parent_id>11</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                </bone>
+                <bone type-id="1" id="13">
+                    <offset>0.247676,0,0</offset>
+                    <max_rotation>1.7</max_rotation>
+                    <twist_limits>1,-1</twist_limits>
+                    <parent_id>12</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                    <markers>
+                        <marker id="27" name="RHandOut">
+                            <offset>0.0522267,0.0121775,-0.0390417</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="28" name="RWristOut">
+                            <offset>-0.0059664,0.018195,-0.0296397</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                        <marker id="29" name="RWristIn">
+                            <offset>-0.00774348,0.018195,0.0292426</offset>
+                            <update_bone>true</update_bone>
+                            <color>1,1,1,0.5</color>
+                        </marker>
+                    </markers>
+                </bone>
+                <bone type-id="1" id="14">
+                    <offset>-0.0909818,0,0</offset>
+                    <max_rotation>1.8</max_rotation>
+                    <twist_limits>-1.5708,1.5708</twist_limits>
+                    <parent_id>1</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                </bone>
+                <bone type-id="1" id="15">
+                    <offset>0,-0.382123,0</offset>
+                    <max_rotation>-1</max_rotation>
+                    <twist_limits>-0.959931,0.959931</twist_limits>
+                    <parent_id>14</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                </bone>
+                <bone type-id="1" id="16">
+                    <offset>0,-0.382123,0</offset>
+                    <max_rotation>1.5</max_rotation>
+                    <twist_limits>-0.698132,0.698132</twist_limits>
+                    <parent_id>15</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                </bone>
+                <bone type-id="1" id="18">
+                    <offset>0.0909818,0,0</offset>
+                    <max_rotation>1.8</max_rotation>
+                    <twist_limits>-1.5708,1.5708</twist_limits>
+                    <parent_id>1</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                </bone>
+                <bone type-id="1" id="19">
+                    <offset>0,-0.382123,0</offset>
+                    <max_rotation>-1</max_rotation>
+                    <twist_limits>-0.959931,0.959931</twist_limits>
+                    <parent_id>18</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                </bone>
+                <bone type-id="1" id="20">
+                    <offset>0,-0.382123,0</offset>
+                    <max_rotation>1.5</max_rotation>
+                    <twist_limits>-0.698132,0.698132</twist_limits>
+                    <parent_id>19</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                </bone>
+                <bone type-id="1" id="17">
+                    <offset>0,-0.0591382,0.136473</offset>
+                    <max_rotation>1.8</max_rotation>
+                    <twist_limits>-0.698132,0.698132</twist_limits>
+                    <parent_id>16</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                </bone>
+                <bone type-id="1" id="21">
+                    <offset>0,-0.0591382,0.136473</offset>
+                    <max_rotation>1.8</max_rotation>
+                    <twist_limits>-0.698132,0.698132</twist_limits>
+                    <parent_id>20</parent_id>
+                    <stretch_limits>0.5,1.5</stretch_limits>
+                </bone>
+            </bones>
+            <properties>
+                <property>
+                    <name>NodeName</name>
+                    <value>Skeleton_21</value>
+                    <defaultValue>Skeleton_21</defaultValue>
+                </property>
+                <property>
+                    <name>SkeletonMarkersetName</name>
+                    <value>Upper Body (25)</value>
+                </property>
+                <property>
+                    <name>SkeletonCreationPose</name>
+                    <value>1</value>
+                </property>
+                <property>
+                    <name>HeadUpright</name>
+                    <value>false</value>
+                </property>
+                <property>
+                    <name>StraighArms</name>
+                    <value>true</value>
+                </property>
+                <property>
+                    <name>StraightLegs</name>
+                    <value>false</value>
+                </property>
+                <property>
+                    <name>FeetOnFloor</name>
+                    <value>false</value>
+                </property>
+                <property>
+                    <name>HeightMarker</name>
+                    <value>false</value>
+                </property>
+                <property>
+                    <name>FloorHeight</name>
+                    <value>0.000000</value>
+                </property>
+                <property>
+                    <name>AnkleHeight</name>
+                    <value>0.000000</value>
+                </property>
+                <property>
+                    <name>AdjustSpineByWrist</name>
+                    <value>false</value>
+                </property>
+                <property>
+                    <name>NeckLength</name>
+                    <value>-1.000000</value>
+                </property>
+                <property>
+                    <name>ShoulderHorzOffset</name>
+                    <value>0.040000</value>
+                </property>
+                <property>
+                    <name>ShoulderVertOffset</name>
+                    <value>0.020000</value>
+                </property>
+                <property>
+                    <name>ShoulderAngle</name>
+                    <value>20.000000</value>
+                </property>
+                <property>
+                    <name>ShoulderLengthAdd</name>
+                    <value>0.000000</value>
+                </property>
+                <property>
+                    <name>ArmVertOffset</name>
+                    <value>0.010000</value>
+                </property>
+            </properties>
+            <MarkerNames ReorderMarkers="true">
+                <!--To rename markers, modify the value in the "name" tag.-->
+                <Marker name="HeadTop" oldName="HeadTop"/>
+                <Marker name="HeadFront" oldName="HeadFront"/>
+                <Marker name="HeadSide" oldName="HeadSide"/>
+                <Marker name="BackTop" oldName="BackTop"/>
+                <Marker name="BackLeft" oldName="BackLeft"/>
+                <Marker name="BackRight" oldName="BackRight"/>
+                <Marker name="Chest" oldName="Chest"/>
+                <Marker name="LShoulderBack" oldName="LShoulderBack"/>
+                <Marker name="LShoulderTop" oldName="LShoulderTop"/>
+                <Marker name="LUArmHigh" oldName="LUArmHigh"/>
+                <Marker name="LElbowOut" oldName="LElbowOut"/>
+                <Marker name="LWristOut" oldName="LWristOut"/>
+                <Marker name="LWristIn" oldName="LWristIn"/>
+                <Marker name="LHandOut" oldName="LHandOut"/>
+                <Marker name="RShoulderBack" oldName="RShoulderBack"/>
+                <Marker name="RShoulderTop" oldName="RShoulderTop"/>
+                <Marker name="RUArmHigh" oldName="RUArmHigh"/>
+                <Marker name="RElbowOut" oldName="RElbowOut"/>
+                <Marker name="RWristOut" oldName="RWristOut"/>
+                <Marker name="RWristIn" oldName="RWristIn"/>
+                <Marker name="RHandOut" oldName="RHandOut"/>
+                <Marker name="WaistLFront" oldName="WaistLFront"/>
+                <Marker name="WaistLBack" oldName="WaistLBack"/>
+                <Marker name="WaistRBack" oldName="WaistRBack"/>
+                <Marker name="WaistRFront" oldName="WaistRFront"/>
+                <!--Renaming markers added to a skeletons: If a fourth marker is added manually to the head of a skeleton, then add a tag such as <Marker name="Head_4" oldName="Head_4" /> where the values in name and oldName are the bone segment (case matters) followed by the marker number.-->
+                <!--Skeleton Bone Segment Names: Head, Neck, Chest, Ab, Hip, LShoulder, LUArm, LFArm, LHand, RShoulder, RUArm, RFArm, RHand, LThigh, LShin, LFoot, LToe, RThigh, RShin, RFoot, RToe.-->
+                <!--If "ReorderMarkers = True" the order here persists into the labeling pane.-->
+            </MarkerNames>
+            <MarkerColors>
+                <!--The "name" tag in this section corresponds with the "name" values in <MarkerNames>.-->
+                <Marker name="HeadTop" color="234 128 255" movable="false"/>
+                <Marker name="HeadFront" color="234 128 255" movable="false"/>
+                <Marker name="HeadSide" color="0 235 255" movable="false"/>
+                <Marker name="BackTop" color="234 128 255" movable="false"/>
+                <Marker name="BackLeft" color="202 0 255" movable="false"/>
+                <Marker name="BackRight" color="0 235 255" movable="false"/>
+                <Marker name="Chest" color="234 128 255" movable="false"/>
+                <Marker name="LShoulderBack" color="255 0 0" movable="false"/>
+                <Marker name="LShoulderTop" color="0 235 255" movable="false"/>
+                <Marker name="LUArmHigh" color="255 0 0" movable="false"/>
+                <Marker name="LElbowOut" color="0 235 255" movable="false"/>
+                <Marker name="LWristOut" color="0 235 255" movable="false"/>
+                <Marker name="LWristIn" color="255 0 0" movable="false"/>
+                <Marker name="LHandOut" color="130 230 0" movable="false"/>
+                <Marker name="RShoulderBack" color="202 0 255" movable="false"/>
+                <Marker name="RShoulderTop" color="59 102 0" movable="false"/>
+                <Marker name="RUArmHigh" color="202 0 255" movable="false"/>
+                <Marker name="RElbowOut" color="59 102 0" movable="false"/>
+                <Marker name="RWristOut" color="59 102 0" movable="false"/>
+                <Marker name="RWristIn" color="202 0 255" movable="false"/>
+                <Marker name="RHandOut" color="234 128 255" movable="false"/>
+                <Marker name="WaistLFront" color="202 0 255" movable="false"/>
+                <Marker name="WaistLBack" color="202 0 255" movable="false"/>
+                <Marker name="WaistRBack" color="0 235 255" movable="false"/>
+                <Marker name="WaistRFront" color="0 235 255" movable="false"/>
+                <!--If nothing appears in this section it is because you need to update or generate colors. You can do this in the asset's context menu.-->
+                <!--The movable="false" tag currently is not functioning.-->
+            </MarkerColors>
+            <MarkerSticks>
+                <!--The "origin" and "end" tags in this section correspond with the "name" values in <MarkerNames>-->
+                <MarkerStick origin="BackTop" end="HeadTop" color="222 0 255"/>
+                <MarkerStick origin="HeadFront" end="HeadTop" color="222 0 255"/>
+                <MarkerStick origin="HeadFront" end="HeadSide" color="222 0 255"/>
+                <MarkerStick origin="BackTop" end="BackLeft" color="222 0 255"/>
+                <MarkerStick origin="BackTop" end="BackRight" color="222 0 255"/>
+                <MarkerStick origin="LShoulderTop" end="Chest" color="0 235 255"/>
+                <MarkerStick origin="LShoulderTop" end="LShoulderBack" color="0 235 255"/>
+                <MarkerStick origin="LShoulderTop" end="LUArmHigh" color="0 235 255"/>
+                <MarkerStick origin="LShoulderBack" end="BackLeft" color="0 235 255"/>
+                <MarkerStick origin="LShoulderBack" end="LUArmHigh" color="0 235 255"/>
+                <MarkerStick origin="LElbowOut" end="LUArmHigh" color="0 235 255"/>
+                <MarkerStick origin="LElbowOut" end="LWristOut" color="0 235 255"/>
+                <MarkerStick origin="LWristOut" end="LWristIn" color="0 235 255"/>
+                <MarkerStick origin="LWristOut" end="LHandOut" color="0 235 255"/>
+                <MarkerStick origin="RShoulderTop" end="Chest" color="127 255 0"/>
+                <MarkerStick origin="RShoulderTop" end="RShoulderBack" color="127 255 0"/>
+                <MarkerStick origin="RShoulderTop" end="RUArmHigh" color="127 255 0"/>
+                <MarkerStick origin="RShoulderBack" end="BackRight" color="127 255 0"/>
+                <MarkerStick origin="RShoulderBack" end="RUArmHigh" color="127 255 0"/>
+                <MarkerStick origin="RElbowOut" end="RUArmHigh" color="127 255 0"/>
+                <MarkerStick origin="RElbowOut" end="RWristOut" color="127 255 0"/>
+                <MarkerStick origin="RWristOut" end="RWristIn" color="127 255 0"/>
+                <MarkerStick origin="RWristOut" end="RHandOut" color="127 255 0"/>
+                <MarkerStick origin="WaistLFront" end="WaistLBack" color="222 0 255"/>
+                <MarkerStick origin="WaistRFront" end="WaistRBack" color="222 0 255"/>
+                <MarkerStick origin="WaistLBack" end="WaistRBack" color="222 0 255"/>
+            </MarkerSticks>
+        </skeleton>
+    </NodeAssets>
+</Profile>

@@ -1,0 +1,16 @@
+{
+    "model": "DropoutFF",
+    "x_inputs": "MCSW",
+    "y_targets": "HAND_LARM_XYZ",
+    "hidden_layer_count": 4,
+    "hidden_layer_size": 128,
+    "epochs": 200,
+    "batch_size": 32,
+    "learning_rate": 0.0001,
+    "dropout": 0.2,
+    "sequence_len": 1,
+    "normalize": false,
+    "hash": "367910ab031a81cb9872cd9254a1a1b803fd8692",
+    "Loss/train": 0.0383081655438066,
+    "Loss/test": 0.05243258112934855
+}
