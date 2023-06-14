@@ -2,52 +2,40 @@
 Sensor values from the smartwatch come in a fixed order.
 This lookup returns the position of specific measurements.
 """
-sw_imu_ppg_msg_lookup = {
+sw_standalone_imu_lookup = {
+    # timestamp
+    "h": 0,  # hour
+    "m": 1,  # minute
+    "s": 2,  # second
+    "ns": 3,  # nanosecond
+
     # orientation
-    "rotvec_w": 0,
-    "rotvec_x": 1,
-    "rotvec_y": 2,
-    "rotvec_z": 3,
+    "rotvec_w": 4,
+    "rotvec_x": 5,
+    "rotvec_y": 6,
+    "rotvec_z": 7,
 
     # linear acceleration
-    "lacc_x": 4,
-    "lacc_y": 5,
-    "lacc_z": 6,
+    "lacc_x": 8,
+    "lacc_y": 9,
+    "lacc_z": 10,
 
     # atmospheric pressure
-    "pres": 7,
+    "pres": 11,
 
     # gravity
-    "grav_x": 8,
-    "grav_y": 9,
-    "grav_z": 10,
+    "grav_x": 12,
+    "grav_y": 13,
+    "grav_z": 14,
 
     # gyroscope
-    "gyro_x": 11,
-    "gyro_y": 12,
-    "gyro_z": 13,
-
-    # PPG sensor
-    "hr_raw_00": 14,
-    "hr_raw_01": 15,
-    "hr_raw_02": 16,
-    "hr_raw_03": 17,
-    "hr_raw_04": 18,
-    "hr_raw_05": 19,
-    "hr_raw_06": 20,
-    "hr_raw_07": 21,
-    "hr_raw_08": 22,
-    "hr_raw_09": 23,
-    "hr_raw_10": 24,
-    "hr_raw_11": 25,
-    "hr_raw_12": 26,
-    "hr_raw_13": 27,
-    "hr_raw_14": 28,
-    "hr_raw_15": 29,
+    "gyro_x": 15,
+    "gyro_y": 16,
+    "gyro_z": 17,
 
     # calibration measurements
-    "init_pres": 30,  # pressure at chest height
-    "north_deg": 31  # forward facing direction
+    "init_pres": 18,  # pressure at chest height
+    "north_deg": 19  # forward facing direction
 }
 
 dual_ppg_msg_lookup = {

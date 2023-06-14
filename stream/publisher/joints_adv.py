@@ -65,7 +65,7 @@ def unity_stream_joints_adv(sensor_q: queue, bonemap: BoneMap, params: dict, str
     # historical data for time series predictions
     row_hist = []  # history of predictions for sequence data
     smooth_hist = []  # smoothing averages over a series of time steps
-    slp = messaging.sw_imu_ppg_msg_lookup
+    slp = messaging.sw_standalone_imu_lookup
 
     logging.info("[{}] starting Unity stream loop".format(TAG))
 

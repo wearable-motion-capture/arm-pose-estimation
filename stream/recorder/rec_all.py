@@ -53,7 +53,7 @@ class imu_ppg_recorder:
     def update_routine(self):
 
         start = datetime.now()
-        slp = messaging.sw_imu_ppg_msg_lookup
+        slp = messaging.sw_standalone_imu_lookup
         dat = 0
 
         # name of the dataset

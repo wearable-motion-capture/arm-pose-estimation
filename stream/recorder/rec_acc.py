@@ -40,7 +40,7 @@ class imu_acc_recorder:
 
         ani = animation.FuncAnimation(fig, self.animate, interval=0.1)
 
-        self.__slp = messaging.sw_imu_ppg_msg_lookup
+        self.__slp = messaging.sw_standalone_imu_lookup
         plt.tight_layout()
         plt.show()
 

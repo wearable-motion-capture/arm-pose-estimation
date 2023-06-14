@@ -4,9 +4,9 @@ import socket
 import queue
 from datetime import datetime
 import config
-from utility.messaging import sw_imu_ppg_msg_lookup
+from utility.messaging import sw_standalone_imu_lookup
 
-MSG_LEN = len(sw_imu_ppg_msg_lookup) * 4
+MSG_LEN = len(sw_standalone_imu_lookup) * 4
 IP = config.IP
 PORT = 46000
 TAG = "SW IMU"
