@@ -356,7 +356,7 @@ def load_model_from_params(params, save_path=os.path.join(config.paths["deploy"]
     else:
         raise UserWarning("No saved model found under checkpoint.pt or {} in {}".format(name, save_path))
 
-    model_state, _ = torch.load(full_path)  # model_state, optimizer_state
+    model_state, _ = torch.load(full_path, map_location="cpu")  # model_state, optimizer_state
     nn_model.load_state_dict(model_state)
     # if we load the model, we are typically not planning on training it further
     nn_model.eval()
