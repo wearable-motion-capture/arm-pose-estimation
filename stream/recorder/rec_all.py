@@ -19,7 +19,6 @@ class imu_ppg_recorder:
         self.__active = True
 
 
-
     def on_release(self, key):
         print('{0} release'.format(key))
         if hasattr(key, "char"):

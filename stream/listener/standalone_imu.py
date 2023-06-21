@@ -9,7 +9,7 @@ from utility.messaging import sw_standalone_imu_lookup
 MSG_LEN = len(sw_standalone_imu_lookup) * 4
 IP = config.IP
 PORT = 46000
-TAG = "SW IMU"
+TAG = "SW UDP IMU"
 
 
 def standalone_imu_listener(q: queue):

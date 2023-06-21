@@ -19,7 +19,7 @@ class imu_acc_recorder:
         self.__sensor_q = sensor_q
         fig, self.__ax = plt.subplots(nrows=3)
 
-        self.__transform = True
+        self.__transform = False
         plt.suptitle(f"transform: {self.__transform}")
 
         self.__thist = []
@@ -38,7 +38,7 @@ class imu_acc_recorder:
         self.__start = datetime.now()
         self.__step = 0
 
-        ani = animation.FuncAnimation(fig, self.animate, interval=0.1)
+        ani = animation.FuncAnimation(fig, self.animate, interval=0.1, frames=1)
 
         self.__slp = messaging.sw_standalone_imu_lookup
         plt.tight_layout()
@@ -97,7 +97,7 @@ class imu_acc_recorder:
 
             for ax in self.__ax:
                 ax.relim()
-                ax.set_ylim((-10, 10))
+                # x.set_ylim((-10, 10))
                 ax.autoscale_view()
 
         return self.__line_x, self.__line_y, self.__line_z

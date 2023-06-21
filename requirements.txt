@@ -2,3 +2,5 @@ transforms3d
 torch
 numpy
 pandas
+matplotlib
+pynput

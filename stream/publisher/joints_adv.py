@@ -18,7 +18,7 @@ from utility import messaging
 MONTE_CARLO_SAMPLES = 20
 IP = config.IP
 PORT = 50003
-MC_SMOOTHING = 10
+MC_SMOOTHING = 5
 TAG = "JOINTS ADV"
 
 

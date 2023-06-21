@@ -15,27 +15,32 @@ sw_standalone_imu_lookup = {
     "rotvec_y": 6,
     "rotvec_z": 7,
 
+    # gyro
+    "gyro_x": 8,
+    "gyro_y": 9,
+    "gyro_z": 10,
+
+    # velocity from lacc (1x integrated)
+    "lvel_x": 11,
+    "lvel_y": 12,
+    "lvel_z": 13,
+
     # linear acceleration
-    "lacc_x": 8,
-    "lacc_y": 9,
-    "lacc_z": 10,
+    "lacc_x": 14,
+    "lacc_y": 15,
+    "lacc_z": 16,
 
     # atmospheric pressure
-    "pres": 11,
+    "pres": 17,
 
     # gravity
-    "grav_x": 12,
-    "grav_y": 13,
-    "grav_z": 14,
-
-    # gyroscope
-    "gyro_x": 15,
-    "gyro_y": 16,
-    "gyro_z": 17,
+    "grav_x": 18,
+    "grav_y": 19,
+    "grav_z": 20,
 
     # calibration measurements
-    "init_pres": 18,  # pressure at chest height
-    "north_deg": 19  # forward facing direction
+    "init_pres": 21,  # pressure at chest height
+    "north_deg": 22  # forward facing direction
 }
 
 dual_ppg_msg_lookup = {
