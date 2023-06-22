@@ -6,7 +6,6 @@ import queue
 import numpy as np
 
 import config
-from data_types.bone_map import BoneMap
 from utility import transformations
 from utility import messaging
 from utility.transformations import sw_quat_to_global
@@ -17,7 +16,7 @@ TAG = "UDP BROADCAST"
 SMOOTHING = 5
 
 
-def dual_orientations_quat_only(sensor_q: queue, bonemap: BoneMap):
+def dual_orientations_quat_only(sensor_q: queue):
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # used to estimate delta time and processing speed in Hz
@@ -28,8 +27,6 @@ def dual_orientations_quat_only(sensor_q: queue, bonemap: BoneMap):
     slp = messaging.dual_imu_msg_lookup
 
     # use body measurements for transitions
-    # uarm_vec = bonemap.left_upper_arm_vec
-    # larm_vec = bonemap.left_lower_arm_vec
     larm_vec = np.array([-0.20, 0, 0])  # for nicer visualisations
     uarm_vec = np.array([-0.25, 0, 0])
 

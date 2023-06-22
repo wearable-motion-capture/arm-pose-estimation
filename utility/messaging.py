@@ -82,65 +82,78 @@ dual_imu_msg_lookup = {
     "sw_rotvec_y": 6,
     "sw_rotvec_z": 7,
 
+    # gyro
+    "sw_gyro_x": 8,
+    "sw_gyro_y": 9,
+    "sw_gyro_z": 10,
+
+    # velocity from lacc (1x integrated)
+    "sw_lvel_x": 11,
+    "sw_lvel_y": 12,
+    "sw_lvel_z": 13,
+
     # linear acceleration
-    "sw_lacc_x": 8,
-    "sw_lacc_y": 9,
-    "sw_lacc_z": 10,
+    "sw_lacc_x": 14,
+    "sw_lacc_y": 15,
+    "sw_lacc_z": 16,
 
     # atmospheric pressure
-    "sw_pres": 11,
+    "sw_pres": 17,
 
     # gravity
-    "sw_grav_x": 12,
-    "sw_grav_y": 13,
-    "sw_grav_z": 14,
-
-    # gyroscope
-    "sw_gyro_x": 15,
-    "sw_gyro_y": 16,
-    "sw_gyro_z": 17,
+    "sw_grav_x": 18,
+    "sw_grav_y": 19,
+    "sw_grav_z": 20,
 
     # phone data
     # timestamp
-    "ph_h": 18,  # hour
-    "ph_m": 19,  # minute
-    "ph_s": 20,  # second
-    "ph_ns": 21,  # nanosecond
+    "ph_h": 21,  # hour
+    "ph_m": 22,  # minute
+    "ph_s": 23,  # second
+    "ph_ns": 24,  # nanosecond
 
     # orientation
-    "ph_rotvec_w": 22,
-    "ph_rotvec_x": 23,
-    "ph_rotvec_y": 24,
-    "ph_rotvec_z": 25,
+    "ph_rotvec_w": 25,
+    "ph_rotvec_x": 26,
+    "ph_rotvec_y": 27,
+    "ph_rotvec_z": 28,
+
+    # gyro
+    "ph_gyro_x": 29,
+    "ph_gyro_y": 30,
+    "ph_gyro_z": 31,
+
+    # velocity from lacc (1x integrated)
+    "ph_lvel_x": 32,
+    "ph_lvel_y": 33,
+    "ph_lvel_z": 34,
 
     # linear acceleration
-    "ph_lacc_x": 26,
-    "ph_lacc_y": 27,
-    "ph_lacc_z": 28,
+    "ph_lacc_x": 35,
+    "ph_lacc_y": 36,
+    "ph_lacc_z": 37,
 
     # gravity
-    "ph_grav_x": 29,
-    "ph_grav_y": 30,
-    "ph_grav_z": 31,
+    "ph_grav_x": 38,
+    "ph_grav_y": 39,
+    "ph_grav_z": 40,
 
-    # gyroscope
-    "ph_gyro_x": 32,
-    "ph_gyro_y": 33,
-    "ph_gyro_z": 34,
+    # atmospheric pressure
+    "ph_pres": 41,
 
     # calibration data
     # smartwatch forward
-    "sw_forward_w": 35,
-    "sw_forward_x": 36,
-    "sw_forward_y": 37,
-    "sw_forward_z": 38,
+    "sw_forward_w": 42,
+    "sw_forward_x": 43,
+    "sw_forward_y": 44,
+    "sw_forward_z": 45,
 
     # phone forward
-    "ph_forward_w": 39,
-    "ph_forward_x": 40,
-    "ph_forward_y": 41,
-    "ph_forward_z": 42,
+    "ph_forward_w": 46,
+    "ph_forward_x": 47,
+    "ph_forward_y": 48,
+    "ph_forward_z": 49,
 
     # rel pressure
-    "sw_rel_pres": 43
+    "sw_rel_pres": 50
 }
