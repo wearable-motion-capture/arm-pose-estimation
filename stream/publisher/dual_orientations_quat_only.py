@@ -1,6 +1,7 @@
 import logging
 import socket
 import struct
+import time
 from datetime import datetime
 import queue
 import numpy as np
@@ -37,8 +38,9 @@ def dual_orientations_quat_only(sensor_q: queue):
     while True:
 
         # get the most recent smartwatch data row from the queue
-        row = None
-        while not sensor_q.empty():
+        row = sensor_q.get()
+
+        while sensor_q.qsize() > 5:
             row = sensor_q.get()
 
         # process received data
@@ -143,3 +145,4 @@ def dual_orientations_quat_only(sensor_q: queue):
 
             udp_socket.sendto(msg, (IP, PORT))
             dat += 1
+            time.sleep(0.01)

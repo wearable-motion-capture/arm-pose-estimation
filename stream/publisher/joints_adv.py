@@ -15,10 +15,10 @@ from data_types.bone_map import BoneMap
 from utility import transformations
 from utility import messaging
 
-MONTE_CARLO_SAMPLES = 20
+MONTE_CARLO_SAMPLES = 25
 IP = config.IP
 PORT = 50003
-MC_SMOOTHING = 5
+MC_SMOOTHING = 8
 TAG = "JOINTS ADV"
 
 
