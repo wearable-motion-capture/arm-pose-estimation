@@ -8,7 +8,8 @@ Associated repositories:
 
 ## Install and Use
 
-To utilize the "Dual" mode, 
+To utilize the "Dual" mode (smartwatch + smartphone), run the `stream_dual.py` script. 
+For "Standalone" mode (smartwatch), run the `stream_standalone.py` script. 
 
 Please read
 the [step-by-step instructions](https://docs.google.com/document/d/1ayMBF9kDCB9rlcrqR0sPumJhIVJgOF-SENTdoE4a6DI/edit?usp=sharing) for a detailed instruction guide.
