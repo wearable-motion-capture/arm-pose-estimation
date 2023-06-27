@@ -9,7 +9,6 @@ Associated repositories:
 ## Install and Use
 
 To utilize the "Dual" mode (smartwatch + smartphone), run the [`stream_dual.py`](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/stream_dual.py) script. 
-
 For "Standalone" mode (smartwatch), run the [`stream_standalone.py`](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/stream_standalone.py) script. 
 
 Please read
