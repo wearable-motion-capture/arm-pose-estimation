@@ -15,7 +15,7 @@ TAG = "REC ACC"
 
 
 class imu_acc_recorder:
-    def __init__(self, sensor_q: queue):
+    def __init__(self, sensor_q: queue, standalone_mode: bool):
         self.__sensor_q = sensor_q
         fig, self.__ax = plt.subplots(nrows=3)
 
@@ -39,8 +39,12 @@ class imu_acc_recorder:
         self.__step = 0
 
         ani = animation.FuncAnimation(fig, self.animate, interval=0.1, frames=1)
+        self.__standalone = standalone_mode
+        if standalone_mode:
+            self.__slp = messaging.sw_standalone_imu_lookup
+        else:
+            self.__slp = messaging.dual_imu_msg_lookup
 
-        self.__slp = messaging.sw_standalone_imu_lookup
         plt.tight_layout()
         plt.show()
 
@@ -54,20 +58,36 @@ class imu_acc_recorder:
         # process received data
         if row is not None:
             sec = (datetime.now() - self.__start).total_seconds()
-            lacc = [
-                row[self.__slp["lacc_x"]],
-                row[self.__slp["lacc_y"]],
-                row[self.__slp["lacc_z"]]
-            ]
+
+            if self.__standalone:
+                lacc = [
+                    row[self.__slp["lacc_x"]],
+                    row[self.__slp["lacc_y"]],
+                    row[self.__slp["lacc_z"]]
+                ]
+            else:
+                lacc = [
+                    row[self.__slp["ph_gyro_x"]],
+                    row[self.__slp["ph_gyro_y"]],
+                    row[self.__slp["ph_gyro_z"]]
+                ]
 
             if self.__transform:
-                sw_rot = transformations.sw_quat_to_global(np.array([
-                    row[self.__slp["rotvec_w"]],
-                    row[self.__slp["rotvec_x"]],
-                    row[self.__slp["rotvec_y"]],
-                    row[self.__slp["rotvec_z"]]
-                ]))
-
+                if self.__standalone:
+                    rotvec = np.array([
+                        row[self.__slp["sw_rotvec_w"]],
+                        row[self.__slp["sw_rotvec_x"]],
+                        row[self.__slp["sw_rotvec_y"]],
+                        row[self.__slp["sw_rotvec_z"]]
+                    ])
+                else:
+                    rotvec = np.array([
+                        row[self.__slp["rotvec_w"]],
+                        row[self.__slp["rotvec_x"]],
+                        row[self.__slp["rotvec_y"]],
+                        row[self.__slp["rotvec_z"]]
+                    ])
+                sw_rot = transformations.sw_quat_to_global(rotvec)
                 # quaternion to rotate smartwatch coord y-axis towards north
                 north_rad = -row[self.__slp["north_deg"]] * 0.01745329
                 north_quat = transformations.euler_to_quat(np.array([0, north_rad, 0], dtype=np.float64))
