@@ -7,7 +7,9 @@ import warnings
 warnings.filterwarnings("error")
 
 
-# own derivative and integral
+def moving_average(x, w) -> np.array:
+    return np.convolve(x, np.ones(w), 'same') / w
+
 def derive_series(y, x, axis=0) -> np.array:
     """
     :param y: series to derive
@@ -220,9 +222,6 @@ def quat_to_euler(q: np.array):
             a_y = np.copysign(math.pi / 2, sinp)
         else:
             a_y = np.arcsin(sinp)
-    # a_y = np.where(np.abs(sinp) >= 1,
-    #                np.copysign(math.pi / 2, sinp),
-    #                np.arcsin(sinp))
 
     # yaw (z-axis rotation)
     siny_cosp = 2 * (q0 * q3 + q1 * q2)
@@ -445,14 +444,14 @@ def quat_to_rot_mat_1x9(quat: np.array):
         X = x * s
         Y = y * s
         Z = z * s
-        wX = w * X;
-        wY = w * Y;
+        wX = w * X
+        wY = w * Y
         wZ = w * Z
-        xX = x * X;
-        xY = x * Y;
+        xX = x * X
+        xY = x * Y
         xZ = x * Z
-        yY = y * Y;
-        yZ = y * Z;
+        yY = y * Y
+        yZ = y * Z
         zZ = z * Z
         return np.array(
             [[1.0 - (yY + zZ), xY - wZ, xZ + wY],

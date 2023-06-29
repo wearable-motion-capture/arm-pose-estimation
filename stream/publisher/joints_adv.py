@@ -15,10 +15,10 @@ from data_types.bone_map import BoneMap
 from utility import transformations
 from utility import messaging
 
-MONTE_CARLO_SAMPLES = 20
+MONTE_CARLO_SAMPLES = 25
 IP = config.IP
 PORT = 50003
-MC_SMOOTHING = 10
+MC_SMOOTHING = 8
 TAG = "JOINTS ADV"
 
 
@@ -90,21 +90,21 @@ def unity_stream_joints_adv(sensor_q: queue, bonemap: BoneMap, params: dict, str
             prev_time = now
 
             # process the data
-            r_pres = row[slp["pres"]] - \
-                     row[slp["init_pres"]]  # pressure - calibrated initial pressure = relative pressure
+            r_pres = row[slp["sw_pres"]] - \
+                     row[slp["sw_init_pres"]]  # pressure - calibrated initial pressure = relative pressure
             # smartwatch rotation in our global coord system
             sw_rot = transformations.sw_quat_to_global(
                 np.array([
-                    row[slp["rotvec_w"]],
-                    row[slp["rotvec_x"]],
-                    row[slp["rotvec_y"]],
-                    row[slp["rotvec_z"]]
+                    row[slp["sw_rotvec_w"]],
+                    row[slp["sw_rotvec_x"]],
+                    row[slp["sw_rotvec_y"]],
+                    row[slp["sw_rotvec_z"]]
                 ])
             )
 
             # quaternion to rotate smartwatch forward towards north
             north_quat = transformations.euler_to_quat(
-                np.array([0, np.radians(-row[slp["north_deg"]]), 0], dtype=np.float64)
+                np.array([0, np.radians(-row[slp["sw_north_deg"]]), 0], dtype=np.float64)
             )
 
             # now align to known North Pole position. We have our rh rotation
@@ -121,15 +121,15 @@ def unity_stream_joints_adv(sensor_q: queue, bonemap: BoneMap, params: dict, str
                 delta_t,
                 r_pres,
                 lower_arm_rot_6dof_rh,
-                row[slp["lacc_x"]],
-                row[slp["lacc_y"]],
-                row[slp["lacc_z"]],
-                row[slp["gyro_x"]],
-                row[slp["gyro_y"]],
-                row[slp["gyro_z"]],
-                row[slp["grav_x"]],
-                row[slp["grav_y"]],
-                row[slp["grav_z"]],
+                row[slp["sw_lacc_x"]],
+                row[slp["sw_lacc_y"]],
+                row[slp["sw_lacc_z"]],
+                row[slp["sw_gyro_x"]],
+                row[slp["sw_gyro_y"]],
+                row[slp["sw_gyro_z"]],
+                row[slp["sw_grav_x"]],
+                row[slp["sw_grav_y"]],
+                row[slp["sw_grav_z"]],
                 bonemap.left_lower_arm_length,
                 bonemap.left_upper_arm_length
             ])

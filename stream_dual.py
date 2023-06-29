@@ -1,8 +1,6 @@
 import logging
 import queue
 import threading
-
-from data_types.bone_map import BoneMap
 from stream.listener.dual_imu import dual_imu_listener
 
 from stream.publisher.dual_orientations_quat_only import dual_orientations_quat_only
@@ -13,7 +11,6 @@ logging.basicConfig(level=logging.INFO)
 
 # listener and predictor run in separate threads. Listener fills the queue, predictor empties it
 sensor_que = queue.Queue()
-bonemap = BoneMap("Skeleton_21")
 
 # the listener fills the que with transmitted smartwatch and phone data
 sensor_listener = threading.Thread(
@@ -34,6 +31,6 @@ sensor_listener.start()
 # this thread broadcasts lower and upper arm orientations via UDP
 udp_publisher = threading.Thread(
     target=dual_orientations_quat_only,
-    args=(sensor_que, bonemap,)
+    args=(sensor_que,)
 )
 udp_publisher.start()
