@@ -3,45 +3,45 @@ Sensor values from the smartwatch come in a fixed order.
 This lookup returns the position of specific measurements.
 """
 sw_standalone_imu_lookup = {
-    "dt" : 0, # delta times
     # timestamp
-    "h": 1,  # hour
-    "m": 2,  # minute
-    "s": 3,  # second
-    "ns": 4,  # nanosecond
+    "sw_dt": 0,  # delta time since last obs
+    "sw_h": 1,  # hour
+    "sw_m": 2,  # minute
+    "sw_s": 3,  # second
+    "sw_ns": 4,  # nanosecond
 
     # orientation
-    "rotvec_w": 5,
-    "rotvec_x": 6,
-    "rotvec_y": 7,
-    "rotvec_z": 8,
+    "sw_rotvec_w": 5,
+    "sw_rotvec_x": 6,
+    "sw_rotvec_y": 7,
+    "sw_rotvec_z": 8,
 
     # gyro
-    "gyro_x": 9,
-    "gyro_y": 10,
-    "gyro_z": 11,
+    "sw_gyro_x": 9,
+    "sw_gyro_y": 10,
+    "sw_gyro_z": 11,
 
     # velocity from lacc (1x integrated)
-    "lvel_x": 12,
-    "lvel_y": 13,
-    "lvel_z": 14,
+    "sw_lvel_x": 12,
+    "sw_lvel_y": 13,
+    "sw_lvel_z": 14,
 
     # linear acceleration
-    "lacc_x": 15,
-    "lacc_y": 16,
-    "lacc_z": 17,
+    "sw_lacc_x": 15,
+    "sw_lacc_y": 16,
+    "sw_lacc_z": 17,
 
     # atmospheric pressure
-    "pres": 18,
+    "sw_pres": 18,
 
     # gravity
-    "grav_x": 19,
-    "grav_y": 20,
-    "grav_z": 21,
+    "sw_grav_x": 19,
+    "sw_grav_y": 20,
+    "sw_grav_z": 21,
 
     # calibration measurements
-    "init_pres": 22,  # pressure at chest height
-    "north_deg": 23  # forward facing direction
+    "sw_init_pres": 22,  # pressure at chest height
+    "sw_north_deg": 23  # forward facing direction
 }
 
 dual_ppg_msg_lookup = {
@@ -71,9 +71,8 @@ dual_ppg_msg_lookup = {
 }
 
 dual_imu_msg_lookup = {
-    "sw_dt": 0,
-
-    # timestamp
+    # smartwatch data
+    "sw_dt": 0,  # delta time since last obs
     "sw_h": 1,  # hour
     "sw_m": 2,  # minute
     "sw_s": 3,  # second
@@ -109,9 +108,7 @@ dual_imu_msg_lookup = {
     "sw_grav_z": 21,
 
     # phone data
-    "ph_dt": 22,
-
-    # timestamp
+    "ph_dt": 22,  # delta time since last obs
     "ph_h": 23,  # hour
     "ph_m": 24,  # minute
     "ph_s": 25,  # second

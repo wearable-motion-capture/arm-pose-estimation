@@ -8,7 +8,7 @@ from utility import messaging, transformations
 TAG = "REC ACC"
 
 
-class imu_acc_recorder:
+class ImuAccVisualizer:
     def __init__(self, sensor_q: queue, standalone_mode: bool):
         self.__sensor_q = sensor_q
         fig, self.__ax = plt.subplots(nrows=3)
