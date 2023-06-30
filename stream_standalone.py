@@ -3,7 +3,7 @@ import queue
 import threading
 
 from data_types.bone_map import BoneMap
-from stream.listener.standalone_imu import standalone_imu_listener
+from stream.listener.watch_imu import listen_for_watch_imu
 from stream.publisher.joints_adv import unity_stream_joints_adv
 from utility import deploy_models
 
@@ -17,7 +17,7 @@ sensor_que = queue.Queue()
 
 # the listener fills the que with transmitted smartwatch data
 sensor_listener = threading.Thread(
-    target=standalone_imu_listener,
+    target=listen_for_watch_imu,
     args=(sensor_que,)
 )
 sensor_listener.start()
