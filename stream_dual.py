@@ -1,7 +1,7 @@
 import logging
 import queue
 import threading
-from stream.listener.dual_imu import dual_imu_listener
+from stream.listener.watch_and_phone_imu import listen_for_watch_and_phone_imu
 
 from stream.publisher.dual_orientations_quat_only import dual_orientations_quat_only
 
@@ -14,7 +14,7 @@ sensor_que = queue.Queue()
 
 # the listener fills the que with transmitted smartwatch and phone data
 sensor_listener = threading.Thread(
-    target=dual_imu_listener,
+    target=listen_for_watch_and_phone_imu,
     args=(sensor_que,)
 )
 sensor_listener.start()

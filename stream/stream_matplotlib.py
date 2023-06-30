@@ -2,11 +2,10 @@ import logging
 import queue
 import threading
 
-from stream.listener.dual_imu import dual_imu_listener
-from stream.listener.standalone_imu import standalone_imu_listener
+from stream.listener.watch_and_phone_imu import listen_for_watch_and_phone_imu
+from stream.listener.watch_imu import listen_for_watch_imu
 from stream.recorder.acc_ball_vis import plot_acc_segment
 
-from stream.recorder.gyro_ball_vis import plot_gyro_segment
 from stream.visualizer.imu_acc_vis import ImuAccVisualizer
 
 if __name__ == "__main__":
@@ -21,7 +20,7 @@ if __name__ == "__main__":
     if standalone_mode:
         # the listener fills the que with transmitted smartwatch data
         sensor_listener = threading.Thread(
-            target=standalone_imu_listener,
+            target=listen_for_watch_imu,
             args=(sensor_que,)
         )
         sensor_listener.start()
@@ -30,7 +29,7 @@ if __name__ == "__main__":
     else:
         # the listener fills the que with transmitted smartwatch data
         sensor_listener = threading.Thread(
-            target=dual_imu_listener,
+            target=listen_for_watch_and_phone_imu,
             args=(sensor_que,)
         )
         sensor_listener.start()
