@@ -36,7 +36,7 @@ def get_tab_str(tab_str, level):
     out_tab_str=""
     loop_range = range(0,level)
     for _ in loop_range:
-        out_tab_str+=tab_str
+        out_tab_str+=str(tab_str)
     return out_tab_str
 
 def add_lists(totals, totals_tmp):
