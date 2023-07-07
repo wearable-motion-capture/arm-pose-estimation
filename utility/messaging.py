@@ -1,3 +1,13 @@
+motive_bone_ids = {
+    "Hips": 1,
+    "Spine": 2,
+    "Chest": 3,
+    "LeftShoulder": 6,
+    "LeftUpperArm": 7,
+    "LeftLowerArm": 8,
+    "LeftHand": 9
+}
+
 """
 Sensor values from the smartwatch come in a fixed order.
 This lookup returns the position of specific measurements.
