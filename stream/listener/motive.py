@@ -13,11 +13,13 @@ from utility.messaging import motive_bone_ids
 class MotiveListener:
     def __init__(self):
 
-        self.TAG = "MotiveListener"
+        self.__tag = "MOTIVE LISTENER"
         self.__frame_count = 0  # for Hz estimations
 
         # stores position and rotation of bones of interest
         self.__bones = {}
+
+        self.__smallest_id = None  # motive sets the skeleton body IDs incrementally. We reduce them to start with 1
 
         self.__streaming_client = NatNetClient()
 
@@ -30,10 +32,10 @@ class MotiveListener:
         self.__streaming_client.set_print_level(
             0)  # Showing only received frame numbers and suppressing data descriptions
 
-    def start(self):
+    def stream_loop(self):
         # Start up the streaming client now that the callbacks are set up.
         # This will run perpetually, and operate on a separate thread.
-        logging.info("Start motive streaming client")
+        logging.info("[{}] Start motive streaming client".format(self.__tag))
         try:
             is_running = self.__streaming_client.run()
 
@@ -48,7 +50,7 @@ class MotiveListener:
             # loop forever until an error occurs
             while is_looping:
                 time.sleep(5)
-                logging.info("[{}] {} Hz".format(self.TAG, self.__frame_count / 5))
+                logging.info("[{}] {} Hz".format(self.__tag, self.__frame_count / 5))
                 self.__frame_count = 0
         finally:
             self.__streaming_client.shutdown()
@@ -60,13 +62,15 @@ class MotiveListener:
         :return:
         """
         self.__frame_count += 1
-
         # write bones into new dictionary and replace old one
         new_bones = {}
         rb_dat = mocap_data.rigid_body_data
+        # find the smallest ID
+        if self.__smallest_id is None:
+            self.__smallest_id = min([x.id_num for x in rb_dat.rigid_body_list]) - 1
         for rb in rb_dat.rigid_body_list:
             if rb.tracking_valid:
-                new_bones[rb.id_num] = [np.array(rb.pos), np.array(rb.rot)]
+                new_bones[rb.id_num - self.__smallest_id] = [np.array(rb.pos), np.array(rb.rot)]
         self.__bones = new_bones
 
     def get_ground_truth(self):
@@ -84,6 +88,7 @@ class MotiveListener:
             larm_orig_g = ts.mocap_pos_to_global(cb[motive_bone_ids["LeftLowerArm"]][0])
             hand_orig_g = ts.mocap_pos_to_global(cb[motive_bone_ids["LeftHand"]][0])
         except KeyError:
+            self.__smallest_id = None  # IDs could be wrong because of ID change
             return None
 
         # estimate rotations relative to hip
@@ -96,13 +101,19 @@ class MotiveListener:
 
         return np.hstack([hand_orig_rua, larm_rot_rh, larm_origin_rua, uarm_rot_rh])
 
-    # def update_rigid_body_frame(self, new_id, position, rotation):
-    #     """
-    #     This is a callback function that gets connected to the NatNet client. It is called once per rigid body per frame
-    #     :param new_id:
-    #     :param position:
-    #     :param rotation:
-    #     :return:
-    #     """
-    #     if new_id in self.__bones:
-    #         self.__bones[new_id] = [np.array(position), np.array(rotation)]
+    @staticmethod
+    def get_ground_truth_header():
+        """
+        descriptive labels for what get_ground_truth() returns
+        :return:
+        """
+        return [
+            # hand position
+            "hand_orig_rua_x", "hand_orig_rua_y", "hand_orig_rua_z",
+            # larm rotation
+            "larm_rot_rh_w", "larm_rot_rh_x", "larm_rot_rh_y", "larm_rot_rh_z",
+            # elbow position (larm origin)
+            "larm_orig_rua_x", "larm_orig_rua_y", "larm_orig_rua_z",
+            # uarm rotation
+            "uarm_rot_rh_w", "uarm_rot_rh_x", "uarm_rot_rh_y", "uarm_rot_rh_z",
+        ]

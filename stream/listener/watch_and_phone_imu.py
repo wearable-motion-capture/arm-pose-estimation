@@ -12,7 +12,7 @@ from utility.messaging import dual_imu_msg_lookup
 def listen_for_watch_and_phone_imu(q: queue):
     msg_size = len(dual_imu_msg_lookup) * 4
     ip = config.IP
-    port = 65000
+    port = config.WATCH_PHONE_PORT
     log_tag = "DUAL IMU"
 
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

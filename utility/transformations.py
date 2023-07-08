@@ -328,7 +328,11 @@ def mocap_quat_to_global(q: np.array):
     :param q: quaternion as [x,y,z,w]
     :return: quaternion as [w,x,y,z]
     """
-    mc_q = np.array([q[3], q[0], q[1], q[2]])
+    # deal with columns of data
+    if len(q.shape) > 1:
+        mc_q = np.array([q[:, 3], q[:, 0], q[:, 1], q[:, 2]])
+    else:
+        mc_q = np.array([q[3], q[0], q[1], q[2]])
     # rotate by -90 around y-axis to align z-axis of both coord systems ...
     wordl_quat = np.array([-0.7071068, 0, 0.7071068, 0], dtype=np.float64)
     # then flip x-axis and reverse angle to change coord system orientation
