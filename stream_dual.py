@@ -3,7 +3,7 @@ import queue
 import threading
 from stream.listener.watch_and_phone_imu import listen_for_watch_and_phone_imu
 
-from stream.publisher.dual_orientations_quat_only import dual_orientations_quat_only
+from stream.publisher.watch_phone_to_unity import WatchPhoneToUnity
 
 # from stream.publisher.dual_orientations import dual_orientations
 
@@ -29,8 +29,9 @@ sensor_listener.start()
 # keyword_trigger.start()
 
 # this thread broadcasts lower and upper arm orientations via UDP
+wp2u = WatchPhoneToUnity()
 udp_publisher = threading.Thread(
-    target=dual_orientations_quat_only,
+    target=wp2u.stream_loop,
     args=(sensor_que,)
 )
 udp_publisher.start()

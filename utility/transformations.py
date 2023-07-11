@@ -10,6 +10,7 @@ warnings.filterwarnings("error")
 def moving_average(x, w) -> np.array:
     return np.convolve(x, np.ones(w), 'same') / w
 
+
 def derive_series(y, x, axis=0) -> np.array:
     """
     :param y: series to derive
@@ -247,6 +248,7 @@ def sw_quat_to_global(q: np.array):
         # if it is a single quaternion
         return np.array([-q[0], q[1], q[3], q[2]], dtype=np.float64)
 
+
 def sw_pos_to_global(p: np.array):
     """
     smartwatch coord system to unity coord system
@@ -305,7 +307,7 @@ def quat_a_to_b(vec_a: np.array, vec_b: np.array):
         ndeg[cross_idx] = xyz
 
         q = np.hstack([w, ndeg]) / 2.
-        return q / np.linalg.norm(q, axis=1)[:,np.newaxis] # normalize again
+        return q / np.linalg.norm(q, axis=1)[:, np.newaxis]  # normalize again
     else:
         n_a = vec_a / np.linalg.norm(vec_a)
         n_b = vec_b / np.linalg.norm(vec_b)
@@ -320,17 +322,21 @@ def quat_a_to_b(vec_a: np.array, vec_b: np.array):
         return q / np.linalg.norm(q)  # normalize again
 
 
-
 def mocap_quat_to_global(q: np.array):
     """
     Optitrack quaternion to rotation in world coords
-    :param q: quaternion as [w,x,y,z]
+    :param q: quaternion as [x,y,z,w]
     :return: quaternion as [w,x,y,z]
     """
+    # deal with columns of data
+    if len(q.shape) > 1:
+        mc_q = np.array([q[:, 3], q[:, 0], q[:, 1], q[:, 2]])
+    else:
+        mc_q = np.array([q[3], q[0], q[1], q[2]])
     # rotate by -90 around y-axis to align z-axis of both coord systems ...
     wordl_quat = np.array([-0.7071068, 0, 0.7071068, 0], dtype=np.float64)
     # then flip x-axis and reverse angle to change coord system orientation
-    n_q = q * np.array([-1, -1, 1, 1], dtype=np.float64)
+    n_q = mc_q * np.array([-1, -1, 1, 1], dtype=np.float64)
     return hamilton_product(wordl_quat, n_q)
 
 

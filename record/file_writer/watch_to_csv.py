@@ -6,10 +6,9 @@ from pathlib import Path
 import config
 from utility import messaging
 
-TAG = "REC ALL"
-
 
 def watch_to_csv(sensor_q: queue):
+    tag = "REC WATCH"
     slp = messaging.sw_standalone_imu_lookup
     header = ",".join(slp.keys())
 
@@ -20,7 +19,7 @@ def watch_to_csv(sensor_q: queue):
 
     filename = "watch_rec_{}.csv".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
 
-    logging.info("[{}] starting to write to {}".format(TAG, filename))
+    logging.info("[{}] starting to write to {}".format(tag, filename))
     start = datetime.now()
     count = 0
     with open(dirpath / filename, 'w') as csvfile:
@@ -36,4 +35,4 @@ def watch_to_csv(sensor_q: queue):
             now = datetime.now()
             if (now - start).seconds >= 5:
                 start = now
-                logging.info("[{}] wrote {} lines".format(TAG, count))
+                logging.info("[{}] wrote {} lines".format(tag, count))
