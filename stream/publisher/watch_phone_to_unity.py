@@ -7,13 +7,14 @@ import queue
 import numpy as np
 
 import config
+from data_types.bone_map import BoneMap
 from utility import transformations
 from utility import messaging
 from utility.transformations import sw_quat_to_global
 
 
 class WatchPhoneToUnity:
-    def __init__(self, smooth: int = 5):
+    def __init__(self, smooth: int = 5, bonemap: BoneMap = None):
 
         self.__tag = "WATCH PHONE TO UNITY"
         self.__port = config.UNITY_WATCH_PHONE_PORT
@@ -27,8 +28,13 @@ class WatchPhoneToUnity:
         self.__slp = messaging.dual_imu_msg_lookup
 
         # use body measurements for transitions
-        self.__larm_vec = np.array([-0.22, 0, 0])  # for nicer visualisations
-        self.__uarm_vec = np.array([-0.3, 0, 0])
+        if bonemap is None:
+            # default values
+            self.__larm_vec = np.array([-0.22, 0, 0])  # for nicer visualisations
+            self.__uarm_vec = np.array([-0.3, 0, 0])
+        else:
+            self.__larm_vec = bonemap.left_lower_arm_vec
+            self.__uarm_vec = bonemap.left_upper_arm_vec
 
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -112,6 +118,7 @@ class WatchPhoneToUnity:
         # this is the list for the actual joint positions and rotations
         return list(
             np.hstack([
+                avg_larm_rot_r,  # in this case, hand rotation is larm rotation
                 hand_origin_rua,
                 avg_larm_rot_r,
                 larm_origin_rua,

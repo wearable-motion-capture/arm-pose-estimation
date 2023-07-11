@@ -80,6 +80,7 @@ class MotiveListener:
         try:
             # limb rotations of interest
             hip_rot_g = ts.mocap_quat_to_global(cb[motive_bone_ids["Hips"]][1])
+            hand_rot_g = ts.mocap_quat_to_global(cb[motive_bone_ids["LeftHand"]][1])
             uarm_rot_g = ts.mocap_quat_to_global(cb[motive_bone_ids["LeftUpperArm"]][1])
             larm_rot_g = ts.mocap_quat_to_global(cb[motive_bone_ids["LeftLowerArm"]][1])
 
@@ -92,6 +93,7 @@ class MotiveListener:
             return None
 
         # estimate rotations relative to hip
+        hand_rot_rh = ts.hamilton_product(ts.quat_invert(hip_rot_g), hand_rot_g)
         larm_rot_rh = ts.hamilton_product(ts.quat_invert(hip_rot_g), larm_rot_g)
         uarm_rot_rh = ts.hamilton_product(ts.quat_invert(hip_rot_g), uarm_rot_g)
 
@@ -99,7 +101,7 @@ class MotiveListener:
         larm_origin_rua = ts.quat_rotate_vector(ts.quat_invert(hip_rot_g), np.array(larm_orig_g - uarm_orig_g))
         hand_orig_rua = ts.quat_rotate_vector(ts.quat_invert(hip_rot_g), np.array(hand_orig_g - uarm_orig_g))
 
-        return np.hstack([hand_orig_rua, larm_rot_rh, larm_origin_rua, uarm_rot_rh])
+        return np.hstack([hand_rot_rh, hand_orig_rua, larm_rot_rh, larm_origin_rua, uarm_rot_rh])
 
     @staticmethod
     def get_ground_truth_header():
@@ -108,6 +110,8 @@ class MotiveListener:
         :return:
         """
         return [
+            # hand rotation
+            "hand_rot_rh_w", "hand_rot_rh_x", "hand_rot_rh_y", "hand_rot_rh_z",
             # hand position
             "hand_orig_rua_x", "hand_orig_rua_y", "hand_orig_rua_z",
             # larm rotation
