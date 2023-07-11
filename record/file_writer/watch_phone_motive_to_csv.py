@@ -7,7 +7,7 @@ import numpy as np
 
 import config
 from stream.listener.motive import MotiveListener
-from stream.publisher.dual_orientations_quat_only import WatchPhoneToUnity
+from stream.publisher.watch_phone_to_unity import WatchPhoneToUnity
 from stream.publisher.motive_gt import MotiveToUnity
 from utility import messaging
 

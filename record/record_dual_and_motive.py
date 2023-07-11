@@ -5,7 +5,7 @@ import threading
 from record.file_writer.watch_phone_motive_to_csv import watch_phone_motive_to_csv
 from stream.listener.motive import MotiveListener
 from stream.listener.watch_and_phone_imu import listen_for_watch_and_phone_imu
-from stream.publisher.dual_orientations_quat_only import WatchPhoneToUnity
+from stream.publisher.watch_phone_to_unity import WatchPhoneToUnity
 from stream.publisher.motive_gt import MotiveToUnity
 
 # start ros node

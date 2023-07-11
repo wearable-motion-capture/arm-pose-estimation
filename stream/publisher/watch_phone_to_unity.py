@@ -27,8 +27,8 @@ class WatchPhoneToUnity:
         self.__slp = messaging.dual_imu_msg_lookup
 
         # use body measurements for transitions
-        self.__larm_vec = np.array([-0.20, 0, 0])  # for nicer visualisations
-        self.__uarm_vec = np.array([-0.25, 0, 0])
+        self.__larm_vec = np.array([-0.22, 0, 0])  # for nicer visualisations
+        self.__uarm_vec = np.array([-0.3, 0, 0])
 
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
