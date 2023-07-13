@@ -10,7 +10,7 @@ from utility.messaging import sw_standalone_imu_lookup
 def listen_for_watch_imu(q: queue):
     msg_size = len(sw_standalone_imu_lookup) * 4
     ip = config.IP
-    port = 46000
+    port = config.WATCH_PORT
     log_tag = "SW UDP IMU"
 
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

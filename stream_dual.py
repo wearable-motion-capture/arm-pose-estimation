@@ -5,8 +5,6 @@ from stream.listener.watch_and_phone_imu import listen_for_watch_and_phone_imu
 
 from stream.publisher.watch_phone_to_unity import WatchPhoneToUnity
 
-# from stream.publisher.dual_orientations import dual_orientations
-
 logging.basicConfig(level=logging.INFO)
 
 # listener and predictor run in separate threads. Listener fills the queue, predictor empties it
@@ -18,15 +16,6 @@ sensor_listener = threading.Thread(
     args=(sensor_que,)
 )
 sensor_listener.start()
-
-# this listener fills the keyword_queue with transcribed mic data
-# keywords are in utility.voice_commands import commands
-# keyword_que = queue.Queue()
-# keyword_trigger = threading.Thread(
-#     target=voice_command_listener,
-#     args=(keyword_que,)
-# )
-# keyword_trigger.start()
 
 # this thread broadcasts lower and upper arm orientations via UDP
 wp2u = WatchPhoneToUnity()

@@ -12,6 +12,12 @@ paths = {
 IP = "192.168.1.138"
 # IP of machine running motive (in case you use mocap)
 MOTIVE_SERVER = "192.168.1.116"
+
+# ports for streaming to unity
 UNITY_GT_PORT = 50005
 UNITY_WATCH_PHONE_PORT = 50003
+UNITY_WATCH_PORT = 50003
+
+# Listener ports for receiving data
 WATCH_PHONE_PORT = 65000
+WATCH_PORT = 46000
