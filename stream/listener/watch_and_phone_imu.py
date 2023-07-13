@@ -2,9 +2,7 @@ import array
 import logging
 import socket
 import queue
-
 from datetime import datetime
-
 import config
 from utility.messaging import dual_imu_msg_lookup
 
@@ -21,12 +19,12 @@ def listen_for_watch_and_phone_imu(q: queue):
     # begin receiving the data
     dat, start = 0, datetime.now()
     while 1:
-        # second-wise updates to determine message frequency
+        # log message frequency updates
         now = datetime.now()
         if (now - start).seconds >= 5:
             logging.info("[{}] {} Hz".format(log_tag, dat / 5))
             dat, start = 0, now
-        # this function waits
+        # receive and queue the data
         data, _ = s.recvfrom(msg_size)
         if not data:
             logging.info("[{}] Stream closed".format(log_tag))

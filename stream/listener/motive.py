@@ -29,8 +29,8 @@ class MotiveListener:
 
         # Configure the streaming client to call our rigid body handler on the emulator to send data out.
         self.__streaming_client.new_frame_listener = self.receive_new_frame
-        self.__streaming_client.set_print_level(
-            0)  # Showing only received frame numbers and suppressing data descriptions
+        # Showing only received frame numbers and suppressing data descriptions
+        self.__streaming_client.set_print_level(0)
 
     def stream_loop(self):
         # Start up the streaming client now that the callbacks are set up.

@@ -19,8 +19,8 @@ import struct
 from threading import Thread
 import copy
 import time
-import nat_net.DataDescriptions as DataDescriptions
-import nat_net.MoCapData as MoCapData
+import nat_net.data_descriptions as DataDescriptions
+import nat_net.mocap_data as MoCapData
 
 
 def trace(*args):
@@ -573,7 +573,7 @@ class NatNetClient:
                 offset += 4
 
                 trace_mf("\tForce Plate %3.1d ID: %3.1d Num Channels: %3.1d" % (
-                i, force_plate_id, force_plate_channel_count))
+                    i, force_plate_id, force_plate_channel_count))
 
                 # Channel Data
                 for j in range(force_plate_channel_count):
@@ -594,7 +594,7 @@ class NatNetClient:
                             out_string += "%3.2f " % (force_plate_channel_val)
                     if n_frames_show < force_plate_channel_frame_count:
                         out_string += " showing %3.1d of %3.1d frames" % (
-                        n_frames_show, force_plate_channel_frame_count)
+                            n_frames_show, force_plate_channel_frame_count)
                     trace_mf("%s" % out_string)
                     force_plate.add_channel_data(fp_channel_data)
                 force_plate_data.add_force_plate(force_plate)
@@ -1076,7 +1076,7 @@ class NatNetClient:
         orientation = Quaternion.unpack(data[offset:offset + 16])
         offset += 16
         trace_dd("\tOrientation: [%3.2f, %3.2f, %3.2f, %3.2f]" % (
-        orientation[0], orientation[1], orientation[2], orientation[3]))
+            orientation[0], orientation[1], orientation[2], orientation[3]))
         trace_dd("unpack_camera_description processed %3.1d bytes" % offset)
 
         camera_desc = DataDescriptions.CameraDescription(name, position, orientation)

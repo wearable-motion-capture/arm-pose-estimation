@@ -6,7 +6,7 @@ from record.file_writer.watch_phone_motive_to_csv import watch_phone_motive_to_c
 from stream.listener.motive import MotiveListener
 from stream.listener.watch_and_phone_imu import listen_for_watch_and_phone_imu
 from stream.publisher.watch_phone_to_unity import WatchPhoneToUnity
-from stream.publisher.motive_gt import MotiveToUnity
+from stream.publisher.motive_to_unity import MotiveToUnity
 
 # start ros node
 logging.basicConfig(level=logging.INFO)

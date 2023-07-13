@@ -2,7 +2,7 @@ import logging
 import threading
 
 from stream.listener.motive import MotiveListener
-from stream.publisher.motive_gt import MotiveToUnity
+from stream.publisher.motive_to_unity import MotiveToUnity
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

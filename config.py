@@ -20,3 +20,4 @@ UNITY_WATCH_PORT = 50003
 
 # Listener ports for receiving data
 WATCH_PHONE_PORT = 65000
+WATCH_PORT = 46000
