@@ -1241,14 +1241,14 @@ class NatNetClient:
                     return 1
             except  socket.herror:
                 print("ERROR: data socket access herror occurred")
-                # return 2
+                return 2
             except  socket.gaierror:
                 print("ERROR: data socket access gaierror occurred")
-                # return 3
+                return 3
             except  socket.timeout:
                 # if self.use_multicast:
                 print("ERROR: data socket access timeout occurred. Server not responding")
-                # return 4
+                return 4
             if len(data) > 0:
                 # peek ahead at message_id
                 message_id = get_message_id(data)

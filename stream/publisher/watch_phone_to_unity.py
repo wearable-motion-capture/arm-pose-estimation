@@ -115,7 +115,6 @@ class WatchPhoneToUnity:
         larm_rotated = transformations.quat_rotate_vector(avg_larm_rot_r, self.__larm_vec)
         hand_origin_rua = larm_rotated + larm_origin_rua
 
-        print(hand_origin_rua)
         # this is the list for the actual joint positions and rotations
         return list(
             np.hstack([

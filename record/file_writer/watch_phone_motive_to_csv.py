@@ -8,7 +8,7 @@ import numpy as np
 import config
 from stream.listener.motive import MotiveListener
 from stream.publisher.watch_phone_to_unity import WatchPhoneToUnity
-from stream.publisher.motive_gt import MotiveToUnity
+from stream.publisher.motive_to_unity import MotiveToUnity
 from utility import messaging
 
 
@@ -53,7 +53,7 @@ def watch_phone_motive_to_csv(sensor_q: queue,
                 msg = debug_dual_publisher.row_to_arm_pose(row)
                 debug_dual_publisher.send_np_msg(msg)
             if debug_motive_publisher is not None:
-                debug_motive_publisher.send_np_msg(gt_msg)
+                debug_motive_publisher.send_np_msg(gt_msg[:-4])  # skip the hip rotation
 
             # write everything to file
             s = ",".join(map(str, np.hstack([gt_msg, row]))) + "\n"
