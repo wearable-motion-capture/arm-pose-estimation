@@ -243,10 +243,10 @@ def sw_quat_to_global(q: np.array):
     """
     if len(q.shape) > 1:
         # if an entire column of quaternions was passed
-        return np.array([-q[:, 0], q[:, 1], q[:, 3], q[:, 2]], dtype=np.float64)
+        return np.array([-q[:, 0], -q[:, 1], q[:, 3], -q[:, 2]], dtype=np.float64)
     else:
         # if it is a single quaternion
-        return np.array([-q[0], q[1], q[3], q[2]], dtype=np.float64)
+        return np.array([-q[0], -q[1], q[3], -q[2]], dtype=np.float64)
 
 
 def sw_pos_to_global(p: np.array):
@@ -257,9 +257,9 @@ def sw_pos_to_global(p: np.array):
     """
     # swap y and z axis
     if len(p.shape) > 1:
-        p[:, [1, 2]] = p[:, [2, 1]]
+        p[:, [1, 2]] = p[:, [2, 1]] * -1
     else:
-        p[[1, 2]] = p[[2, 1]]
+        p[[1, 2]] = p[[2, 1]] * -1
     return p
 
 

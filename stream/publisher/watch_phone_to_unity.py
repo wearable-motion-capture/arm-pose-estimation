@@ -14,11 +14,18 @@ from utility.transformations import sw_quat_to_global
 
 
 class WatchPhoneToUnity:
-    def __init__(self, smooth: int = 5, bonemap: BoneMap = None):
+    def __init__(self,
+                 port: int,
+                 smooth: int = 5,
+                 left_hand_mode=True,
+                 ip: str = config.IP,
+                 tag: str = "WATCH PHONE TO UNITY",
+                 bonemap: BoneMap = None):
 
-        self.__tag = "WATCH PHONE TO UNITY"
-        self.__port = config.UNITY_WATCH_PHONE_PORT
-        self.__ip = config.IP
+        self.__tag = tag
+        self.__port = port
+        self.__ip = ip
+        self.__left_hand_mode = left_hand_mode
 
         # average over multiple time steps
         self.__smooth = smooth
@@ -38,7 +45,54 @@ class WatchPhoneToUnity:
 
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    def row_to_arm_pose(self, row):
+    def row_to_right_arm_rotations(self, row):
+        sw_rot_fwd = np.array([
+            row[self.__slp["sw_forward_w"]],
+            row[self.__slp["sw_forward_x"]],
+            row[self.__slp["sw_forward_y"]],
+            row[self.__slp["sw_forward_z"]]
+        ])
+        # smartwatch rotation in our global coord system
+        sw_rot = np.array([
+            row[self.__slp["sw_rotvec_w"]],
+            row[self.__slp["sw_rotvec_x"]],
+            row[self.__slp["sw_rotvec_y"]],
+            row[self.__slp["sw_rotvec_z"]]
+        ])
+
+        # relative watch orientation in global
+        sw_quat_raw = transformations.hamilton_product(transformations.quat_invert(sw_rot_fwd), sw_rot)
+        sw_quat_r = sw_quat_to_global(sw_quat_raw)
+
+        # transform watch rotation to lower arm rotation
+        # arm is upside down
+        larm_rot_r = transformations.hamilton_product(sw_quat_r, np.array([0, 1, 0, 0]))
+        larm_rot_r = transformations.hamilton_product(np.array([0.7071068, 0, -0.7071068, 0]), larm_rot_r)
+
+        ph_rot = np.array([
+            row[self.__slp["ph_rotvec_w"]],
+            row[self.__slp["ph_rotvec_x"]],
+            row[self.__slp["ph_rotvec_y"]],
+            row[self.__slp["ph_rotvec_z"]]
+        ])
+        ph_rot_fwd = np.array([
+            row[self.__slp["ph_forward_w"]],
+            row[self.__slp["ph_forward_x"]],
+            row[self.__slp["ph_forward_y"]],
+            row[self.__slp["ph_forward_z"]]
+        ])
+
+        ph_quat_raw = transformations.hamilton_product(transformations.quat_invert(ph_rot_fwd), ph_rot)
+        ph_quat_r = np.array([-ph_quat_raw[0], ph_quat_raw[3], -ph_quat_raw[1], ph_quat_raw[2]])
+
+        # transform phone rotation to upper arm rotation
+        # arm is upside down
+        uarm_rot_r = transformations.hamilton_product(ph_quat_r, np.array([0, 1, 0, 0]))
+        uarm_rot_r = transformations.hamilton_product(uarm_rot_r, np.array([0.7071068, 0, 0.7071068, 0]))
+
+        return larm_rot_r, uarm_rot_r
+
+    def row_to_left_arm_rotations(self, row):
         sw_rot_fwd = np.array([
             row[self.__slp["sw_forward_w"]],
             row[self.__slp["sw_forward_x"]],
@@ -92,6 +146,15 @@ class WatchPhoneToUnity:
         # the original uarm vector points left (negative x), rotate it such that it points forward
         skel_arm_align = transformations.quat_a_to_b(self.__uarm_vec, np.array([0, 0, 1]))
         uarm_rot_r = transformations.hamilton_product(uarm_rot_r, skel_arm_align)
+
+        return larm_rot_r, uarm_rot_r
+
+    def row_to_arm_pose(self, row):
+
+        if self.__left_hand_mode:
+            larm_rot_r, uarm_rot_r = self.row_to_left_arm_rotations(row)
+        else:
+            larm_rot_r, uarm_rot_r = self.row_to_right_arm_rotations(row)
 
         # store rotations in history if smoothing is required
         if self.__smooth > 1:

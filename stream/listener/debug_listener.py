@@ -10,7 +10,7 @@ from utility.messaging import sw_standalone_imu_lookup
 
 msg_size = 72
 ip = config.IP
-port = config.UNITY_WATCH_PHONE_PORT
+port = config.UNITY_WATCH_PHONE_PORT_LEFT
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.bind((ip, port))
