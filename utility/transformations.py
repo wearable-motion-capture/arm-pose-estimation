@@ -237,30 +237,21 @@ def quat_to_euler(q: np.array):
 
 def sw_quat_to_global(q: np.array):
     """
-    smartwatch rotation to global coord system
-    :param q: quaternion [w,x,y,z]
-    :return: quaternion [w,x,y,z]
+    Old method kept for old neural networks! try to replace where you can.
     """
-    if len(q.shape) > 1:
-        # if an entire column of quaternions was passed
-        return np.array([-q[:, 0], -q[:, 1], q[:, 3], -q[:, 2]], dtype=np.float64)
-    else:
-        # if it is a single quaternion
-        return np.array([-q[0], -q[1], q[3], -q[2]], dtype=np.float64)
+    return np.array([-q[0], q[1], q[3], q[2]])
 
 
-def sw_pos_to_global(p: np.array):
-    """
-    smartwatch coord system to unity coord system
-    :param p: position as [x,y,z]
-    :return:  position as [x,y,z]
-    """
-    # swap y and z axis
-    if len(p.shape) > 1:
-        p[:, [1, 2]] = p[:, [2, 1]] * -1
-    else:
-        p[[1, 2]] = p[[2, 1]] * -1
-    return p
+def watch_to_global(q: np.array):
+    return np.array([-q[0], -q[1], q[3], -q[2]])
+
+
+def phone_right_to_global(q: np.array):
+    return np.array([-q[0], q[3], q[1], -q[2]])
+
+
+def phone_left_to_global(q: np.array):
+    return np.array([-q[0], -q[3], -q[1], -q[2]])
 
 
 def mocap_pos_to_global(p: np.array):
