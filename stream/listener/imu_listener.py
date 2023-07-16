@@ -11,11 +11,11 @@ class ImuListener:
     def __init__(self,
                  msg_size: int,
                  port: int,
-                 ips: str = config.IP,
+                 ip: str = config.IP,
                  tag: str = "IMU LISTENER"):
 
         self.__msg_size = msg_size
-        self.__ip = ips
+        self.__ip = ip
         self.__port = port
         self.__tag = tag
 

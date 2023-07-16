@@ -9,12 +9,15 @@ from utility import messaging
 
 logging.basicConfig(level=logging.INFO)
 
+ip = config.IP
+
 # we transmit data between threads through queues
 left_q = queue.Queue()
 right_q = queue.Queue()
 
 # left listener
 imu_l = ImuListener(
+    ip=config.IP,
     msg_size=len(messaging.dual_imu_msg_lookup) * 4,
     port=config.WATCH_PHONE_PORT_LEFT,
     tag="IMU LEFT"
@@ -27,6 +30,7 @@ l_thread.start()
 
 # right listener
 imu_r = ImuListener(
+    ip=config.IP,
     msg_size=len(messaging.dual_imu_msg_lookup) * 4,
     port=config.WATCH_PHONE_PORT_RIGHT,
     tag="IMU RIGHT"
@@ -39,6 +43,7 @@ r_thread.start()
 
 # left publisher
 wp2ul = WatchPhoneToUnity(
+    ip=config.IP,
     port=config.UNITY_WATCH_PHONE_PORT_LEFT,
     tag="UNITY LEFT"
 )
@@ -50,6 +55,7 @@ ul_thread.start()
 
 # right publisher
 wp2ur = WatchPhoneToUnity(
+    ip=config.IP,
     port=config.UNITY_WATCH_PHONE_PORT_RIGHT,
     tag="UNITY RIGHT",
     left_hand_mode=False
