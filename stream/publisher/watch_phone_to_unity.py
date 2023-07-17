@@ -36,11 +36,15 @@ class WatchPhoneToUnity:
         # use body measurements for transitions
         if bonemap is None:
             # default values
-            self.__larm_vec = np.array([-0.22, 0, 0])  # for nicer visualisations
-            self.__uarm_vec = np.array([-0.3, 0, 0])
+            self.__larm_vec_r = np.array([0.22, 0, 0])  # for nicer visualisations
+            self.__uarm_vec_r = np.array([0.3, 0, 0])
+
+            self.__larm_vec_l = np.array([-0.22, 0, 0])  # for nicer visualisations
+            self.__uarm_vec_l = np.array([-0.3, 0, 0])
+
         else:
-            self.__larm_vec = bonemap.left_lower_arm_vec
-            self.__uarm_vec = bonemap.left_upper_arm_vec
+            self.__larm_vec_r = bonemap.left_lower_arm_vec
+            self.__uarm_vec_r = bonemap.left_upper_arm_vec
 
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -48,7 +52,7 @@ class WatchPhoneToUnity:
     def rel_rots_to_right_arm_pose(sw_quat_raw, ph_quat_raw):
 
         # transform watch rotation to lower arm rotation
-        sw_quat_r = transformations.watch_to_global(sw_quat_raw)
+        sw_quat_r = transformations.watch_to_global_right(sw_quat_raw)
         # arm is upside down
         larm_rot_r = transformations.hamilton_product(sw_quat_r, np.array([0, 1, 0, 0]))
         larm_rot_r = transformations.hamilton_product(np.array([0.7071068, 0, -0.7071068, 0]), larm_rot_r)
@@ -64,7 +68,7 @@ class WatchPhoneToUnity:
     @staticmethod
     def rel_rots_to_left_arm_pose(sw_quat_raw, ph_quat_raw):
         # relative watch orientation in global
-        sw_quat_r = transformations.watch_to_global(sw_quat_raw)
+        sw_quat_r = transformations.watch_to_global_left(sw_quat_raw)
         # transform watch rotation to lower arm rotation
         larm_rot_r = transformations.hamilton_product(np.array([0.7071068, 0, 0.7071068, 0]), sw_quat_r)
 
@@ -129,11 +133,15 @@ class WatchPhoneToUnity:
             avg_uarm_rot_r = uarm_rot_r
 
         # get the transition from upper arm origin to lower arm origin
-        larm_origin_rua = transformations.quat_rotate_vector(avg_uarm_rot_r, self.__uarm_vec)
         # get transitions from lower arm origin to hand
-        larm_rotated = transformations.quat_rotate_vector(avg_larm_rot_r, self.__larm_vec)
-        hand_origin_rua = larm_rotated + larm_origin_rua
+        if self.__left_hand_mode:
+            larm_origin_rua = transformations.quat_rotate_vector(avg_uarm_rot_r, self.__uarm_vec_l)
+            larm_rotated = transformations.quat_rotate_vector(avg_larm_rot_r, self.__larm_vec_l)
+        else:
+            larm_origin_rua = transformations.quat_rotate_vector(avg_uarm_rot_r, self.__uarm_vec_r)
+            larm_rotated = transformations.quat_rotate_vector(avg_larm_rot_r, self.__larm_vec_r)
 
+        hand_origin_rua = larm_rotated + larm_origin_rua
         # this is the list for the actual joint positions and rotations
         return list(
             np.hstack([

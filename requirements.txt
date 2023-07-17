@@ -5,4 +5,4 @@ pandas
 matplotlib
 pynput
 pyaudio
-google
+google-cloud-speech

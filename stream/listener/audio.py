@@ -12,36 +12,56 @@ import config
 import utility.voice_commands
 
 
-class WatchAndPhoneAudio:
-    def __init__(self):
+class AudioListener:
+    def __init__(self, ip: str = config.IP, port: int = config.WATCH_PHONE_AUDIO_PORT, tag: str = "AUDIO"):
         # Audio recording parameters
         # See https://github.com/googleapis/python-speech/blob/main/samples/microphone/transcribe_streaming_infinite.py
         self.__sample_rate = 16000
         self.__chunk_size = 800  # int(16000 / 10)  # 100ms
         self.__language_code = "en-US"  # a BCP-47 language tag
-        self.__ip = config.IP
-        self.__port = 65001  # the dual Port
-        self.__tag = "WATCH PHONE AUDIO"
+        self.__ip = ip
+        self.__port = port  # the dual Port
+        self.__tag = tag
 
-    def run_transcription(self, q_out: queue):
+    def play_stream_loop(self):
         """
+        play back streamed mic data
+        """
+        # listener and audio player run in separate threads.
+        # Listener fills the queue, audio player empties it
+        q_in = queue.Queue()
+        # the listener fills the que with transmitted smartwatch data
+        t_mic_listen = threading.Thread(
+            target=self.__stream_mic,
+            args=(q_in,)
+        )
+        t_play = threading.Thread(
+            target=self.__play_audio,
+            args=(q_in,)
+        )
+        t_mic_listen.start()
+        t_play.start()
+
+    def transcription_loop(self, q_out: queue):
+        """
+        transcribes streamed mic data and logs keywords
         :param q_out: puts transcribed keywords into the queue
         """
         # listener and predictor run in separate threads. Listener fills the queue, predictor empties it
         q_in = queue.Queue()
         # the listener fills the que with transmitted smartwatch data
         t_mic_listen = threading.Thread(
-            target=self.stream_mic,
+            target=self.__stream_mic,
             args=(q_in,)
         )
         t_trans = threading.Thread(
-            target=self.transcribe,
+            target=self.__transcribe,
             args=(q_in, q_out)
         )
         t_mic_listen.start()
         t_trans.start()
 
-    def stream_mic(self, q_out: queue):
+    def __stream_mic(self, q_out: queue):
         """
         :param q_out: listens to mic data sent from the smartwatch and fills the queue with whatever is received
         """
@@ -78,7 +98,7 @@ class WatchAndPhoneAudio:
 
         logging.info(f"[{self.__tag}] stream mic closed")
 
-    def play_audio(self, q: queue):
+    def __play_audio(self, q: queue):
         # Instantiate PyAudio and initialize PortAudio system resources
         p = pyaudio.PyAudio()
         # Open output audio stream
@@ -102,7 +122,7 @@ class WatchAndPhoneAudio:
         # Release PortAudio system resources
         p.terminate()
 
-    def transcribe(self, q_in: queue, q_out: queue):
+    def __transcribe(self, q_in: queue, q_out: queue):
         client = speech.SpeechClient()
 
         aconfig = speech.RecognitionConfig({
@@ -155,29 +175,5 @@ class WatchAndPhoneAudio:
 if __name__ == "__main__":
     # start ros node
     logging.basicConfig(level=logging.INFO)
-
-    # listener and predictor run in separate threads. Listener fills the queue, predictor empties it
-    que_in = queue.Queue()
-    que_out = queue.Queue()
-
-    wp_audio = WatchAndPhoneAudio()
-
-    # the listener fills the que with transmitted smartwatch data
-    mic_listener = threading.Thread(
-        target=wp_audio.stream_mic,
-        args=(que_in,)
-    )
-
-    player = threading.Thread(
-        target=wp_audio.play_audio,
-        args=(que_in,)
-    )
-    player.start()
-
-    # transcriber = threading.Thread(
-    #     target=transcribe,
-    #     args=(que_in,que_out)
-    # )
-    # transcriber.start()
-
-    mic_listener.start()
+    wp_audio = AudioListener()
+    wp_audio.play_stream_loop()

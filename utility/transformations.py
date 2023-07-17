@@ -242,8 +242,12 @@ def sw_quat_to_global(q: np.array):
     return np.array([-q[0], q[1], q[3], q[2]])
 
 
-def watch_to_global(q: np.array):
+def watch_to_global_right(q: np.array):
     return np.array([-q[0], -q[1], q[3], -q[2]])
+
+def watch_to_global_left(q: np.array):
+    return np.array([-q[0], -q[1], q[3], -q[2]])
+
 
 
 def phone_right_to_global(q: np.array):
