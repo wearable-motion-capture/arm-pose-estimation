@@ -4,3 +4,5 @@ numpy
 pandas
 matplotlib
 pynput
+pyaudio
+google-cloud-speech
