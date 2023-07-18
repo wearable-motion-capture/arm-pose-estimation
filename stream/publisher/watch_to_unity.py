@@ -25,7 +25,7 @@ class WatchToUnity:
                  monte_carlo_samples=25):
 
         self.__tag = "WATCH TO UNITY"
-        self.__port = config.UNITY_WATCH_PORT
+        self.__port = config.PUB_WATCH_IMU_PORT
         self.__ip = config.IP
 
         # average over multiple time steps

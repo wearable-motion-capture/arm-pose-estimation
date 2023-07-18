@@ -104,6 +104,11 @@ class BoneMap:
         return self.__bonemap[9].default_pos - self.__bonemap[8].default_pos
 
     @property
+    def right_lower_arm_vec(self):
+        """vector from right lower arm to hand (rightHand - rightLowerArm)"""
+        return self.__bonemap[13].default_pos - self.__bonemap[12].default_pos
+
+    @property
     def left_lower_arm_length(self):
         return np.linalg.norm(self.left_lower_arm_vec)
 
@@ -115,6 +120,11 @@ class BoneMap:
     def left_upper_arm_vec(self):
         """vector from left upper arm to elbow (leftLowerArm - leftUpperArm)"""
         return self.__bonemap[8].default_pos - self.__bonemap[7].default_pos
+
+    @property
+    def right_upper_arm_vec(self):
+        """vector from right upper arm to elbow (rightLowerArm - rightUpperArm)"""
+        return self.__bonemap[12].default_pos - self.__bonemap[11].default_pos
 
     @property
     def left_upper_arm_length(self):

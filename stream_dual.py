@@ -1,26 +1,72 @@
 import logging
 import queue
 import threading
-from stream.listener.watch_and_phone_imu import listen_for_watch_and_phone_imu
 
+import config
+from stream.listener.imu import ImuListener
 from stream.publisher.watch_phone_to_unity import WatchPhoneToUnity
+from utility import messaging
 
+# enable basic logging
 logging.basicConfig(level=logging.INFO)
 
-# listener and predictor run in separate threads. Listener fills the queue, predictor empties it
-sensor_que = queue.Queue()
+# adjust IP to your needs
+ip = config.IP
 
-# the listener fills the que with transmitted smartwatch and phone data
-sensor_listener = threading.Thread(
-    target=listen_for_watch_and_phone_imu,
-    args=(sensor_que,)
-)
-sensor_listener.start()
+# data processing happens in independent threads.
+# We exchange data via queues.
+# This script has two separate queues for the case that the
+# user streams from a left-hand and a right-hand device at the same time
+left_q = queue.Queue()  # data for left-hand mode
+right_q = queue.Queue()  # data for right-hand mode
 
-# this thread broadcasts lower and upper arm orientations via UDP
-wp2u = WatchPhoneToUnity()
-udp_publisher = threading.Thread(
-    target=wp2u.stream_loop,
-    args=(sensor_que,)
+# left listener
+imu_l = ImuListener(
+    ip=config.IP,
+    msg_size=len(messaging.dual_imu_msg_lookup) * 4,
+    port=config.WATCH_PHONE_PORT_LEFT,
+    tag="IMU LEFT"
 )
-udp_publisher.start()
+l_thread = threading.Thread(
+    target=imu_l.listen,
+    args=(left_q,)
+)
+l_thread.start()
+
+# right listener
+imu_r = ImuListener(
+    ip=config.IP,
+    msg_size=len(messaging.dual_imu_msg_lookup) * 4,
+    port=config.WATCH_PHONE_PORT_RIGHT,
+    tag="IMU RIGHT"
+)
+r_thread = threading.Thread(
+    target=imu_r.listen,
+    args=(right_q,)
+)
+r_thread.start()
+
+# left publisher
+wp2ul = WatchPhoneToUnity(
+    ip=config.IP,
+    port=config.PUB_WATCH_PHONE_PORT_LEFT,
+    tag="UNITY LEFT"
+)
+ul_thread = threading.Thread(
+    target=wp2ul.stream_loop,
+    args=(left_q,)
+)
+ul_thread.start()
+
+# right publisher
+wp2ur = WatchPhoneToUnity(
+    ip=config.IP,
+    port=config.PUB_WATCH_PHONE_PORT_RIGHT,
+    tag="UNITY RIGHT",
+    left_hand_mode=False
+)
+ur_thread = threading.Thread(
+    target=wp2ur.stream_loop,
+    args=(right_q,)
+)
+ur_thread.start()
