@@ -139,11 +139,9 @@ class AudioListener:
 
         # infinite loop to transcribe everything that comes in
         while True:
-
             stream = []
             while not q_in.empty():
                 stream.append(q_in.get())
-
             requests = (
                 speech.StreamingRecognizeRequest({"audio_content": chunk}) for chunk in stream
             )
@@ -173,7 +171,6 @@ class AudioListener:
 
 
 if __name__ == "__main__":
-    # start ros node
     logging.basicConfig(level=logging.INFO)
     wp_audio = AudioListener()
     wp_audio.play_stream_loop()

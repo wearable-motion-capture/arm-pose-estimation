@@ -49,7 +49,7 @@ r_thread.start()
 # left publisher
 wp2ul = WatchPhoneToUnity(
     ip=config.IP,
-    port=config.UNITY_WATCH_PHONE_PORT_LEFT,
+    port=config.PUB_WATCH_PHONE_PORT_LEFT,
     tag="UNITY LEFT"
 )
 ul_thread = threading.Thread(
@@ -61,7 +61,7 @@ ul_thread.start()
 # right publisher
 wp2ur = WatchPhoneToUnity(
     ip=config.IP,
-    port=config.UNITY_WATCH_PHONE_PORT_RIGHT,
+    port=config.PUB_WATCH_PHONE_PORT_RIGHT,
     tag="UNITY RIGHT",
     left_hand_mode=False
 )
