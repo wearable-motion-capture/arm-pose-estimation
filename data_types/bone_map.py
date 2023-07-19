@@ -8,7 +8,7 @@ from data_types.bone import Bone
 import xml.etree.ElementTree as ElTr
 
 # mapping from XML IDs to Unity Bone IDs. IDs and Names are the same as in DollAnimator of the Unity project
-xml_to_mecanim = {
+XML_TO_MECANIM = {
     1: "Hips",
     2: "Spine",
     3: "Chest",
@@ -37,6 +37,10 @@ class BoneMap:
     """
     parses a bone map with distances in T-pose from a mocap skeleton.xml
     """
+
+    # available without initialization
+    DEFAULT_LARM_LEN = 0.22
+    DEFAULT_UARM_LEN = 0.30
 
     def __init__(self, skeleton: str):
 
@@ -76,7 +80,7 @@ class BoneMap:
         """
         def_dict = {"time_s": time_steps_s}
         for k, v in self.__bonemap.items():
-            name = xml_to_mecanim[k]  # map the name for unique column names
+            name = XML_TO_MECANIM[k]  # map the name for unique column names
             # add rotation entries
             for rot, descr in zip(v.default_rot, ["_rot_w", "_rot_x", "_rot_y", "_rot_z"]):
                 def_dict.update({name + descr: rot})

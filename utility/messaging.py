@@ -169,3 +169,4 @@ dual_imu_msg_lookup = {
     # rel pressure
     "sw_rel_pres": 52
 }
+watch_phone_imu_msg_len = len(dual_imu_msg_lookup) * 4  # floats

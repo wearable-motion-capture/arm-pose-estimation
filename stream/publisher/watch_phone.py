@@ -12,13 +12,13 @@ from utility import transformations
 from utility import messaging
 
 
-class WatchPhoneToUnity:
+class WatchPhonePublisher:
     def __init__(self,
                  port: int,
                  smooth: int = 5,
                  left_hand_mode=True,
                  ip: str = config.IP,
-                 tag: str = "WATCH PHONE TO UNITY",
+                 tag: str = "PUB WATCH PHONE",
                  bonemap: BoneMap = None):
 
         self.__tag = tag
@@ -35,8 +35,8 @@ class WatchPhoneToUnity:
 
         # use body measurements for transitions
         if bonemap is None:
-            self.__larm_vec = np.array([0, 0, 0.22])
-            self.__uarm_vec = np.array([0, 0, 0.3])
+            self.__larm_vec = np.array([0, 0, BoneMap.DEFAULT_LARM_LEN])
+            self.__uarm_vec = np.array([0, 0, BoneMap.DEFAULT_UARM_LEN])
         else:
             # get values from bone map
             self.__larm_vec = np.array([0, 0, bonemap.left_lower_arm_length])
@@ -44,8 +44,7 @@ class WatchPhoneToUnity:
 
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    def row_to_arm_pose(self, row):
-
+    def calibrate_rotations_from_data(self, row):
         sw_rot_fwd = np.array([
             row[self.__slp["sw_forward_w"]],
             row[self.__slp["sw_forward_x"]],
@@ -61,7 +60,7 @@ class WatchPhoneToUnity:
         ])
 
         # relative watch orientation in global
-        sw_quat_raw = transformations.hamilton_product(transformations.quat_invert(sw_rot_fwd), sw_rot)
+        sw_quat_cal = transformations.hamilton_product(transformations.quat_invert(sw_rot_fwd), sw_rot)
 
         ph_rot = np.array([
             row[self.__slp["ph_rotvec_w"]],
@@ -76,15 +75,20 @@ class WatchPhoneToUnity:
             row[self.__slp["ph_forward_z"]]
         ])
 
-        ph_quat_raw = transformations.hamilton_product(transformations.quat_invert(ph_rot_fwd), ph_rot)
+        ph_quat_cal = transformations.hamilton_product(transformations.quat_invert(ph_rot_fwd), ph_rot)
+        return sw_quat_cal, ph_quat_cal
+
+    def row_to_arm_pose(self, row):
+
+        sw_quat_cal, ph_quat_cal = self.calibrate_rotations_from_data(row)
 
         # decide how to transform coord system depending on arm mode
         if self.__left_hand_mode:
-            larm_rot_r = transformations.watch_left_to_global(sw_quat_raw)
-            uarm_rot_r = transformations.phone_left_to_global(ph_quat_raw)
+            larm_rot_r = transformations.watch_left_to_global(sw_quat_cal)
+            uarm_rot_r = transformations.phone_left_to_global(ph_quat_cal)
         else:
-            larm_rot_r = transformations.watch_right_to_global(sw_quat_raw)
-            uarm_rot_r = transformations.phone_right_to_global(ph_quat_raw)
+            larm_rot_r = transformations.watch_right_to_global(sw_quat_cal)
+            uarm_rot_r = transformations.phone_right_to_global(ph_quat_cal)
 
         # store rotations in history if smoothing is required
         if self.__smooth > 1:

@@ -16,7 +16,7 @@ from utility import transformations
 from utility import messaging
 
 
-class WatchToUnity:
+class WatchPublisher:
     def __init__(self,
                  model_params: dict,
                  bonemap: BoneMap = None,
@@ -24,8 +24,8 @@ class WatchToUnity:
                  stream_monte_carlo=True,
                  monte_carlo_samples=25):
 
-        self.__tag = "WATCH TO UNITY"
-        self.__port = config.PUB_WATCH_IMU_PORT
+        self.__tag = "PUB WATCH"
+        self.__port = config.PUB_WATCH_IMU_LEFT
         self.__ip = config.IP
 
         # average over multiple time steps
@@ -38,9 +38,9 @@ class WatchToUnity:
         # use arm length measurements for predictions
         if bonemap is None:
             # default values
-            self.__larm_l = 0.22
-            self.__uarm_l = 0.3
-            self.__larm_vec = np.array([-self.__larm_l, 0, 0])  # for nicer visualisations
+            self.__larm_l = BoneMap.DEFAULT_LARM_LEN
+            self.__uarm_l = BoneMap.DEFAULT_UARM_LEN
+            self.__larm_vec = np.array([-self.__larm_l, 0, 0])
             self.__uarm_vec = np.array([-self.__uarm_l, 0, 0])
         else:
             self.__larm_l = bonemap.left_lower_arm_length

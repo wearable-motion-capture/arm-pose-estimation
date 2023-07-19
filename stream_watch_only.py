@@ -4,7 +4,7 @@ import threading
 
 from data_types.bone_map import BoneMap
 from stream.listener.watch_imu import listen_for_watch_imu
-from stream.publisher.watch_to_unity import WatchToUnity
+from stream.publisher.watch_to_unity import WatchPublisher
 from utility import deploy_models
 
 logging.basicConfig(level=logging.INFO)
@@ -23,11 +23,11 @@ sensor_listener = threading.Thread(
 sensor_listener.start()
 
 # make predictions and stream them to Unity
-w2u = WatchToUnity(bonemap=bonemap,
-                   model_params=mode_params,
-                   monte_carlo_samples=5,
-                   smooth=25,
-                   stream_monte_carlo=False)
+w2u = WatchPublisher(bonemap=bonemap,
+                     model_params=mode_params,
+                     monte_carlo_samples=5,
+                     smooth=25,
+                     stream_monte_carlo=False)
 udp_publisher = threading.Thread(
     target=w2u.stream_loop,
     args=(sensor_que,)
