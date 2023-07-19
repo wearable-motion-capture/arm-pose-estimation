@@ -1,5 +1,5 @@
 # arm-pose-estimator
-test
+
 This repository provides code to run computations that estimate the arm pose. It takes input from the smartphone and
 smartwatch applications, processes the raw data stream, and outputs the visualization on Unity.
 

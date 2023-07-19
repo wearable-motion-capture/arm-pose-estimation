@@ -53,6 +53,7 @@ sw_standalone_imu_lookup = {
     "sw_init_pres": 22,  # pressure at chest height
     "sw_north_deg": 23  # forward facing direction
 }
+sw_standalone_imu_msg_len = len(sw_standalone_imu_lookup) * 4
 
 dual_ppg_msg_lookup = {
     # timestamp
