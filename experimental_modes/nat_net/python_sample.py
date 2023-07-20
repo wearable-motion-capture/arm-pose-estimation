@@ -21,7 +21,7 @@
 import sys
 import time
 
-from nat_net import mocap_data, data_descriptions
+from experimental_modes.nat_net import data_descriptions, mocap_data
 from nat_net_client import NatNetClient
 
 

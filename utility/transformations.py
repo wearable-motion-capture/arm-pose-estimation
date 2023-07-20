@@ -1,7 +1,6 @@
 import math
 
 import numpy as np
-import transforms3d.quaternions
 import warnings
 
 warnings.filterwarnings("error")
@@ -15,6 +14,7 @@ def derive_series(y, x, axis=0) -> np.array:
     """
     :param y: series to derive
     :param x: time stamps, must be a 1D array
+    :param axis:
     :return: derivative of len(y) -1
     """
     return np.diff(y, axis=axis) / np.diff(x)
@@ -36,7 +36,7 @@ def average_quaternions(quats: np.array):
     """
     This averaging only works if the quaternions are reasonably close together.
     This function assumes that the quaternions
-    come in a np.array [x, 4] where x is the number of quaternions in the array
+    come in a np array [x, 4] where x is the number of quaternions in the array
     :param quats: [x, 4] where dim 1 is expected in the order w,x,y,z
     :return: averaged quaternion
     """
@@ -414,7 +414,6 @@ def exponential_map_to_quaternion(em: np.array):
     :param em: array as x,y,z
     :return:
     """
-
     theta = np.linalg.norm(em)  # angle is the length of the vector
 
     if theta < np.power(np.finfo(float).eps, .25):
@@ -438,26 +437,26 @@ def quat_to_rot_mat_1x9(quat: np.array):
     # from transforms3d
     def trans(q):
         w, x, y, z = q
-        Nq = w * w + x * x + y * y + z * z
-        if Nq < np.finfo(np.float64).eps:
+        nq = w * w + x * x + y * y + z * z
+        if nq < np.finfo(np.float64).eps:
             return np.eye(3)
-        s = 2.0 / Nq
-        X = x * s
-        Y = y * s
-        Z = z * s
-        wX = w * X
-        wY = w * Y
-        wZ = w * Z
-        xX = x * X
-        xY = x * Y
-        xZ = x * Z
-        yY = y * Y
-        yZ = y * Z
-        zZ = z * Z
+        s = 2.0 / nq
+        _x = x * s
+        _y = y * s
+        _z = z * s
+        w_x = w * _x
+        w_y = w * _y
+        w_z = w * _z
+        x_x = x * _x
+        x_y = x * _y
+        x_z = x * _z
+        y_y = y * _y
+        y_z = y * _z
+        z_z = z * _z
         return np.array(
-            [[1.0 - (yY + zZ), xY - wZ, xZ + wY],
-             [xY + wZ, 1.0 - (xX + zZ), yZ - wX],
-             [xZ - wY, yZ + wX, 1.0 - (xX + yY)]])
+            [[1.0 - (y_y + z_z), x_y - w_z, x_z + w_y],
+             [x_y + w_z, 1.0 - (x_x + z_z), y_z - w_x],
+             [x_z - w_y, y_z + w_x, 1.0 - (x_x + y_y)]])
 
     if len(quat.shape) > 1:
         ms = []
@@ -470,11 +469,29 @@ def quat_to_rot_mat_1x9(quat: np.array):
 
 def rot_mat_to_quat(rot_mat: np.array):
     """
-    simple transformation from rotation matrix to quaternion
-    :param rot_mat:
-    :return:
+    FROM TRANSFORMS3D. See their docu
+    Calculate quaternion corresponding to given rotation matrix
     """
-    return transforms3d.quaternions.mat2quat(rot_mat)
+    # Qyx refers to the contribution of the y input vector component to
+    # the x output vector component.  Qyx is therefore the same as
+    # M[0,1].  The notation is from the Wikipedia article.
+    qxx, qyx, qzx, qxy, qyy, qzy, qxz, qyz, qzz = rot_mat.flat
+    # Fill only lower half of symmetric matrix
+    k = np.array([
+        [qxx - qyy - qzz, 0, 0, 0],
+        [qyx + qxy, qyy - qxx - qzz, 0, 0],
+        [qzx + qxz, qzy + qyz, qzz - qxx - qyy, 0],
+        [qyz - qzy, qzx - qxz, qxy - qyx, qxx + qyy + qzz]]
+    ) / 3.0
+    # Use Hermitian eigenvectors, values for speed
+    vals, vecs = np.linalg.eigh(k)
+    # Select largest eigenvector, reorder to w,x,y,z quaternion
+    q = vecs[[3, 0, 1, 2], np.argmax(vals)]
+    # Prefer quaternion with positive w
+    # (q * -1 corresponds to same rotation as q)
+    if q[0] < 0:
+        q *= -1
+    return q
 
 
 def rot_mat_3x3_to_six_drr_3x2(rot_mat: np.array):
@@ -531,7 +548,7 @@ def rot_mat_1x9_to_six_drr_1x6(rot_mat: np.array):
         return np.array([rot_mat[0], rot_mat[1], rot_mat[3], rot_mat[4], rot_mat[6], rot_mat[7]])
 
 
-def six_dof_1x6_to_rot_mat_1x9(six_dof: np.array):
+def six_drr_1x6_to_rot_mat_1x9(six_dof: np.array):
     """
     See https://arxiv.org/pdf/1812.07035.pdf
     Uses flattened six dof and returns a flattened matrix. This function can deal with columns of multiple 6dofs

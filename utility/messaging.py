@@ -25,33 +25,40 @@ sw_standalone_imu_lookup = {
     "sw_rotvec_x": 6,
     "sw_rotvec_y": 7,
     "sw_rotvec_z": 8,
+    "sw_rotvec_conf": 9,
 
     # gyro
-    "sw_gyro_x": 9,
-    "sw_gyro_y": 10,
-    "sw_gyro_z": 11,
+    "sw_gyro_x": 10,
+    "sw_gyro_y": 11,
+    "sw_gyro_z": 12,
 
     # velocity from lacc (1x integrated)
-    "sw_lvel_x": 12,
-    "sw_lvel_y": 13,
-    "sw_lvel_z": 14,
+    "sw_lvel_x": 13,
+    "sw_lvel_y": 14,
+    "sw_lvel_z": 15,
 
     # linear acceleration
-    "sw_lacc_x": 15,
-    "sw_lacc_y": 16,
-    "sw_lacc_z": 17,
+    "sw_lacc_x": 16,
+    "sw_lacc_y": 17,
+    "sw_lacc_z": 18,
 
     # atmospheric pressure
-    "sw_pres": 18,
+    "sw_pres": 19,
 
     # gravity
-    "sw_grav_x": 19,
-    "sw_grav_y": 20,
-    "sw_grav_z": 21,
+    "sw_grav_x": 20,
+    "sw_grav_y": 21,
+    "sw_grav_z": 22,
 
     # calibration measurements
-    "sw_init_pres": 22,  # pressure at chest height
-    "sw_north_deg": 23  # forward facing direction
+    # pressure at chest height
+    "sw_init_pres": 23,
+
+    # forward facing direction
+    "sw_forward_w": 24,
+    "sw_forward_x": 25,
+    "sw_forward_y": 26,
+    "sw_forward_z": 27
 }
 sw_standalone_imu_msg_len = len(sw_standalone_imu_lookup) * 4
 
@@ -94,80 +101,82 @@ dual_imu_msg_lookup = {
     "sw_rotvec_x": 6,
     "sw_rotvec_y": 7,
     "sw_rotvec_z": 8,
+    "sw_rotvec_conf": 9,
 
     # gyro
-    "sw_gyro_x": 9,
-    "sw_gyro_y": 10,
-    "sw_gyro_z": 11,
+    "sw_gyro_x": 10,
+    "sw_gyro_y": 11,
+    "sw_gyro_z": 12,
 
     # velocity from lacc (1x integrated)
-    "sw_lvel_x": 12,
-    "sw_lvel_y": 13,
-    "sw_lvel_z": 14,
+    "sw_lvel_x": 13,
+    "sw_lvel_y": 14,
+    "sw_lvel_z": 15,
 
     # linear acceleration
-    "sw_lacc_x": 15,
-    "sw_lacc_y": 16,
-    "sw_lacc_z": 17,
+    "sw_lacc_x": 16,
+    "sw_lacc_y": 17,
+    "sw_lacc_z": 18,
 
     # atmospheric pressure
-    "sw_pres": 18,
+    "sw_pres": 19,
 
     # gravity
-    "sw_grav_x": 19,
-    "sw_grav_y": 20,
-    "sw_grav_z": 21,
+    "sw_grav_x": 20,
+    "sw_grav_y": 21,
+    "sw_grav_z": 22,
 
     # phone data
-    "ph_dt": 22,  # delta time since last obs
-    "ph_h": 23,  # hour
-    "ph_m": 24,  # minute
-    "ph_s": 25,  # second
-    "ph_ns": 26,  # nanosecond
+    "ph_dt": 23,  # delta time since last obs
+    "ph_h": 24,  # hour
+    "ph_m": 25,  # minute
+    "ph_s": 26,  # second
+    "ph_ns": 27,  # nanosecond
 
     # orientation
-    "ph_rotvec_w": 27,
-    "ph_rotvec_x": 28,
-    "ph_rotvec_y": 29,
-    "ph_rotvec_z": 30,
+    "ph_rotvec_w": 28,
+    "ph_rotvec_x": 29,
+    "ph_rotvec_y": 30,
+    "ph_rotvec_z": 31,
+    "ph_rotvec_conf": 32,
 
     # gyro
-    "ph_gyro_x": 31,
-    "ph_gyro_y": 32,
-    "ph_gyro_z": 33,
+    "ph_gyro_x": 33,
+    "ph_gyro_y": 34,
+    "ph_gyro_z": 35,
 
     # velocity from lacc (1x integrated)
-    "ph_lvel_x": 34,
-    "ph_lvel_y": 35,
-    "ph_lvel_z": 36,
+    "ph_lvel_x": 36,
+    "ph_lvel_y": 37,
+    "ph_lvel_z": 38,
 
     # linear acceleration
-    "ph_lacc_x": 37,
-    "ph_lacc_y": 38,
-    "ph_lacc_z": 39,
+    "ph_lacc_x": 39,
+    "ph_lacc_y": 40,
+    "ph_lacc_z": 41,
 
     # gravity
-    "ph_grav_x": 40,
-    "ph_grav_y": 41,
-    "ph_grav_z": 42,
+    "ph_grav_x": 42,
+    "ph_grav_y": 43,
+    "ph_grav_z": 44,
 
     # atmospheric pressure
-    "ph_pres": 43,
+    "ph_pres": 45,
 
     # calibration data
     # smartwatch forward
-    "sw_forward_w": 44,
-    "sw_forward_x": 45,
-    "sw_forward_y": 46,
-    "sw_forward_z": 47,
+    "sw_forward_w": 46,
+    "sw_forward_x": 47,
+    "sw_forward_y": 48,
+    "sw_forward_z": 49,
 
     # phone forward
-    "ph_forward_w": 48,
-    "ph_forward_x": 49,
-    "ph_forward_y": 50,
-    "ph_forward_z": 51,
+    "ph_forward_w": 50,
+    "ph_forward_x": 51,
+    "ph_forward_y": 52,
+    "ph_forward_z": 53,
 
-    # rel pressure
-    "sw_rel_pres": 52
+    # calibrated pressure
+    "sw_init_pres": 54
 }
 watch_phone_imu_msg_len = len(dual_imu_msg_lookup) * 4  # floats

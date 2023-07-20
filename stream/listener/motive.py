@@ -6,8 +6,8 @@ import numpy as np
 
 import utility.transformations as ts
 import config
-from nat_net.mocap_data import MoCapData
-from nat_net.nat_net_client import NatNetClient
+from experimental_modes.nat_net.mocap_data import MoCapData
+from experimental_modes.nat_net.nat_net_client import NatNetClient
 from utility.messaging import motive_bone_ids
 
 

@@ -3,14 +3,14 @@ from utility import transformations
 from utility.names import NNS_INPUTS, NNS_TARGETS
 
 
-def hand_larm_origins(preds: np.array, body_measurements: np.array, y_targets: NNS_INPUTS):
+def estimate_hand_larm_origins_from_predictions(preds: np.array, body_measurements: np.array, y_targets: NNS_INPUTS):
     if y_targets == NNS_TARGETS.UARM_LARM_6DOF:
         estimates = uarm_larm_6dof_to_origins(preds=preds,
                                               body_measurements=body_measurements)
-    elif y_targets == NNS_TARGETS.HAND_LARM_XYZ:
+    elif y_targets == NNS_TARGETS.HAND_LARM_XYZ or y_targets == NNS_TARGETS.H_XYZ:
         estimates = hand_larm_xyz_to_origins(preds=preds,
                                              body_measurements=body_measurements)
-    elif y_targets == NNS_TARGETS.UARM_LARM_QUAT:
+    elif y_targets == NNS_TARGETS.UARM_LARM_QUAT or y_targets == NNS_TARGETS.H_ROTS:
         estimates = larm_uarm_quat_to_origins(preds=preds,
                                               body_measurements=body_measurements)
     elif y_targets == NNS_TARGETS.HAND_LARM_POLAR:
@@ -21,7 +21,9 @@ def hand_larm_origins(preds: np.array, body_measurements: np.array, y_targets: N
     return estimates
 
 
-def hand_larm_origins_with_rot(preds: np.array, lower_arm_rot_rh: np.array, body_measurements: np.array,
+def hand_larm_origins_with_rot(preds: np.array,
+                               lower_arm_rot_rh: np.array,
+                               body_measurements: np.array,
                                y_targets: list):
     """
     Chooses the correct estimation function from the y_targets input. This is a bit slower but convenient for debugging and evaluation.
@@ -138,7 +140,7 @@ def uarm_6dof_to_origins(preds: np.array, larm_rot_rh: np.array, body_measuremen
     larm_vecs = body_measurements[:, 3:]
 
     # transform 6DOF into quaternions
-    rot_mats = transformations.six_dof_1x6_to_rot_mat_1x9(preds)
+    rot_mats = transformations.six_drr_1x6_to_rot_mat_1x9(preds)
     uarm_rot_rh = transformations.rot_mat_1x9_to_quat(rot_mats)
 
     # the default upper arm vector rotated by quaternions derived from 6dof representations
@@ -169,10 +171,10 @@ def uarm_larm_6dof_to_origins(preds: np.array, body_measurements: np.array):
     larm_vecs = body_measurements[:, 3:]
 
     # transform 6dof rotation representations back into quaternions
-    uarm_rot_mat = transformations.six_dof_1x6_to_rot_mat_1x9(uarm_6dof)
+    uarm_rot_mat = transformations.six_drr_1x6_to_rot_mat_1x9(uarm_6dof)
     upper_arm_rot_rh = transformations.rot_mat_1x9_to_quat(uarm_rot_mat)
 
-    larm_rot_mat = transformations.six_dof_1x6_to_rot_mat_1x9(larm_6dof)
+    larm_rot_mat = transformations.six_drr_1x6_to_rot_mat_1x9(larm_6dof)
     lower_arm_rot_rh = transformations.rot_mat_1x9_to_quat(larm_rot_mat)
 
     # get the transition from upper arm origin to lower arm origin

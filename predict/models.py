@@ -347,7 +347,7 @@ def load_model_from_params(params, save_path=os.path.join(config.paths["deploy"]
     )
 
     # load hash from params if available, otherwise generate one
-    name = get_nn_name(params)
+    name = params["hash"]
 
     if "checkpoint.pt" in os.listdir(save_path):
         full_path = os.path.join(save_path, "checkpoint.pt")

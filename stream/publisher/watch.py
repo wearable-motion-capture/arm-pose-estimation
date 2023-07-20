@@ -82,6 +82,8 @@ class WatchPublisher:
 
     def stream_loop(self, sensor_q: queue):
 
+        logging.info(f"[{self.__tag}] starting watch publisher")
+
         # used to estimate delta time and processing speed in Hz
         start = datetime.now()
         prev_time = datetime.now()
@@ -93,8 +95,6 @@ class WatchPublisher:
 
         # simple lookup for values of interest
         slp = messaging.sw_standalone_imu_lookup
-
-        logging.info("[{}] starting Unity stream loop".format(self.__tag))
 
         # for quicker access we store a single row containing the used defaults of the given bone map
         body_measurements = np.repeat(np.array([
@@ -115,55 +115,53 @@ class WatchPublisher:
                 now = datetime.now()
                 if (now - start).seconds >= 5:
                     start = now
-                    logging.info("[{}] {} Hz".format(self.__tag, dat / 5))
+                    logging.info(f"[{self.__tag}] {dat / 5} Hz")
                     dat = 0
                 delta_t = now - prev_time
                 delta_t = delta_t.microseconds * 0.000001
                 prev_time = now
 
                 # process the data
-                r_pres = row[slp["sw_pres"]] - \
-                         row[slp["sw_init_pres"]]  # pressure - calibrated initial pressure = relative pressure
-                # smartwatch rotation in our global coord system
-                sw_rot = transformations.sw_quat_to_global(
-                    np.array([
-                        row[slp["sw_rotvec_w"]],
-                        row[slp["sw_rotvec_x"]],
-                        row[slp["sw_rotvec_y"]],
-                        row[slp["sw_rotvec_z"]]
-                    ])
-                )
+                # pressure - calibrated initial pressure = relative pressure
+                r_pres = row[slp["sw_pres"]] - row[slp["sw_init_pres"]]
 
-                # quaternion to rotate smartwatch forward towards north
-                north_quat = transformations.euler_to_quat(
-                    np.array([0, np.radians(-row[slp["sw_north_deg"]]), 0], dtype=np.float64)
-                )
+                # calibrate smartwatch rotation
+                sw_rot = np.array([
+                    row[slp["sw_rotvec_w"]],
+                    row[slp["sw_rotvec_x"]],
+                    row[slp["sw_rotvec_y"]],
+                    row[slp["sw_rotvec_z"]]
+                ])
+                sw_fwd = np.array([
+                    row[slp["sw_forward_w"]],
+                    row[slp["sw_forward_x"]],
+                    row[slp["sw_forward_y"]],
+                    row[slp["sw_forward_z"]]
+                ])
+                sw_rot_cal = transformations.hamilton_product(transformations.quat_invert(sw_fwd), sw_rot)
 
-                # now align to known North Pole position. We have our rh rotation
-                sw_rot_quat_rh = transformations.hamilton_product(north_quat, sw_rot)
-                sw_larm_rot_quat_rh = transformations.hamilton_product(sw_rot_quat_rh,
-                                                                       np.array([0, 0, 1, 0], dtype=np.float64))
-                # get 6dof rotation representation
-                lower_arm_rot_6dof_rh = transformations.rot_mat_1x9_to_six_drr_1x6(
-                    transformations.quat_to_rot_mat_1x9(sw_larm_rot_quat_rh)
-                )
+                # # get 6dof rotation representation
+                # lower_arm_rot_6dof_rh = transformations.rot_mat_1x9_to_six_drr_1x6(
+                #     transformations.quat_to_rot_mat_1x9(sw_larm_rot_quat_rh)
+                # )
 
                 # assemble the entire input vector of one time step
                 xx = np.hstack([
                     delta_t,
-                    r_pres,
-                    lower_arm_rot_6dof_rh,
-                    row[slp["sw_lacc_x"]],
-                    row[slp["sw_lacc_y"]],
-                    row[slp["sw_lacc_z"]],
                     row[slp["sw_gyro_x"]],
                     row[slp["sw_gyro_y"]],
                     row[slp["sw_gyro_z"]],
+                    row[slp["sw_lvel_x"]],
+                    row[slp["sw_lvel_y"]],
+                    row[slp["sw_lvel_z"]],
+                    row[slp["sw_lacc_x"]],
+                    row[slp["sw_lacc_y"]],
+                    row[slp["sw_lacc_z"]],
                     row[slp["sw_grav_x"]],
                     row[slp["sw_grav_y"]],
                     row[slp["sw_grav_z"]],
-                    self.__larm_l,
-                    self.__uarm_l
+                    sw_rot_cal,
+                    r_pres
                 ])
 
                 if self.__normalize:
@@ -206,9 +204,11 @@ class WatchPublisher:
                     t_preds = np.vstack(smooth_hist)
 
                 # finally, estimate hand and lower arm origins from prediction data
-                est = estimate_joints.hand_larm_origins(preds=t_preds,
-                                                        body_measurements=body_measurements,
-                                                        y_targets=self.__y_targets)
+                est = estimate_joints.estimate_hand_larm_origins_from_predictions(
+                    preds=t_preds,
+                    body_measurements=body_measurements,
+                    y_targets=self.__y_targets
+                )
 
                 # estimate mean of rotations if we got multiple MC predictions
                 if est.shape[0] > 1:
