@@ -3,16 +3,14 @@ import queue
 import threading
 import config
 
-from data_types.bone_map import BoneMap
+from stream.publisher.watch import WatchPublisher
 from stream.listener.imu import ImuListener
-from stream.publisher.watch_to_unity import WatchToUnity
 from utility import deploy_models
 from utility import messaging
 
 logging.basicConfig(level=logging.INFO)
 
-mode_params = deploy_models.FF.NORM_UARM_LARM.value
-bonemap = BoneMap("Skeleton_21")
+model_params = deploy_models.FF.H_XYZ.value
 
 # listener and predictor run in separate threads. Listener fills the queue, predictor empties it
 q = queue.Queue()
@@ -20,20 +18,21 @@ q = queue.Queue()
 # the listener fills the que with transmitted smartwatch data
 imu_l = ImuListener(
     msg_size=messaging.sw_standalone_imu_msg_len,
-    port=config.WATCH_PORT
+    port=config.LISTEN_WATCH_IMU_LEFT
 )
 sensor_listener = threading.Thread(
-    target=imu_l.listen(q),
+    target=imu_l.listen,
     args=(q,)
 )
 sensor_listener.start()
 
 # make predictions and stream them to Unity
-w2u = WatchToUnity(bonemap=bonemap,
-                   model_params=mode_params,
-                   monte_carlo_samples=5,
-                   smooth=25,
-                   stream_monte_carlo=False)
+w2u = WatchPublisher(
+    model_params=model_params,
+    monte_carlo_samples=5,
+    smooth=25,
+    stream_monte_carlo=False
+)
 udp_publisher = threading.Thread(
     target=w2u.stream_loop,
     args=(q,)

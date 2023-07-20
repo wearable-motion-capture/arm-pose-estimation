@@ -13,7 +13,7 @@ import utility.voice_commands
 
 
 class AudioListener:
-    def __init__(self, ip: str = config.IP, port: int = config.WATCH_PHONE_AUDIO_PORT, tag: str = "AUDIO"):
+    def __init__(self, ip: str = config.IP, port: int = config.LISTEN_WATCH_PHONE_AUDIO, tag: str = "AUDIO"):
         # Audio recording parameters
         # See https://github.com/googleapis/python-speech/blob/main/samples/microphone/transcribe_streaming_infinite.py
         self.__sample_rate = 16000

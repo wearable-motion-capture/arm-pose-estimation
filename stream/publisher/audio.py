@@ -14,7 +14,7 @@ from stream.listener.motive import MotiveListener
 class AudioPublisher:
     def __init__(self,
                  ip=config.IP,
-                 port=config.PUB_AUDIO_PORT,
+                 port=config.PUB_TRANSCRIBED_KEYS,
                  tag: str = "AUDIO PUB"):
         self.__ip = ip
         self.__port = port

@@ -14,7 +14,7 @@ class MotiveToUnity:
     def __init__(self):
         self.__tag = "MOTIVE TO UNITY"
         self.__ip = config.IP
-        self.__port = config.UNITY_MOTIVE_PORT
+        self.__port = config.PUB_MOTIVE
         # UDP socket
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 

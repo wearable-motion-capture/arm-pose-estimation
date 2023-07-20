@@ -19,8 +19,8 @@ import struct
 from threading import Thread
 import copy
 import time
-import nat_net.data_descriptions as DataDescriptions
-import nat_net.mocap_data as MoCapData
+import experimental_modes.nat_net.data_descriptions as DataDescriptions
+import experimental_modes.nat_net.mocap_data as MoCapData
 
 
 def trace(*args):
