@@ -2,7 +2,7 @@ import logging
 import queue
 import threading
 
-import config
+from config import PORT_LISTEN_WATCH_PHONE_IMU_LEFT, PORT_PUB_WATCH_PHONE_LEFT
 from record.file_writer.watch_phone_motive_to_csv import watch_phone_motive_to_csv
 from stream.listener.motive import MotiveListener
 from stream.listener.imu import ImuListener
@@ -14,11 +14,11 @@ logging.basicConfig(level=logging.INFO)
 
 # the listener fills the queue with transmitted smartwatch and phone data
 sensor_que = queue.Queue()
-imu_l = ImuListener(msg_size=messaging.watch_phone_imu_msg_len, port=config.LISTEN_WATCH_PHONE_IMU_LEFT)
+imu_l = ImuListener(msg_size=messaging.watch_phone_imu_msg_len, port=PORT_LISTEN_WATCH_PHONE_IMU_LEFT)
 sensor_listener = threading.Thread(target=imu_l.listen, args=(sensor_que,))
 sensor_listener.start()
 # the publisher processes received data and publishes it to other services, e.g., Unity
-imu_p = WatchPhonePublisher(port=config.PUB_WATCH_PHONE_LEFT, smooth=0)
+imu_p = WatchPhonePublisher(port=PORT_PUB_WATCH_PHONE_LEFT, smooth=0)
 
 # this listener keeps track of motive ground truth data
 motive_listener = MotiveListener()

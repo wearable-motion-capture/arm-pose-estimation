@@ -23,8 +23,8 @@ class MotiveListener:
 
         self.__streaming_client = NatNetClient()
 
-        self.__streaming_client.set_client_address(config.IP)  # this machine
-        self.__streaming_client.set_server_address(config.MOTIVE_SERVER)  # motive machine
+        self.__streaming_client.set_client_address(config.IP_OWN)  # this machine
+        self.__streaming_client.set_server_address(config.IP_MOTIVE_SERVER)  # motive machine
         self.__streaming_client.set_use_multicast(False)  # only works in unicast setting
 
         # Configure the streaming client to call our rigid body handler on the emulator to send data out.
@@ -69,6 +69,8 @@ class MotiveListener:
 
         # find the smallest ID
         if self.__smallest_id is None:
+            if not rb_dat.rigid_body_list:
+                return
             self.__smallest_id = min([x.id_num for x in rb_dat.rigid_body_list]) - 1
             logging.info(f"[{self.__tag}] smallest id {self.__smallest_id}")
             return

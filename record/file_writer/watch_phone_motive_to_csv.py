@@ -23,7 +23,7 @@ def watch_phone_motive_to_csv(sensor_q: queue,
     header = ",".join(motive_listener.get_ground_truth_header() + list(slp.keys()))
 
     # create data filepath
-    dirpath = Path(config.paths["cache"]) / "watch_phone_motive_rec"
+    dirpath = Path(config.PATHS["cache"]) / "watch_phone_motive_rec"
     if not dirpath.exists():
         dirpath.mkdir(parents=True)
     filename = "watch_phone_motive_rec_{}.csv".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
