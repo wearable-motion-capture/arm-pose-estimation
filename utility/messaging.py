@@ -158,13 +158,13 @@ WATCH_PHONE_IMU_LOOKUP = {
     "ph_lacc_y": 40,
     "ph_lacc_z": 41,
 
-    # gravity
-    "ph_grav_x": 42,
-    "ph_grav_y": 43,
-    "ph_grav_z": 44,
-
     # atmospheric pressure
-    "ph_pres": 45,
+    "ph_pres": 42,
+
+    # gravity
+    "ph_grav_x": 43,
+    "ph_grav_y": 44,
+    "ph_grav_z": 45,
 
     # calibration data
     # smartwatch forward

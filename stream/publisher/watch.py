@@ -25,8 +25,8 @@ class WatchPublisher:
                  monte_carlo_samples=25):
 
         self.__tag = "PUB WATCH"
-        self.__port = config.PUB_WATCH_IMU_LEFT
-        self.__ip = config.IP
+        self.__port = config.PORT_PUB_WATCH_IMU_LEFT
+        self.__ip = config.IP_OWN
 
         # average over multiple time steps
         self.__smooth = smooth
@@ -38,13 +38,9 @@ class WatchPublisher:
         # use arm length measurements for predictions
         if bonemap is None:
             # default values
-            self.__larm_l = BoneMap.DEFAULT_LARM_LEN
-            self.__uarm_l = BoneMap.DEFAULT_UARM_LEN
-            self.__larm_vec = np.array([-self.__larm_l, 0, 0])
-            self.__uarm_vec = np.array([-self.__uarm_l, 0, 0])
+            self.__larm_vec = np.array([-BoneMap.DEFAULT_LARM_LEN, 0, 0])
+            self.__uarm_vec = np.array([-BoneMap.DEFAULT_UARM_LEN, 0, 0])
         else:
-            self.__larm_l = bonemap.left_lower_arm_length
-            self.__larm_vec = bonemap.left_lower_arm_vec
             self.__uarm_l = bonemap.left_upper_arm_length
             self.__uarm_vec = bonemap.left_upper_arm_vec
 
@@ -63,7 +59,7 @@ class WatchPublisher:
         # load normalized data stats if required
         if self.__normalize:
             f_name = "{}_{}".format(model_params["x_inputs"].name, self.__y_targets.name)
-            f_dir = Path(config.paths["deploy"]) / "data_stats"
+            f_dir = Path(config.PATHS["deploy"]) / "data_stats"
             f_path = f_dir / f_name
 
             if not f_path.exists():

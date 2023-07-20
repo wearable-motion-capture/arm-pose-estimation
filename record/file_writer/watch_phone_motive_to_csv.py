@@ -53,7 +53,8 @@ def watch_phone_motive_to_csv(sensor_q: queue,
                 msg = dual_publisher.row_to_arm_pose(row)
                 dual_publisher.send_np_msg(msg)
             if debug_motive_publisher is not None:
-                debug_motive_publisher.send_np_msg(gt_msg[:-4])  # skip the hip rotation
+                msg = motive_listener.get_unity_message()
+                debug_motive_publisher.send_np_msg(msg)  # skip the hip rotation
 
             # write everything to file
             s = ",".join(map(str, np.hstack([gt_msg, row]))) + "\n"

@@ -107,3 +107,30 @@ class MotiveListener:
             header += [k + "_quat_g_w", k + "_quat_g_x", k + "_quat_g_y", k + "_quat_g_z"]
             header += [k + "_orig_g_x", k + "_orig_g_y", k + "_orig_g_z"]
         return header
+
+    def get_unity_message(self):
+        cb = copy.deepcopy(self.__cf)
+        try:
+            # limb rotations of interest
+            hip_rot_g = ts.mocap_quat_to_global(cb[MOTIVE_BONE_IDS["Hips"]][1])
+            hand_rot_g = ts.mocap_quat_to_global(cb[MOTIVE_BONE_IDS["LeftHand"]][1])
+            uarm_rot_g = ts.mocap_quat_to_global(cb[MOTIVE_BONE_IDS["LeftUpperArm"]][1])
+            larm_rot_g = ts.mocap_quat_to_global(cb[MOTIVE_BONE_IDS["LeftLowerArm"]][1])
+
+            # limb origins of interest
+            uarm_orig_g = ts.mocap_pos_to_global(cb[MOTIVE_BONE_IDS["LeftUpperArm"]][0])
+            larm_orig_g = ts.mocap_pos_to_global(cb[MOTIVE_BONE_IDS["LeftLowerArm"]][0])
+            hand_orig_g = ts.mocap_pos_to_global(cb[MOTIVE_BONE_IDS["LeftHand"]][0])
+        except KeyError:
+            return None
+
+        # estimate rotations relative to hip
+        hand_rot_rh = ts.hamilton_product(ts.quat_invert(hip_rot_g), hand_rot_g)
+        larm_rot_rh = ts.hamilton_product(ts.quat_invert(hip_rot_g), larm_rot_g)
+        uarm_rot_rh = ts.hamilton_product(ts.quat_invert(hip_rot_g), uarm_rot_g)
+
+        # estimate positions relative to upper arm origin
+        larm_origin_rua = ts.quat_rotate_vector(ts.quat_invert(hip_rot_g), np.array(larm_orig_g - uarm_orig_g))
+        hand_orig_rua = ts.quat_rotate_vector(ts.quat_invert(hip_rot_g), np.array(hand_orig_g - uarm_orig_g))
+
+        return np.hstack([hand_rot_rh, hand_orig_rua, larm_rot_rh, larm_origin_rua, uarm_rot_rh, hip_rot_g])
