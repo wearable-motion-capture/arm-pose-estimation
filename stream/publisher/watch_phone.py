@@ -31,7 +31,7 @@ class WatchPhonePublisher:
         self.__smooth_hist = []
 
         # simple lookup for values of interest
-        self.__slp = messaging.dual_imu_msg_lookup
+        self.__slp = messaging.WATCH_PHONE_IMU_LOOKUP
 
         # use body measurements for transitions
         if bonemap is None:

@@ -19,13 +19,8 @@ def watch_phone_motive_to_csv(sensor_q: queue,
     tag = "REC WATCH PHONE MOTIVE"
 
     # create data header
-    slp = messaging.dual_imu_msg_lookup
-    header = ",".join(motive_listener.get_ground_truth_header() +
-                      list(slp.keys()) +
-                      ["sw_rot_cal_w", "sw_rot_cal_x", "sw_rot_cal_y", "sw_rot_cal_z",
-                       "ph_rot_cal_w", "ph_rot_cal_x", "ph_rot_cal_y", "ph_rot_cal_z",
-                       "pres_cal"]
-                      )
+    slp = messaging.WATCH_PHONE_IMU_LOOKUP
+    header = ",".join(motive_listener.get_ground_truth_header() + list(slp.keys()))
 
     # create data filepath
     dirpath = Path(config.paths["cache"]) / "watch_phone_motive_rec"
@@ -53,11 +48,6 @@ def watch_phone_motive_to_csv(sensor_q: queue,
             if gt_msg is None:
                 continue
 
-            # calibrate data with forward directions
-            sw_cal, ph_cal = dual_publisher.calibrate_rotations_from_data(row)
-
-            pres_cal = row[slp["sw_pres"]] - row[slp["sw_rel_pres"]]
-
             # visualize if debug publishers are available
             if dual_publisher is not None:
                 msg = dual_publisher.row_to_arm_pose(row)
@@ -66,7 +56,7 @@ def watch_phone_motive_to_csv(sensor_q: queue,
                 debug_motive_publisher.send_np_msg(gt_msg[:-4])  # skip the hip rotation
 
             # write everything to file
-            s = ",".join(map(str, np.hstack([gt_msg, row, sw_cal, ph_cal, pres_cal]))) + "\n"
+            s = ",".join(map(str, np.hstack([gt_msg, row]))) + "\n"
 
             csvfile.write(s)
             count += 1

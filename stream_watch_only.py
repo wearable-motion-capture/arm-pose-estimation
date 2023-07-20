@@ -17,8 +17,8 @@ q = queue.Queue()
 
 # the listener fills the que with transmitted smartwatch data
 imu_l = ImuListener(
-    msg_size=messaging.sw_standalone_imu_msg_len,
-    port=config.LISTEN_WATCH_IMU_LEFT
+    msg_size=messaging.watch_only_imu_msg_len,
+    port=config.PORT_LISTEN_WATCH_IMU_LEFT
 )
 sensor_listener = threading.Thread(
     target=imu_l.listen,

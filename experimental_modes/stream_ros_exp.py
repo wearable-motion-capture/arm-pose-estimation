@@ -28,7 +28,7 @@ right_q = queue.Queue()  # data for right-hand mode
 # left listener
 imu_l = ImuListener(
     ip=config.IP,
-    msg_size=len(messaging.dual_imu_msg_lookup) * 4,
+    msg_size=len(messaging.WATCH_PHONE_IMU_LOOKUP) * 4,
     port=config.LISTEN_WATCH_PHONE_IMU_LEFT,
     tag="IMU LEFT"
 )

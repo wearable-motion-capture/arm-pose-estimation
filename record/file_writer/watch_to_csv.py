@@ -9,7 +9,7 @@ from utility import messaging
 
 def watch_to_csv(sensor_q: queue):
     tag = "REC WATCH"
-    slp = messaging.sw_standalone_imu_lookup
+    slp = messaging.WATCH_ONLY_IMU_LOOKUP
     header = ",".join(slp.keys())
 
     dirpath = Path(config.paths["cache"]) / "watch_rec"

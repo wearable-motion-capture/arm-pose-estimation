@@ -94,7 +94,7 @@ class WatchPublisher:
         smooth_hist = []  # smoothing averages over a series of time steps
 
         # simple lookup for values of interest
-        slp = messaging.sw_standalone_imu_lookup
+        slp = messaging.WATCH_ONLY_IMU_LOOKUP
 
         # for quicker access we store a single row containing the used defaults of the given bone map
         body_measurements = np.repeat(np.array([

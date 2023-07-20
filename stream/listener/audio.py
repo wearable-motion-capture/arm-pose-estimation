@@ -162,7 +162,7 @@ class AudioListener:
                 phrase = str(transcript).lower()
                 logging.info("[THREAD TRANSCRIBE] {}".format(phrase))
 
-                for k, v in utility.voice_commands.commands.items():
+                for k, v in utility.voice_commands.KEY_PHRASES.items():
                     if k in phrase:
                         q_out.put(v)
                         logging.info("[THREAD TRANSCRIBE] sent {} queue size {}".format(k, q_out.qsize()))

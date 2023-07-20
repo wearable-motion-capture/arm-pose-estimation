@@ -4,7 +4,7 @@ import socket
 import queue
 from datetime import datetime
 import config
-from utility.messaging import sw_standalone_imu_lookup
+from utility.messaging import WATCH_ONLY_IMU_LOOKUP
 
 
 

@@ -8,7 +8,7 @@ import utility.transformations as ts
 import config
 from experimental_modes.nat_net.mocap_data import MoCapData
 from experimental_modes.nat_net.nat_net_client import NatNetClient
-from utility.messaging import motive_bone_ids
+from utility.messaging import MOTIVE_BONE_IDS
 
 
 class MotiveListener:
@@ -84,30 +84,15 @@ class MotiveListener:
 
     def get_ground_truth(self):
         cb = copy.deepcopy(self.__cf)
+        data = []
         try:
-            # limb rotations of interest
-            hip_rot_g = ts.mocap_quat_to_global(cb[motive_bone_ids["Hips"]][1])
-            hand_rot_g = ts.mocap_quat_to_global(cb[motive_bone_ids["LeftHand"]][1])
-            uarm_rot_g = ts.mocap_quat_to_global(cb[motive_bone_ids["LeftUpperArm"]][1])
-            larm_rot_g = ts.mocap_quat_to_global(cb[motive_bone_ids["LeftLowerArm"]][1])
-
-            # limb origins of interest
-            uarm_orig_g = ts.mocap_pos_to_global(cb[motive_bone_ids["LeftUpperArm"]][0])
-            larm_orig_g = ts.mocap_pos_to_global(cb[motive_bone_ids["LeftLowerArm"]][0])
-            hand_orig_g = ts.mocap_pos_to_global(cb[motive_bone_ids["LeftHand"]][0])
+            for k, v in MOTIVE_BONE_IDS.items():
+                d = cb[v]
+                data.append(ts.mocap_quat_to_global(d[1]))
+                data.append(ts.mocap_pos_to_global(d[0]))
         except KeyError:
             return None
-
-        # estimate rotations relative to hip
-        hand_rot_rh = ts.hamilton_product(ts.quat_invert(hip_rot_g), hand_rot_g)
-        larm_rot_rh = ts.hamilton_product(ts.quat_invert(hip_rot_g), larm_rot_g)
-        uarm_rot_rh = ts.hamilton_product(ts.quat_invert(hip_rot_g), uarm_rot_g)
-
-        # estimate positions relative to upper arm origin
-        larm_origin_rua = ts.quat_rotate_vector(ts.quat_invert(hip_rot_g), np.array(larm_orig_g - uarm_orig_g))
-        hand_orig_rua = ts.quat_rotate_vector(ts.quat_invert(hip_rot_g), np.array(hand_orig_g - uarm_orig_g))
-
-        return np.hstack([hand_rot_rh, hand_orig_rua, larm_rot_rh, larm_origin_rua, uarm_rot_rh, hip_rot_g])
+        return np.hstack(data)
 
     @staticmethod
     def get_ground_truth_header():
@@ -115,17 +100,8 @@ class MotiveListener:
         descriptive labels for what get_ground_truth() returns
         :return:
         """
-        return [
-            # hand rotation
-            "hand_rot_rh_w", "hand_rot_rh_x", "hand_rot_rh_y", "hand_rot_rh_z",
-            # hand position
-            "hand_orig_rua_x", "hand_orig_rua_y", "hand_orig_rua_z",
-            # larm rotation
-            "larm_rot_rh_w", "larm_rot_rh_x", "larm_rot_rh_y", "larm_rot_rh_z",
-            # elbow position (larm origin)
-            "larm_orig_rua_x", "larm_orig_rua_y", "larm_orig_rua_z",
-            # uarm rotation
-            "uarm_rot_rh_w", "uarm_rot_rh_x", "uarm_rot_rh_y", "uarm_rot_rh_z",
-            # hip rotation global
-            "hip_rot_g_w", "hip_rot_g_x", "hip_rot_g_y", "hip_rot_g_z"
-        ]
+        header = []
+        for k, v in MOTIVE_BONE_IDS.items():
+            header += [k + "_quat_g_w", k + "_quat_g_x", k + "_quat_g_y", k + "_quat_g_z"]
+            header += [k + "_orig_g_x", k + "_orig_g_y", k + "_orig_g_z"]
+        return header

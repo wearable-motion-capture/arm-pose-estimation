@@ -35,9 +35,9 @@ class ImuAccVisualizer:
         ani = animation.FuncAnimation(fig, self.animate, interval=0.1, frames=1)
         self.__standalone = standalone_mode
         if standalone_mode:
-            self.__slp = messaging.sw_standalone_imu_lookup
+            self.__slp = messaging.WATCH_ONLY_IMU_LOOKUP
         else:
-            self.__slp = messaging.dual_imu_msg_lookup
+            self.__slp = messaging.WATCH_PHONE_IMU_LOOKUP
 
         plt.tight_layout()
         plt.show()

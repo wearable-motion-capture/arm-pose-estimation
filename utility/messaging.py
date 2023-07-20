@@ -1,7 +1,10 @@
-motive_bone_ids = {
+"""
+These IDs will be collected as ground truth. Position and Rotation
+"""
+MOTIVE_BONE_IDS = {
     "Hips": 1,
-    "Spine": 2,
-    "Chest": 3,
+    # "Spine": 2,
+    # "Chest": 3,
     "LeftShoulder": 6,
     "LeftUpperArm": 7,
     "LeftLowerArm": 8,
@@ -12,7 +15,7 @@ motive_bone_ids = {
 Sensor values from the smartwatch come in a fixed order.
 This lookup returns the position of specific measurements.
 """
-sw_standalone_imu_lookup = {
+WATCH_ONLY_IMU_LOOKUP = {
     # timestamp
     "sw_dt": 0,  # delta time since last obs
     "sw_h": 1,  # hour
@@ -60,9 +63,9 @@ sw_standalone_imu_lookup = {
     "sw_forward_y": 26,
     "sw_forward_z": 27
 }
-sw_standalone_imu_msg_len = len(sw_standalone_imu_lookup) * 4
+watch_only_imu_msg_len = len(WATCH_ONLY_IMU_LOOKUP) * 4
 
-dual_ppg_msg_lookup = {
+WATCH_PHONE_PPG_LOOKUP = {
     # timestamp
     "sw_h": 0,  # hour
     "sw_m": 1,  # minute
@@ -88,7 +91,7 @@ dual_ppg_msg_lookup = {
     "hr_raw_15": 19
 }
 
-dual_imu_msg_lookup = {
+WATCH_PHONE_IMU_LOOKUP = {
     # smartwatch data
     "sw_dt": 0,  # delta time since last obs
     "sw_h": 1,  # hour
@@ -179,4 +182,4 @@ dual_imu_msg_lookup = {
     # calibrated pressure
     "sw_init_pres": 54
 }
-watch_phone_imu_msg_len = len(dual_imu_msg_lookup) * 4  # floats
+watch_phone_imu_msg_len = len(WATCH_PHONE_IMU_LOOKUP) * 4  # floats
