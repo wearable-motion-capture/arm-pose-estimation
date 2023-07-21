@@ -323,11 +323,7 @@ def mocap_quat_to_global(q: np.array):
     :param q: quaternion as [x,y,z,w]
     :return: quaternion as [w,x,y,z]
     """
-    # deal with columns of data
-    if len(q.shape) > 1:
-        mc_q = np.array([q[:, 3], q[:, 0], q[:, 1], q[:, 2]])
-    else:
-        mc_q = np.array([q[3], q[0], q[1], q[2]])
+    mc_q = q
     # rotate by -90 around y-axis to align z-axis of both coord systems ...
     wordl_quat = np.array([-0.7071068, 0, 0.7071068, 0], dtype=np.float64)
     # then flip x-axis and reverse angle to change coord system orientation
@@ -425,6 +421,11 @@ def exponential_map_to_quaternion(em: np.array):
     w = np.cos(.5 * theta)
     # prepend w to x,y,z to get full quaternion
     return np.insert(q_img, 0, w, dtype=np.float64)
+
+
+def quat_to_6drr_1x6(quat: np.array):
+    rmat = quat_to_rot_mat_1x9(quat)
+    return rot_mat_1x9_to_six_drr_1x6(rmat)
 
 
 def quat_to_rot_mat_1x9(quat: np.array):
