@@ -2,15 +2,15 @@ import logging
 import queue
 import threading
 import config
+from data_deploy.nn import deploy_models
 
 from stream.publisher.watch import WatchPublisher
 from stream.listener.imu import ImuListener
-from utility import deploy_models
 from utility import messaging
 
 logging.basicConfig(level=logging.INFO)
 
-model_params = deploy_models.FF.H_XYZ.value
+model_hash = deploy_models.FF.H_XYZ.value
 
 # listener and predictor run in separate threads. Listener fills the queue, predictor empties it
 q = queue.Queue()
@@ -28,10 +28,10 @@ sensor_listener.start()
 
 # make predictions and stream them to Unity
 w2u = WatchPublisher(
-    model_params=model_params,
+    model_hash=model_hash,
     monte_carlo_samples=5,
     smooth=25,
-    stream_monte_carlo=False
+    stream_monte_carlo=True
 )
 udp_publisher = threading.Thread(
     target=w2u.stream_loop,

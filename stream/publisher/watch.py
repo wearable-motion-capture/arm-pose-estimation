@@ -18,7 +18,7 @@ from utility import messaging
 
 class WatchPublisher:
     def __init__(self,
-                 model_params: dict,
+                 model_hash: str,
                  bonemap: BoneMap = None,
                  smooth: int = 5,
                  stream_monte_carlo=True,
@@ -51,14 +51,14 @@ class WatchPublisher:
         self.__device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         # load model from given parameters
-        self.__nn_model = models.load_model_from_params(params=model_params)
-        self.__y_targets = model_params["y_targets"]
-        self.__sequence_len = model_params["sequence_len"]
-        self.__normalize = model_params["normalize"] if "normalize" in model_params else True
+        self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)
+        self.__y_targets_n = params["y_targets_n"]
+        self.__sequence_len = params["sequence_len"]
+        self.__normalize = params["normalize"] if "normalize" in params else True
 
         # load normalized data stats if required
         if self.__normalize:
-            f_name = "{}_{}".format(model_params["x_inputs"].name, self.__y_targets.name)
+            f_name = "{}_{}".format(params["x_inputs_n"], self.__y_targets_n)
             f_dir = Path(config.PATHS["deploy"]) / "data_stats"
             f_path = f_dir / f_name
 
@@ -134,29 +134,19 @@ class WatchPublisher:
                     row[slp["sw_forward_y"]],
                     row[slp["sw_forward_z"]]
                 ])
-                sw_rot_cal = transformations.hamilton_product(transformations.quat_invert(sw_fwd), sw_rot)
+                sw_quat_cal = transformations.hamilton_product(transformations.quat_invert(sw_fwd), sw_rot)
 
-                # # get 6dof rotation representation
-                # lower_arm_rot_6dof_rh = transformations.rot_mat_1x9_to_six_drr_1x6(
-                #     transformations.quat_to_rot_mat_1x9(sw_larm_rot_quat_rh)
-                # )
+                # get 6dof rotation representation
+                sw_6drr_cal = transformations.quat_to_6drr_1x6(sw_quat_cal)
 
                 # assemble the entire input vector of one time step
                 xx = np.hstack([
                     delta_t,
-                    row[slp["sw_gyro_x"]],
-                    row[slp["sw_gyro_y"]],
-                    row[slp["sw_gyro_z"]],
-                    row[slp["sw_lvel_x"]],
-                    row[slp["sw_lvel_y"]],
-                    row[slp["sw_lvel_z"]],
-                    row[slp["sw_lacc_x"]],
-                    row[slp["sw_lacc_y"]],
-                    row[slp["sw_lacc_z"]],
-                    row[slp["sw_grav_x"]],
-                    row[slp["sw_grav_y"]],
-                    row[slp["sw_grav_z"]],
-                    sw_rot_cal,
+                    row[slp["sw_gyro_x"]], row[slp["sw_gyro_y"]], row[slp["sw_gyro_z"]],
+                    row[slp["sw_lvel_x"]], row[slp["sw_lvel_y"]], row[slp["sw_lvel_z"]],
+                    row[slp["sw_lacc_x"]], row[slp["sw_lacc_y"]], row[slp["sw_lacc_z"]],
+                    row[slp["sw_grav_x"]], row[slp["sw_grav_y"]], row[slp["sw_grav_z"]],
+                    sw_6drr_cal,
                     r_pres
                 ])
 
@@ -203,7 +193,7 @@ class WatchPublisher:
                 est = estimate_joints.estimate_hand_larm_origins_from_predictions(
                     preds=t_preds,
                     body_measurements=body_measurements,
-                    y_targets=self.__y_targets
+                    y_targets=self.__y_targets_n
                 )
 
                 # estimate mean of rotations if we got multiple MC predictions

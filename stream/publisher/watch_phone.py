@@ -44,8 +44,8 @@ class WatchPhonePublisher:
 
         # in left hand mode, the arm is stretched along the negative X-axis in T pose
         if left_hand_mode:
-            self.__larm_vec[0] = self.__larm_vec[0] * -1
-            self.__uarm_vec[0] = self.__uarm_vec[0] * -1
+            self.__larm_vec[0] = -self.__larm_vec[0]
+            self.__uarm_vec[0] = -self.__uarm_vec[0]
 
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
