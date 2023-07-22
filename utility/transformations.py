@@ -273,6 +273,24 @@ def mocap_pos_to_global(p: np.array):
     return p * np.array([-1, 1, -1], dtype=np.float64)
 
 
+def mocap_quat_to_global(q: np.array):
+    """
+    Optitrack quaternion to rotation in world coords
+    :param q: quaternion as [x,y,z,w]
+    :return: quaternion as [w,x,y,z]
+    """
+    # bring w to front
+    if len(q.shape) > 1:
+        mc_q = np.array([q[:, 3], q[:, 0], q[:, 1], q[:, 2]])
+    else:
+        mc_q = np.array([q[3], q[0], q[1], q[2]])
+    # rotate by -90 around y-axis to align z-axis of both coord systems ...
+    wordl_quat = np.array([-0.7071068, 0, 0.7071068, 0], dtype=np.float64)
+    # then flip x-axis and reverse angle to change coord system orientation
+    n_q = mc_q * np.array([-1, -1, 1, 1], dtype=np.float64)
+    return hamilton_product(wordl_quat, n_q)
+
+
 def quat_a_to_b(vec_a: np.array, vec_b: np.array):
     """
     The rotation between two vectors as a rotation
@@ -315,20 +333,6 @@ def quat_a_to_b(vec_a: np.array, vec_b: np.array):
 
         q = np.insert(xyz, 0, 1. + w) / 2.
         return q / np.linalg.norm(q)  # normalize again
-
-
-def mocap_quat_to_global(q: np.array):
-    """
-    Optitrack quaternion to rotation in world coords
-    :param q: quaternion as [x,y,z,w]
-    :return: quaternion as [w,x,y,z]
-    """
-    mc_q = q
-    # rotate by -90 around y-axis to align z-axis of both coord systems ...
-    wordl_quat = np.array([-0.7071068, 0, 0.7071068, 0], dtype=np.float64)
-    # then flip x-axis and reverse angle to change coord system orientation
-    n_q = mc_q * np.array([-1, -1, 1, 1], dtype=np.float64)
-    return hamilton_product(wordl_quat, n_q)
 
 
 def quaternion_to_exponential_map(q: np.array):
