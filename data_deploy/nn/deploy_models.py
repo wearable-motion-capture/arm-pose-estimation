@@ -2,4 +2,5 @@ from enum import Enum
 
 
 class FF(Enum):
-    H_XYZ = "f26b9035fd623e82cc8e0f2b9b89f1281f9b31c6"
+    H_XYZ = "fd63d8c3b2ade92b1b6cbb55586d69a9737462c8"
+    H_6DRR = "68fd19d33f7e720085b044bf44eae5a2bceb3cbc"

@@ -10,7 +10,7 @@ from utility import messaging
 
 logging.basicConfig(level=logging.INFO)
 
-model_hash = deploy_models.FF.H_XYZ.value
+model_hash = deploy_models.FF.H_6DRR.value
 
 # listener and predictor run in separate threads. Listener fills the queue, predictor empties it
 q = queue.Queue()
@@ -29,8 +29,8 @@ sensor_listener.start()
 # make predictions and stream them to Unity
 w2u = WatchPublisher(
     model_hash=model_hash,
-    monte_carlo_samples=5,
-    smooth=25,
+    monte_carlo_samples=10,
+    smooth=20,
     stream_monte_carlo=True
 )
 udp_publisher = threading.Thread(
