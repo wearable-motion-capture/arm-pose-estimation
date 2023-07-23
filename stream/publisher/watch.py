@@ -215,10 +215,11 @@ class WatchPublisher:
                     pred_larm_rot_rh = est[0, 6:10]
                     pred_uarm_rot_rh = est[0, 10:]
 
-                # hand from watch
-                fwd_to_left = np.array([0.7071068, 0., 0.7071068, 0.])  # a 90deg y rotation
-                hand_rot_r = transformations.watch_left_to_global(sw_quat_cal)
-                hand_rot_r = transformations.hamilton_product(hand_rot_r, fwd_to_left)
+                # # hand from watch
+                # fwd_to_left = np.array([0.7071068, 0., 0.7071068, 0.])  # a 90deg y rotation
+                # hand_rot_r = transformations.watch_left_to_global(sw_quat_cal)
+                # hand_rot_r = transformations.hamilton_product(hand_rot_r, fwd_to_left)
+                hand_rot_r = pred_larm_rot_rh
 
                 # this is the list for the actual joint positions and rotations
                 basic_value_list = [

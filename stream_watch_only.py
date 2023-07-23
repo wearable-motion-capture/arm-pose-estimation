@@ -29,9 +29,10 @@ sensor_listener.start()
 # make predictions and stream them to Unity
 w2u = WatchPublisher(
     model_hash=model_hash,
-    monte_carlo_samples=10,
-    smooth=20,
+    monte_carlo_samples=15,
+    smooth=15,
     stream_monte_carlo=True
+
 )
 udp_publisher = threading.Thread(
     target=w2u.stream_loop,
