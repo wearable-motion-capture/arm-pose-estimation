@@ -11,7 +11,7 @@ from utility import messaging
 logging.basicConfig(level=logging.INFO)
 
 # adjust IP to your needs
-ip = config.IP
+ip = config.IP_OWN
 
 # data processing happens in independent threads.
 # We exchange data via queues.
@@ -22,9 +22,9 @@ right_q = queue.Queue()  # data for right-hand mode
 
 # left listener
 imu_l = ImuListener(
-    ip=config.IP,
-    msg_size=len(messaging.dual_imu_msg_lookup) * 4,
-    port=config.LISTEN_WATCH_PHONE_IMU_LEFT,
+    ip=config.IP_OWN,
+    msg_size=len(messaging.WATCH_PHONE_IMU_LOOKUP) * 4,
+    port=config.PORT_LISTEN_WATCH_PHONE_IMU_LEFT,
     tag="IMU LEFT"
 )
 l_thread = threading.Thread(
@@ -35,9 +35,9 @@ l_thread.start()
 
 # right listener
 imu_r = ImuListener(
-    ip=config.IP,
-    msg_size=len(messaging.dual_imu_msg_lookup) * 4,
-    port=config.LISTEN_WATCH_PHONE_IMU_RIGHT,
+    ip=config.IP_OWN,
+    msg_size=len(messaging.WATCH_PHONE_IMU_LOOKUP) * 4,
+    port=config.PORT_LISTEN_WATCH_PHONE_IMU_RIGHT,
     tag="IMU RIGHT"
 )
 r_thread = threading.Thread(
@@ -48,8 +48,8 @@ r_thread.start()
 
 # left publisher
 wp2ul = WatchPhonePublisher(
-    ip=config.IP,
-    port=config.PUB_WATCH_PHONE_LEFT,
+    ip=config.IP_OWN,
+    port=config.PORT_PUB_WATCH_PHONE_LEFT,
     tag="UNITY LEFT"
 )
 ul_thread = threading.Thread(
@@ -60,8 +60,8 @@ ul_thread.start()
 
 # right publisher
 wp2ur = WatchPhonePublisher(
-    ip=config.IP,
-    port=config.PUB_WATCH_PHONE_RIGHT,
+    ip=config.IP_OWN,
+    port=config.PORT_PUB_WATCH_PHONE_RIGHT,
     tag="UNITY RIGHT",
     left_hand_mode=False
 )

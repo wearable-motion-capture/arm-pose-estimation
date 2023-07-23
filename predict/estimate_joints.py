@@ -1,75 +1,74 @@
 import numpy as np
 from utility import transformations
-from utility.names import NNS_INPUTS, NNS_TARGETS
 
 
-def estimate_hand_larm_origins_from_predictions(preds: np.array, body_measurements: np.array, y_targets: NNS_INPUTS):
-    if y_targets == NNS_TARGETS.UARM_LARM_6DOF:
+def estimate_hand_larm_origins_from_predictions(preds: np.array, body_measurements: np.array, y_targets: str):
+    if y_targets == "H_ROTS":
         estimates = uarm_larm_6dof_to_origins(preds=preds,
                                               body_measurements=body_measurements)
-    elif y_targets == NNS_TARGETS.HAND_LARM_XYZ or y_targets == NNS_TARGETS.H_XYZ:
+    elif y_targets == "H_XYZ":
         estimates = hand_larm_xyz_to_origins(preds=preds,
                                              body_measurements=body_measurements)
-    elif y_targets == NNS_TARGETS.UARM_LARM_QUAT or y_targets == NNS_TARGETS.H_ROTS:
-        estimates = larm_uarm_quat_to_origins(preds=preds,
-                                              body_measurements=body_measurements)
-    elif y_targets == NNS_TARGETS.HAND_LARM_POLAR:
-        estimates = hand_larm_polar_to_origins(preds=preds,
-                                               body_measurements=body_measurements)
+    # elif y_targets == NNS_TARGETS.UARM_LARM_QUAT or y_targets == NNS_TARGETS.H_ROTS:
+    #     estimates = larm_uarm_quat_to_origins(preds=preds,
+    #                                           body_measurements=body_measurements)
+    # elif y_targets == NNS_TARGETS.HAND_LARM_POLAR:
+    #     estimates = hand_larm_polar_to_origins(preds=preds,
+    #                                            body_measurements=body_measurements)
     else:
         raise UserWarning("estimation for {} not implemented".format(y_targets))
     return estimates
 
-
-def hand_larm_origins_with_rot(preds: np.array,
-                               lower_arm_rot_rh: np.array,
-                               body_measurements: np.array,
-                               y_targets: list):
-    """
-    Chooses the correct estimation function from the y_targets input. This is a bit slower but convenient for debugging and evaluation.
-    :param preds:
-    :param lower_arm_rot_rh:
-    :param body_measurements: [uarm_vec, larm_vec]
-    :param y_targets:
-    :return:  [hand_origins, lower_arm_origins, lower_arm_rot_rh, upper_arm_rot_rh]
-    """
-
-    if y_targets == NNS_INPUTS.UARM_LARM_6DOF_TARGETS:
-        estimates = uarm_larm_6dof_to_origins(preds=preds,
-                                              body_measurements=body_measurements)
-    elif y_targets == NNS_INPUTS.HAND_LARM_XYZ_TARGETS:
-        estimates = hand_larm_xyz_to_origins(preds=preds,
-                                             body_measurements=body_measurements)
-    elif y_targets == NNS_INPUTS.UARM_LARM_QUAT_TARGETS:
-        estimates = larm_uarm_quat_to_origins(preds=preds,
-                                              body_measurements=body_measurements)
-    elif y_targets == NNS_INPUTS.HAND_LARM_POLAR_TARGETS:
-        estimates = hand_larm_polar_to_origins(preds=preds,
-                                               body_measurements=body_measurements)
-    elif y_targets == NNS_INPUTS.HAND_XYZ_TARGETS:
-        estimates = hand_xyz_to_origins(preds=preds,
-                                        larm_rot_rh=lower_arm_rot_rh,
-                                        body_measurements=body_measurements)
-    elif y_targets == NNS_INPUTS.LARM_XYZ_TARGETS:
-        estimates = larm_xyz_to_origins(preds=preds,
-                                        larm_rot_rh=lower_arm_rot_rh,
-                                        body_measurements=body_measurements)
-    elif y_targets == NNS_INPUTS.HAND_LARM_POLAR_TARGETS:
-        estimates = larm_polar_to_origins(preds=preds,
-                                          larm_rot_rh=lower_arm_rot_rh,
-                                          body_measurements=body_measurements)
-    elif y_targets == NNS_INPUTS.UARM_6DOF_TARGETS:
-        estimates = uarm_6dof_to_origins(preds=preds,
-                                         larm_rot_rh=lower_arm_rot_rh,
-                                         body_measurements=body_measurements)
-    elif y_targets == NNS_INPUTS.UARM_QUAT_TARGETS:
-        estimates = uarm_quat_to_origins(preds=preds,
-                                         larm_rot_rh=lower_arm_rot_rh,
-                                         body_measurements=body_measurements)
-    else:
-        raise UserWarning("estimation for {} not implemented".format(y_targets))
-
-    return estimates
+#
+# def hand_larm_origins_with_rot(preds: np.array,
+#                                lower_arm_rot_rh: np.array,
+#                                body_measurements: np.array,
+#                                y_targets: list):
+#     """
+#     Chooses the correct estimation function from the y_targets input. This is a bit slower but convenient for debugging and evaluation.
+#     :param preds:
+#     :param lower_arm_rot_rh:
+#     :param body_measurements: [uarm_vec, larm_vec]
+#     :param y_targets:
+#     :return:  [hand_origins, lower_arm_origins, lower_arm_rot_rh, upper_arm_rot_rh]
+#     """
+#
+#     if y_targets == NNS_INPUTS.UARM_LARM_6DOF_TARGETS:
+#         estimates = uarm_larm_6dof_to_origins(preds=preds,
+#                                               body_measurements=body_measurements)
+#     elif y_targets == NNS_INPUTS.HAND_LARM_XYZ_TARGETS:
+#         estimates = hand_larm_xyz_to_origins(preds=preds,
+#                                              body_measurements=body_measurements)
+#     elif y_targets == NNS_INPUTS.UARM_LARM_QUAT_TARGETS:
+#         estimates = larm_uarm_quat_to_origins(preds=preds,
+#                                               body_measurements=body_measurements)
+#     elif y_targets == NNS_INPUTS.HAND_LARM_POLAR_TARGETS:
+#         estimates = hand_larm_polar_to_origins(preds=preds,
+#                                                body_measurements=body_measurements)
+#     elif y_targets == NNS_INPUTS.HAND_XYZ_TARGETS:
+#         estimates = hand_xyz_to_origins(preds=preds,
+#                                         larm_rot_rh=lower_arm_rot_rh,
+#                                         body_measurements=body_measurements)
+#     elif y_targets == NNS_INPUTS.LARM_XYZ_TARGETS:
+#         estimates = larm_xyz_to_origins(preds=preds,
+#                                         larm_rot_rh=lower_arm_rot_rh,
+#                                         body_measurements=body_measurements)
+#     elif y_targets == NNS_INPUTS.HAND_LARM_POLAR_TARGETS:
+#         estimates = larm_polar_to_origins(preds=preds,
+#                                           larm_rot_rh=lower_arm_rot_rh,
+#                                           body_measurements=body_measurements)
+#     elif y_targets == NNS_INPUTS.UARM_6DOF_TARGETS:
+#         estimates = uarm_6dof_to_origins(preds=preds,
+#                                          larm_rot_rh=lower_arm_rot_rh,
+#                                          body_measurements=body_measurements)
+#     elif y_targets == NNS_INPUTS.UARM_QUAT_TARGETS:
+#         estimates = uarm_quat_to_origins(preds=preds,
+#                                          larm_rot_rh=lower_arm_rot_rh,
+#                                          body_measurements=body_measurements)
+#     else:
+#         raise UserWarning("estimation for {} not implemented".format(y_targets))
+#
+#     return estimates
 
 
 def hand_larm_xyz_to_origins(preds: np.array, body_measurements: np.array):

@@ -28,8 +28,7 @@ We augment arm pose estimations with further modes to interface with ROS or reco
 
 ### Audio Transcription
 
-The smartwatch and smartphone app also allows to stream microphone data. This project can receive the microphone data
-and transcribe it for voice commands etc.
+This project can receive the microphone data from our smartwatch app and transcribe it for voice commands etc.
 For this, we use the Google Cloud transcription service.
 
 If you don't have an account, follow

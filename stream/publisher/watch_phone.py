@@ -17,7 +17,7 @@ class WatchPhonePublisher:
                  port: int,
                  smooth: int = 5,
                  left_hand_mode=True,
-                 ip: str = config.IP,
+                 ip: str = config.IP_OWN,
                  tag: str = "PUB WATCH PHONE",
                  bonemap: BoneMap = None):
 
@@ -31,16 +31,21 @@ class WatchPhonePublisher:
         self.__smooth_hist = []
 
         # simple lookup for values of interest
-        self.__slp = messaging.dual_imu_msg_lookup
+        self.__slp = messaging.WATCH_PHONE_IMU_LOOKUP
 
         # use body measurements for transitions
         if bonemap is None:
-            self.__larm_vec = np.array([0, 0, BoneMap.DEFAULT_LARM_LEN])
-            self.__uarm_vec = np.array([0, 0, BoneMap.DEFAULT_UARM_LEN])
+            self.__larm_vec = np.array([BoneMap.DEFAULT_LARM_LEN, 0, 0])
+            self.__uarm_vec = np.array([BoneMap.DEFAULT_UARM_LEN, 0, 0])
         else:
             # get values from bone map
-            self.__larm_vec = np.array([0, 0, bonemap.left_lower_arm_length])
-            self.__uarm_vec = np.array([0, 0, bonemap.left_upper_arm_length])
+            self.__larm_vec = np.array([bonemap.left_lower_arm_length, 0, 0])
+            self.__uarm_vec = np.array([bonemap.left_upper_arm_length, 0, 0])
+
+        # in left hand mode, the arm is stretched along the negative X-axis in T pose
+        if left_hand_mode:
+            self.__larm_vec[0] = -self.__larm_vec[0]
+            self.__uarm_vec[0] = -self.__uarm_vec[0]
 
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -84,11 +89,17 @@ class WatchPhonePublisher:
 
         # decide how to transform coord system depending on arm mode
         if self.__left_hand_mode:
+            fwd_to_left = np.array([0.7071068, 0., 0.7071068, 0.])  # a 90deg y rotation
             larm_rot_r = transformations.watch_left_to_global(sw_quat_cal)
+            larm_rot_r = transformations.hamilton_product(larm_rot_r, fwd_to_left)
             uarm_rot_r = transformations.phone_left_to_global(ph_quat_cal)
+            uarm_rot_r = transformations.hamilton_product(uarm_rot_r, fwd_to_left)
         else:
+            fwd_to_right = np.array([0.7071068, 0., -0.7071068, 0.])  # a -90deg y rotation
             larm_rot_r = transformations.watch_right_to_global(sw_quat_cal)
+            larm_rot_r = transformations.hamilton_product(larm_rot_r, fwd_to_right)
             uarm_rot_r = transformations.phone_right_to_global(ph_quat_cal)
+            uarm_rot_r = transformations.hamilton_product(uarm_rot_r, fwd_to_right)
 
         # store rotations in history if smoothing is required
         if self.__smooth > 1:

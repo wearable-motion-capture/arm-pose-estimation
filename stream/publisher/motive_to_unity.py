@@ -13,8 +13,8 @@ from stream.listener.motive import MotiveListener
 class MotiveToUnity:
     def __init__(self):
         self.__tag = "MOTIVE TO UNITY"
-        self.__ip = config.IP
-        self.__port = config.PUB_MOTIVE
+        self.__ip = config.IP_OWN
+        self.__port = config.PORT_PUB_MOTIVE
         # UDP socket
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -38,7 +38,7 @@ class MotiveToUnity:
                 logging.info("[{}] {} Hz".format(self.__tag, dat / 5))
                 dat = 0
 
-            np_msg = listener.get_ground_truth()
+            np_msg = listener.get_unity_message()
 
             # don't send message if mocap lost track
             if np_msg is None:
