@@ -19,14 +19,16 @@ from utility import messaging
 class WatchPublisher:
     def __init__(self,
                  model_hash: str,
+                 ip: str = config.IP_OWN,
+                 port: int = config.PORT_PUB_WATCH_IMU_LEFT,
                  bonemap: BoneMap = None,
                  smooth: int = 5,
                  stream_monte_carlo=True,
                  monte_carlo_samples=25):
 
         self.__tag = "PUB WATCH"
-        self.__port = config.PORT_PUB_WATCH_IMU_LEFT
-        self.__ip = config.IP_OWN
+        self.__port = port
+        self.__ip = ip
 
         # average over multiple time steps
         self.__smooth = smooth

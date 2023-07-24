@@ -20,11 +20,11 @@ imu_l = ImuListener(
     msg_size=messaging.watch_only_imu_msg_len,
     port=config.PORT_LISTEN_WATCH_IMU_LEFT
 )
-sensor_listener = threading.Thread(
+imu_w_l = threading.Thread(
     target=imu_l.listen,
     args=(q,)
 )
-sensor_listener.start()
+imu_w_l.start()
 
 # make predictions and stream them to Unity
 w2u = WatchPublisher(
