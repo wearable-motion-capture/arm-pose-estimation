@@ -1,4 +1,3 @@
-import logging
 import threading
 from enum import Enum
 import queue
@@ -28,37 +27,47 @@ class VOICE_COMMANDS(Enum):
 
 
 red_bin = np.array([0.4, 0.2, 0.2])
-grn_bin = np.array([0.4, 0.2, 0.2])
+grn_bin = np.array([-0.4, 0.2, 0.2])
 
 TARGETS = {
-    "A": (np.array([0.5, 0.02, 0.4]), red_bin),
-    "B": (np.array([0.3, 0.02, 0.4]), grn_bin),
-    "C": (np.array([0.5, 0.02, 0.5]), grn_bin),
-    "D": (np.array([0.3, 0.02, 0.5]), red_bin),
-    "E": (np.array([0.5, 0.02, 0.6]), grn_bin),
-    "F": (np.array([0.3, 0.02, 0.6]), red_bin)
+    "A": (np.array([-0.1, 0.02, 0.42]), red_bin),
+    "B": (np.array([0.1, 0.02, 0.42]), grn_bin),
+    "C": (np.array([-0.1, 0.02, 0.52]), red_bin),
+    "D": (np.array([0.1, 0.02, 0.52]), red_bin),
+    "E": (np.array([-0.1, 0.02, 0.62]), red_bin),
+    "F": (np.array([0.1, 0.02, 0.62]), grn_bin)
 }
+
+
+class WatchListener:
+    pass
 
 
 class RosExperimentManager:
     ROS_RATE = 20  # hz
-    MAX_SPEED = 1  # max displacement in "move towards" mode
+    MAX_SPEED = 0.25  # max displacement in "move towards" mode
     # degree to which the gripper is closed
-    GRIPPER_MAX = 45
+    GRIPPER_MAX = 21  # 45
     GRIPPER_MIN = 0
+    HOME_POS = np.array([0.2579995474692755, 0.3034, 0.2864])
 
     def __init__(self, model_hash: str, keyword_q):
         self.__keyword_q = keyword_q
         self.__target_list = [k for k in TARGETS.keys()]
 
         # this will make watch position predictions and publish them to the given PORT
-        self.__ape = WatchPublisher(model_hash, port=config.PORT_PUB_ROS_EXP)
-        self.__apl = ArmPoseListener(port=config.PORT_PUB_ROS_EXP)
-        self.__apq = queue.Queue()  # store arm poses in here
+        self.__ape = WatchPublisher(
+            model_hash,
+            smooth=25,
+            monte_carlo_samples=20,
+            port=config.PORT_PUB_WATCH_PHONE_LEFT,
+            stream_monte_carlo=False
+        )
 
         # these values describe the current robot state
-        self.__robot_pos = np.array([0.2579995474692755, 0.3034, 0.2864])  # current position of the robot end effector
+        self.__robot_pos = self.HOME_POS  # current position of the robot end effector
         self.__gripper_state = self.GRIPPER_MIN  # degree to which the gripper is closed
+        self.__last_follow = False
 
         # current state of the experiment
         self.__state = ROBOT_STATE.STOPPED
@@ -67,6 +76,7 @@ class RosExperimentManager:
         # ROS publisher
         self.__publisher = rospy.Publisher("/smartwatch_stream", Float32MultiArray, queue_size=1)
         self.__rate = rospy.Rate(self.ROS_RATE)
+        rospy.loginfo("Initiated Ros Experiment Manager")
 
     def start(self, watch_imu_q: queue):
         """
@@ -75,9 +85,6 @@ class RosExperimentManager:
         # arm pose estimation thread
         ape_thread = threading.Thread(target=self.__ape.stream_loop, args=(watch_imu_q,))
         ape_thread.start()
-        # arm pose listener thread
-        apl_thread = threading.Thread(target=self.__apl.listen, args=(self.__apq,))
-        apl_thread.start()
 
         # listen for keyboard inputs
         keyboard_thread = threading.Thread(target=self.listen_to_keyboard)
@@ -87,6 +94,7 @@ class RosExperimentManager:
         self.__state = ROBOT_STATE.STOPPED
         update_thread = threading.Thread(target=self.update)
         update_thread.start()
+        rospy.loginfo("Started all threads")
 
     def create_smooth_trajectory(self,
                                  start: np.array,
@@ -128,17 +136,17 @@ class RosExperimentManager:
             target_pos,
             start_up=True
         )
-        logging.info(f"Moving to bin at {target_pos}")
+        rospy.loginfo(f"Moving to bin at {target_pos}")
 
     def stop(self):
         self.__state = ROBOT_STATE.STOPPED
         self.__positions_queue.clear()  # clear any stored trajectory
-        logging.info("Stopping all movement")
+        rospy.loginfo("Stopping all movement")
 
     def follow(self):
         self.__state = ROBOT_STATE.FOLLOWING
         self.__positions_queue.clear()  # clear any stored trajectory
-        logging.info("Following smartwatch position")
+        rospy.loginfo("Following smartwatch position")
 
     def next_target(self):
         self.__state = ROBOT_STATE.MOVING_TO_TARGET
@@ -149,21 +157,21 @@ class RosExperimentManager:
                 TARGETS[self.__target_list[0]][0],
                 end_up=True
             )
-            logging.info(f"Moving to target {self.__target_list[0]} (targets {len(self.__target_list)})")
+            rospy.loginfo(f"Moving to target {self.__target_list[0]} (targets {len(self.__target_list)})")
         else:
             # stop if no target remains
             self.__keyword_q.put(VOICE_COMMANDS.STOP.value)
-            logging.info("No next target available")
+            rospy.loginfo("No next target available")
 
     def open_gripper(self):
         self.__state = ROBOT_STATE.OPENING_GRIPPER
         self.__positions_queue.clear()  # clear any stored trajectory
-        logging.info("Opening gripper")
+        rospy.loginfo("Opening gripper")
 
     def close_gripper(self):
         self.__state = ROBOT_STATE.CLOSING_GRIPPER
         self.__positions_queue.clear()  # clear any stored trajectory
-        logging.info("Closing gripper")
+        rospy.loginfo("Closing gripper")
 
     def parse_voice_commands(self):
         keyword = None
@@ -184,20 +192,17 @@ class RosExperimentManager:
             self.open_gripper()
 
     def estimate_ee_position(self):
-        # get the most recent arm pose estimation
-        arm_pose = None
-        while not self.__apq.empty():
-            arm_pose = self.__apq.get()
+        arm_pose = self.__ape.get_last_msg()
         if arm_pose is not None:
             # we are only interested in the hand position
             ee_pos = arm_pose[4:7]
             # apply offset
-            ee_pos[0] += 0.1
+            ee_pos[0] += 0.05
             ee_pos[1] += 0.25
             ee_pos[2] += 0.05
             return ee_pos
         else:
-            return np.zeros(3)
+            return self.HOME_POS
 
     def move_towards(self, target):
         # speed limit expressed as vector magnitude
@@ -210,9 +215,9 @@ class RosExperimentManager:
         # check if magnitude of difference exceeds speed limit
         if np.linalg.norm(diff) > max_m:
             n_diff = diff / np.linalg.norm(diff)
-            return n_diff * max_m
+            return pos + n_diff * max_m
         else:
-            return diff
+            return pos + diff
 
     def update(self):
         dat = 0
@@ -227,6 +232,7 @@ class RosExperimentManager:
             if self.__state == ROBOT_STATE.FOLLOWING:
                 # append the predicted hand position to the destination positions queue
                 self.__positions_queue.append(self.move_towards(ee_pos))
+                self.__last_follow = True
 
             elif self.__state == ROBOT_STATE.SORTING_TARGET:
                 # check if the robot has arrived at the bin position
@@ -246,12 +252,11 @@ class RosExperimentManager:
                 else:
                     # the robot has opened the gripper
                     self.__gripper_state = self.GRIPPER_MIN
-
-                    # #  If it is above the bin, move to next target
-                    # if np.allclose(self.__robot_pos, task_targets["bin"]):
-                    #     self.__action_q.put(actions.NEXT_TARGET.value)
-                    # else:
-                    #     self.__action_q.put(actions.STOP.value)
+                    if self.__last_follow:
+                        self.stop()
+                        self.__last_follow = False
+                    else:
+                        self.next_target()
 
             elif self.__state == ROBOT_STATE.CLOSING_GRIPPER:
                 if self.__gripper_state < self.GRIPPER_MAX:
@@ -297,5 +302,5 @@ class RosExperimentManager:
     def listen_to_keyboard(self):
         # Collect events until released
         with Listener(on_release=self.on_release) as listener:
-            logging.info("listening to keyboard")
+            rospy.loginfo("listening to keyboard")
             listener.join()

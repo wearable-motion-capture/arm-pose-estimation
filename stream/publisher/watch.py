@@ -36,6 +36,7 @@ class WatchPublisher:
         # monte carlo predictions
         self.__stream_mc = stream_monte_carlo
         self.__mc_samples = monte_carlo_samples
+        self.__last_msg = None
 
         # use arm length measurements for predictions
         if bonemap is None:
@@ -77,6 +78,9 @@ class WatchPublisher:
         else:
             self.__xx_m, self.__xx_s = 0., 1.
             self.__yy_m, self.__yy_s = 0., 1.
+
+    def get_last_msg(self):
+        return self.__last_msg
 
     def stream_loop(self, sensor_q: queue):
 
@@ -257,11 +261,10 @@ class WatchPublisher:
                         for e_row in est:
                             basic_value_list += list(e_row[:6])
 
-                # craft UDP message and send
-                msg = struct.pack(
-                    'f' * len(basic_value_list),
-                    *basic_value_list
-                )
+                # store as last msg for getter
+                self.__last_msg = basic_value_list.copy()
 
+                # craft UDP message and send
+                msg = struct.pack('f' * len(basic_value_list), *basic_value_list)
                 self.__udp_socket.sendto(msg, (self.__ip, self.__port))
                 dat += 1
