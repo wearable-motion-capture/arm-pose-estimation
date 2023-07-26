@@ -30,12 +30,12 @@ red_bin = np.array([0.4, 0.2, 0.2])
 grn_bin = np.array([-0.4, 0.2, 0.2])
 
 TARGETS = {
-    "A": (np.array([-0.1, 0.02, 0.42]), red_bin),
-    "B": (np.array([0.1, 0.02, 0.42]), grn_bin),
-    "C": (np.array([-0.1, 0.02, 0.52]), red_bin),
-    "D": (np.array([0.1, 0.02, 0.52]), red_bin),
-    "E": (np.array([-0.1, 0.02, 0.62]), red_bin),
-    "F": (np.array([0.1, 0.02, 0.62]), grn_bin)
+    "A": (np.array([-0.1, 0.01, 0.42]), red_bin),
+    "B": (np.array([0.1, 0.01, 0.42]), grn_bin),
+    "C": (np.array([-0.1, 0.01, 0.52]), red_bin),
+    "D": (np.array([0.1, 0.01, 0.52]), red_bin),
+    "E": (np.array([-0.1, 0.01, 0.62]), red_bin),
+    "F": (np.array([0.1, 0.01, 0.62]), grn_bin)
 }
 
 
@@ -47,7 +47,7 @@ class RosExperimentManager:
     ROS_RATE = 20  # hz
     MAX_SPEED = 0.25  # max displacement in "move towards" mode
     # degree to which the gripper is closed
-    GRIPPER_MAX = 21  # 45
+    GRIPPER_MAX = 45  # 45
     GRIPPER_MIN = 0
     HOME_POS = np.array([0.2579995474692755, 0.3034, 0.2864])
 
@@ -103,7 +103,7 @@ class RosExperimentManager:
                                  end_up: bool = False):
 
         pos_list = []
-        t_steps = float(self.ROS_RATE) * 3  # complete trajectory in 2 sec
+        t_steps = float(self.ROS_RATE) * 4  # complete trajectory in 2 sec
         p_steps = float(self.ROS_RATE) * 1.5  # complete for start up or end up in 1 sec
 
         if start_up:

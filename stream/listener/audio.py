@@ -13,11 +13,11 @@ import utility.voice_commands
 
 
 class AudioListener:
-    def __init__(self, ip: str = config.IP, port: int = config.LISTEN_WATCH_PHONE_AUDIO, tag: str = "AUDIO"):
+    def __init__(self, ip: str = config.IP_OWN, port: int = config.PORT_LISTEN_WATCH_PHONE_AUDIO, tag: str = "AUDIO"):
         # Audio recording parameters
         # See https://github.com/googleapis/python-speech/blob/main/samples/microphone/transcribe_streaming_infinite.py
         self.__sample_rate = 16000
-        self.__chunk_size = 800  # int(16000 / 10)  # 100ms
+        self.__chunk_size = 1600  # int(16000 / 10)  # 100ms
         self.__language_code = "en-US"  # a BCP-47 language tag
         self.__ip = ip
         self.__port = port  # the dual Port
@@ -172,5 +172,5 @@ class AudioListener:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    wp_audio = AudioListener()
+    wp_audio = AudioListener(port=config.PORT_LISTEN_WATCH_AUDIO)
     wp_audio.play_stream_loop()

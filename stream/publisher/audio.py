@@ -13,8 +13,8 @@ from stream.listener.motive import MotiveListener
 
 class AudioPublisher:
     def __init__(self,
-                 ip=config.IP,
-                 port=config.PUB_TRANSCRIBED_KEYS,
+                 ip=config.IP_OWN,
+                 port=config.PORT_PUB_TRANSCRIBED_KEYS,
                  tag: str = "AUDIO PUB"):
         self.__ip = ip
         self.__port = port
