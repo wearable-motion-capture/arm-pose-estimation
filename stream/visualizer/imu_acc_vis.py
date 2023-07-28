@@ -81,7 +81,7 @@ class ImuAccVisualizer:
                         row[self.__slp["rotvec_y"]],
                         row[self.__slp["rotvec_z"]]
                     ])
-                sw_rot = transformations.sw_quat_to_global(rotvec)
+                sw_rot = transformations.android_quat_to_global(rotvec)
                 # quaternion to rotate smartwatch coord y-axis towards north
                 north_rad = -row[self.__slp["north_deg"]] * 0.01745329
                 north_quat = transformations.euler_to_quat(np.array([0, north_rad, 0], dtype=np.float64))

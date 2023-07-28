@@ -177,7 +177,7 @@ def euler_to_quat(e: np.array) -> np.array:
         return q
 
 
-def left_sw_calib_to_north_quat(sw_quat_fwd: np.array) -> float:
+def calib_watch_left_to_north_quat(sw_quat_fwd: np.array) -> float:
     """
     Estimates rotation around global y-axis (Up) from watch orientation.
     This corresponds to the azimuth in polar coordinates. If the angle from the z-axis (forward)
@@ -186,7 +186,7 @@ def left_sw_calib_to_north_quat(sw_quat_fwd: np.array) -> float:
     :return: north quat which rotates around the y-axis until global Z and North are aligned
     """
     # smartwatch rotation to global coordinates, which are [-w,x,z,y]
-    r = sw_quat_to_global_no_north(sw_quat_fwd)
+    r = android_quat_to_global_no_north(sw_quat_fwd)
     p = np.array([0, 0, 1])  # forward vector with [x,y,z]
     pp = quat_rotate_vector(r, p)
     y_rot = np.arctan2(pp[0], pp[2])  # get angle with atan2
@@ -194,7 +194,7 @@ def left_sw_calib_to_north_quat(sw_quat_fwd: np.array) -> float:
     return hamilton_product(np.array([0.7071068, 0, -0.7071068, 0]), q_north)  # rotation to match left hand calibration
 
 
-def right_sw_calib_to_north_quat(sw_quat_fwd: np.array) -> float:
+def calib_watch_right_to_north_quat(sw_quat_fwd: np.array) -> float:
     """
     Estimates rotation around global y-axis (Up) from watch orientation.
     This corresponds to the azimuth in polar coordinates. If the angle from the z-axis (forward)
@@ -203,39 +203,18 @@ def right_sw_calib_to_north_quat(sw_quat_fwd: np.array) -> float:
     :return: north quat which rotates around the y-axis until global Z and North are aligned
     """
     # smartwatch rotation to global coordinates, which are [-w,x,z,y]
-    r = sw_quat_to_global_no_north(sw_quat_fwd)
+    r = android_quat_to_global_no_north(sw_quat_fwd)
     p = np.array([0, 0, 1])  # forward vector with [x,y,z]
     pp = quat_rotate_vector(r, p)
     y_rot = np.arctan2(pp[0], pp[2])  # get angle with atan2
     q_north = euler_to_quat(np.array([0, -y_rot, 0]))
     return hamilton_product(np.array([0.7071068, 0, 0.7071068, 0]), q_north)  # rotation to match right hand calibration
 
-
-def watch_right_to_global_larm(q: np.array, north_quat: np.array):
-    gnn = sw_quat_to_global_no_north(q)  # change to left-hand system
-    g = hamilton_product(north_quat, gnn)  # align Z-axis with North
-    return hamilton_product(np.array([0, 0.7071068, 0, 0.7071068]), g)  # rotation to match right hand
-
-
-def watch_left_to_global_larm(q: np.array, north_quat: np.array):
-    gnn = sw_quat_to_global_no_north(q)  # change to left-hand system
-    g = hamilton_product(north_quat, gnn)  # align Z-axis with North
-    return np.array([g[0], g[3], g[2], g[1]])
-
-
-def phone_right_to_global(q: np.array):
-    return np.array([-q[0], q[3], q[1], -q[2]])
-
-
-def phone_left_to_global(q: np.array):
-    return np.array([-q[0], -q[3], -q[1], -q[2]])
-
-
-def sw_quat_to_global_no_north(q: np.array) -> np.array:
+def android_quat_to_global_no_north(q: np.array) -> np.array:
     return np.array([-q[0], q[1], q[3], q[2]])
 
 
-def sw_quat_to_global(q: np.array, north_quat: np.array) -> np.array:
+def android_quat_to_global(q: np.array, north_quat: np.array) -> np.array:
     """
     sw coord system is X East, Y North, Z Up (right-hand).
     This function changes it to X Right, Z Forward, Y Up (left-hand) in our global coord.
@@ -243,7 +222,7 @@ def sw_quat_to_global(q: np.array, north_quat: np.array) -> np.array:
     :param north_quat: quat to align magnetic North with global Z-axis
     :return: sw global quat as [w,x,y,z]
     """
-    qn = sw_quat_to_global_no_north(q)
+    qn = android_quat_to_global_no_north(q)
     return hamilton_product(north_quat, qn)
 
 

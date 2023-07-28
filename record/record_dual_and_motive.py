@@ -4,7 +4,6 @@ import threading
 
 from config import PORT_LISTEN_WATCH_PHONE_IMU_LEFT, PORT_PUB_WATCH_PHONE_LEFT
 from record.file_writer.watch_phone_motive_to_csv import watch_phone_motive_to_csv
-from stream.listener.motive import MotiveListener
 from stream.listener.imu import ImuListener
 from stream.listener.motive_q import MotiveQListener
 from stream.publisher.watch_phone import WatchPhonePublisher

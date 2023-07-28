@@ -3,6 +3,8 @@ These IDs will be collected as ground truth. Position and Rotation
 """
 MOTIVE_BONE_IDS = {
     "Hips": 1,
+    # No need for these atm.
+    # We use the hips as the reference point
     # "Spine": 2,
     # "Chest": 3,
     "LeftShoulder": 6,
