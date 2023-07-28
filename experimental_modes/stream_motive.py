@@ -1,13 +1,13 @@
 import logging
 import threading
 
-from stream.listener.motive import MotiveListener
+from stream.listener.motive_q import MotiveQListener
 from stream.publisher.motive_to_unity import MotiveToUnity
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    motive_listener = MotiveListener()
+    motive_listener = MotiveQListener()
     listen_thread = threading.Thread(
         target=motive_listener.stream_loop,
     )

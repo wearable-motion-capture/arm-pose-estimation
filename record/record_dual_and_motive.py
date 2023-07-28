@@ -6,6 +6,7 @@ from config import PORT_LISTEN_WATCH_PHONE_IMU_LEFT, PORT_PUB_WATCH_PHONE_LEFT
 from record.file_writer.watch_phone_motive_to_csv import watch_phone_motive_to_csv
 from stream.listener.motive import MotiveListener
 from stream.listener.imu import ImuListener
+from stream.listener.motive_q import MotiveQListener
 from stream.publisher.watch_phone import WatchPhonePublisher
 from stream.publisher.motive_to_unity import MotiveToUnity
 from utility import messaging
@@ -21,7 +22,7 @@ sensor_listener.start()
 imu_p = WatchPhonePublisher(port=PORT_PUB_WATCH_PHONE_LEFT, smooth=0)
 
 # this listener keeps track of motive ground truth data
-motive_listener = MotiveListener()
+motive_listener = MotiveQListener()
 update_thread = threading.Thread(target=motive_listener.stream_loop)
 update_thread.start()
 # these publishers help to send debug info to our Unity visualization

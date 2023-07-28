@@ -6,14 +6,14 @@ from pathlib import Path
 import numpy as np
 
 import config
-from stream.listener.motive import MotiveListener
+from stream.listener.motive_q import MotiveQListener
 from stream.publisher.watch_phone import WatchPhonePublisher
 from stream.publisher.motive_to_unity import MotiveToUnity
 from utility import messaging
 
 
 def watch_phone_motive_to_csv(sensor_q: queue,
-                              motive_listener: MotiveListener,
+                              motive_listener: MotiveQListener,
                               dual_publisher: WatchPhonePublisher,
                               debug_motive_publisher: MotiveToUnity = None):
     tag = "REC WATCH PHONE MOTIVE"
@@ -53,7 +53,7 @@ def watch_phone_motive_to_csv(sensor_q: queue,
                 msg = dual_publisher.row_to_arm_pose(row)
                 dual_publisher.send_np_msg(msg)
             if debug_motive_publisher is not None:
-                msg = motive_listener.get_unity_message()
+                msg = motive_listener.gt_to_unity_message(gt_msg)
                 if msg is not None:
                     debug_motive_publisher.send_np_msg(msg)  # skip the hip rotation
 

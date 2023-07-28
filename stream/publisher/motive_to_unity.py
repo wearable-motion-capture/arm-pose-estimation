@@ -7,7 +7,7 @@ from datetime import datetime
 import numpy as np
 
 import config
-from stream.listener.motive import MotiveListener
+from stream.listener.motive_q import MotiveQListener
 
 
 class MotiveToUnity:
@@ -23,7 +23,7 @@ class MotiveToUnity:
         msg = struct.pack('f' * len(msg), *msg)
         return self.__socket.sendto(msg, (self.__ip, self.__port))
 
-    def stream_loop(self, listener: MotiveListener):
+    def stream_loop(self, listener: MotiveQListener):
         # used to estimate delta time and processing speed in Hz
         start = datetime.now()
         dat = 0
@@ -38,7 +38,8 @@ class MotiveToUnity:
                 logging.info("[{}] {} Hz".format(self.__tag, dat / 5))
                 dat = 0
 
-            np_msg = listener.get_unity_message()
+            gt_msg = listener.get_ground_truth()
+            np_msg = listener.gt_to_unity_message(gt_msg)
 
             # don't send message if mocap lost track
             if np_msg is None:

@@ -64,8 +64,8 @@ class WatchPhonePublisher:
             row[self.__slp["sw_rotvec_z"]]
         ])
 
-        # relative watch orientation in global
-        sw_quat_cal = transformations.hamilton_product(transformations.quat_invert(sw_rot_fwd), sw_rot)
+        quat_north = transformations.sw_quat_to_global_no_north(sw_rot_fwd)
+        sw_quat_cal = transformations.sw_quat_to_global(sw_rot, quat_north)
 
         ph_rot = np.array([
             row[self.__slp["ph_rotvec_w"]],
@@ -73,33 +73,56 @@ class WatchPhonePublisher:
             row[self.__slp["ph_rotvec_y"]],
             row[self.__slp["ph_rotvec_z"]]
         ])
-        ph_rot_fwd = np.array([
-            row[self.__slp["ph_forward_w"]],
-            row[self.__slp["ph_forward_x"]],
-            row[self.__slp["ph_forward_y"]],
-            row[self.__slp["ph_forward_z"]]
-        ])
+        # ph_rot_fwd = np.array([
+        #     row[self.__slp["ph_forward_w"]],
+        #     row[self.__slp["ph_forward_x"]],
+        #     row[self.__slp["ph_forward_y"]],
+        #     row[self.__slp["ph_forward_z"]]
+        # ])
 
-        ph_quat_cal = transformations.hamilton_product(transformations.quat_invert(ph_rot_fwd), ph_rot)
+        ph_quat_cal = transformations.sw_quat_to_global(ph_rot, quat_north)
         return sw_quat_cal, ph_quat_cal
 
     def row_to_arm_pose(self, row):
 
-        sw_quat_cal, ph_quat_cal = self.calibrate_rotations_from_data(row)
+        sw_rot_fwd = np.array([
+            row[self.__slp["sw_forward_w"]],
+            row[self.__slp["sw_forward_x"]],
+            row[self.__slp["sw_forward_y"]],
+            row[self.__slp["sw_forward_z"]]
+        ])
+        quat_north = transformations.left_sw_calib_to_north_quat(sw_rot_fwd)
+
+        # smartwatch rotation in our global coord system
+        sw_rot = np.array([
+            row[self.__slp["sw_rotvec_w"]],
+            row[self.__slp["sw_rotvec_x"]],
+            row[self.__slp["sw_rotvec_y"]],
+            row[self.__slp["sw_rotvec_z"]]
+        ])
+
+        ph_rot = np.array([
+            row[self.__slp["ph_rotvec_w"]],
+            row[self.__slp["ph_rotvec_x"]],
+            row[self.__slp["ph_rotvec_y"]],
+            row[self.__slp["ph_rotvec_z"]]
+        ])
+        # ph_rot_fwd = np.array([
+        #     row[self.__slp["ph_forward_w"]],
+        #     row[self.__slp["ph_forward_x"]],
+        #     row[self.__slp["ph_forward_y"]],
+        #     row[self.__slp["ph_forward_z"]]
+        # ])
+
+        ph_quat_cal = transformations.sw_quat_to_global(ph_rot, quat_north)
 
         # decide how to transform coord system depending on arm mode
         if self.__left_hand_mode:
-            fwd_to_left = np.array([0.7071068, 0., 0.7071068, 0.])  # a 90deg y rotation
-            larm_rot_r = transformations.watch_left_to_global(sw_quat_cal)
-            larm_rot_r = transformations.hamilton_product(larm_rot_r, fwd_to_left)
-            uarm_rot_r = transformations.phone_left_to_global(ph_quat_cal)
-            uarm_rot_r = transformations.hamilton_product(uarm_rot_r, fwd_to_left)
+            larm_rot_r = transformations.watch_left_to_global_larm(sw_rot, north_quat=quat_north)
+            uarm_rot_r = transformations.watch_left_to_global_larm(ph_rot, north_quat=quat_north)
         else:
-            fwd_to_right = np.array([0.7071068, 0., -0.7071068, 0.])  # a -90deg y rotation
-            larm_rot_r = transformations.watch_right_to_global(sw_quat_cal)
-            larm_rot_r = transformations.hamilton_product(larm_rot_r, fwd_to_right)
-            uarm_rot_r = transformations.phone_right_to_global(ph_quat_cal)
-            uarm_rot_r = transformations.hamilton_product(uarm_rot_r, fwd_to_right)
+            larm_rot_r = transformations.watch_right_to_global_larm(sw_rot, north_quat=quat_north)
+            uarm_rot_r = ph_quat_cal
 
         # store rotations in history if smoothing is required
         if self.__smooth > 1:
