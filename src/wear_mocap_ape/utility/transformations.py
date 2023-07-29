@@ -1,9 +1,6 @@
 import math
 
 import numpy as np
-import warnings
-
-warnings.filterwarnings("error")
 
 
 def moving_average(x, w) -> np.array:

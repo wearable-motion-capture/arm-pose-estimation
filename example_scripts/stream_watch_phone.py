@@ -4,14 +4,14 @@ import threading
 
 import wear_mocap_ape.config as config
 from wear_mocap_ape.stream.listener.imu import ImuListener
-from wear_mocap_ape.stream.publisher.watch_phone import WatchPhonePublisher
-from wear_mocap_ape.utility import messaging
+from wear_mocap_ape.stream.publisher.watch_phone_udp import WatchPhoneUDP
+from wear_mocap_ape.data_types import messaging
 
 # enable basic logging
 logging.basicConfig(level=logging.INFO)
 
-# adjust IP to your needs
-ip = config.IP_OWN
+# adjust this to your local IP
+ip = config.IP_OWN  # it should be a string, e.g., "192.168.1.101"
 
 # data processing happens in independent threads.
 # We exchange data via queues.
@@ -23,9 +23,9 @@ right_q = queue.Queue()  # data for right-hand mode
 # left listener
 imu_l = ImuListener(
     ip=config.IP_OWN,
-    msg_size=len(messaging.WATCH_PHONE_IMU_LOOKUP) * 4,
+    msg_size=messaging.watch_phone_imu_msg_len,
     port=config.PORT_LISTEN_WATCH_PHONE_IMU_LEFT,
-    tag="IMU LEFT"
+    tag="LISTEN IMU LEFT"
 )
 l_thread = threading.Thread(
     target=imu_l.listen,
@@ -36,9 +36,9 @@ l_thread.start()
 # right listener
 imu_r = ImuListener(
     ip=config.IP_OWN,
-    msg_size=len(messaging.WATCH_PHONE_IMU_LOOKUP) * 4,
+    msg_size=messaging.watch_phone_imu_msg_len,
     port=config.PORT_LISTEN_WATCH_PHONE_IMU_RIGHT,
-    tag="IMU RIGHT"
+    tag="LISTEN IMU RIGHT"
 )
 r_thread = threading.Thread(
     target=imu_r.listen,
@@ -47,10 +47,10 @@ r_thread = threading.Thread(
 r_thread.start()
 
 # left publisher
-wp2ul = WatchPhonePublisher(
+wp2ul = WatchPhoneUDP(
     ip=config.IP_OWN,
     port=config.PORT_PUB_WATCH_PHONE_LEFT,
-    tag="UNITY LEFT"
+    tag="PUBLISH LEFT"
 )
 ul_thread = threading.Thread(
     target=wp2ul.stream_loop,
@@ -59,10 +59,10 @@ ul_thread = threading.Thread(
 ul_thread.start()
 
 # right publisher
-wp2ur = WatchPhonePublisher(
+wp2ur = WatchPhoneUDP(
     ip=config.IP_OWN,
     port=config.PORT_PUB_WATCH_PHONE_RIGHT,
-    tag="UNITY RIGHT",
+    tag="PUBLISH RIGHT",
     left_hand_mode=False
 )
 ur_thread = threading.Thread(

@@ -13,6 +13,12 @@ class ImuListener:
                  port: int,
                  ip: str = config.IP_OWN,
                  tag: str = "IMU LISTENER"):
+        """
+        :param msg_size: the message size the listener should expect
+        :param port: the port on which to listen for the messages
+        :param ip: the own local IP
+        :param tag: this tag will be prepended to logger messages and printouts
+        """
 
         self.__msg_size = msg_size
         self.__ip = ip

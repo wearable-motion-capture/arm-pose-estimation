@@ -2,4 +2,4 @@ from enum import Enum
 
 
 class LSTM(Enum):
-    H_6DRR = "77d6add8d51370d5a15d9af4533a803f22994592"
+    H_6DRR = "2c700a1ca1af084eedbae5bdd86a5194e42ded4d"
