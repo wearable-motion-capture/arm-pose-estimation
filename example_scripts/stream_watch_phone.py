@@ -4,8 +4,8 @@ import threading
 
 import wear_mocap_ape.config as config
 from wear_mocap_ape.stream.listener.imu import ImuListener
-from wear_mocap_ape.stream.publisher.watch_phone import WatchPhonePublisher
-from wear_mocap_ape.utility import messaging
+from wear_mocap_ape.stream.publisher.watch_phone_udp import WatchPhoneUDP
+from wear_mocap_ape.data_types import messaging
 
 # enable basic logging
 logging.basicConfig(level=logging.INFO)
@@ -47,7 +47,7 @@ r_thread = threading.Thread(
 r_thread.start()
 
 # left publisher
-wp2ul = WatchPhonePublisher(
+wp2ul = WatchPhoneUDP(
     ip=config.IP_OWN,
     port=config.PORT_PUB_WATCH_PHONE_LEFT,
     tag="PUBLISH LEFT"
@@ -59,7 +59,7 @@ ul_thread = threading.Thread(
 ul_thread.start()
 
 # right publisher
-wp2ur = WatchPhonePublisher(
+wp2ur = WatchPhoneUDP(
     ip=config.IP_OWN,
     port=config.PORT_PUB_WATCH_PHONE_RIGHT,
     tag="PUBLISH RIGHT",

@@ -3,7 +3,7 @@ from wear_mocap_ape.utility import transformations
 
 
 def estimate_hand_larm_origins_from_predictions(preds: np.array, body_measurements: np.array, y_targets: str):
-    if y_targets == "H_ROTS":
+    if y_targets == "ORIENTATIONS_CALIB":
         estimates = uarm_larm_6dof_to_origins(preds=preds,
                                               body_measurements=body_measurements)
     elif y_targets == "H_XYZ":
