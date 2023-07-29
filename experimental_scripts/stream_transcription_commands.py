@@ -1,9 +1,9 @@
 import logging
 import queue
 
-import config
-from stream.listener.audio import AudioListener
-from stream.publisher.audio import AudioPublisher
+import wear_mocap_ape.config as config
+from wear_mocap_ape.stream.listener.audio import AudioListener
+from wear_mocap_ape.stream.publisher.audio import AudioPublisher
 
 logging.basicConfig(level=logging.INFO)
 keyword_q = queue.Queue()

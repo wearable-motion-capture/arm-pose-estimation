@@ -5,7 +5,7 @@ proj_path = os.path.dirname(os.path.abspath(__file__))
 PATHS = {
     "deploy": f"{proj_path}/data_deploy/",
     "skeleton": f"{proj_path}/data_deploy/",
-    "cache": f"{proj_path}/cache"
+    "cache": f"{proj_path}/../../cache"
 }
 
 # your local IP

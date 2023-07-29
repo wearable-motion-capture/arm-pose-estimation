@@ -10,8 +10,8 @@ from wear_mocap_ape.utility import messaging
 # enable basic logging
 logging.basicConfig(level=logging.INFO)
 
-# adjust IP to your needs
-ip = config.IP_OWN
+# adjust this to your local IP
+ip = config.IP_OWN  # it should be a string, e.g., "192.168.1.101"
 
 # data processing happens in independent threads.
 # We exchange data via queues.
@@ -23,9 +23,9 @@ right_q = queue.Queue()  # data for right-hand mode
 # left listener
 imu_l = ImuListener(
     ip=config.IP_OWN,
-    msg_size=len(messaging.WATCH_PHONE_IMU_LOOKUP) * 4,
+    msg_size=messaging.watch_phone_imu_msg_len,
     port=config.PORT_LISTEN_WATCH_PHONE_IMU_LEFT,
-    tag="IMU LEFT"
+    tag="LISTEN IMU LEFT"
 )
 l_thread = threading.Thread(
     target=imu_l.listen,
@@ -36,9 +36,9 @@ l_thread.start()
 # right listener
 imu_r = ImuListener(
     ip=config.IP_OWN,
-    msg_size=len(messaging.WATCH_PHONE_IMU_LOOKUP) * 4,
+    msg_size=messaging.watch_phone_imu_msg_len,
     port=config.PORT_LISTEN_WATCH_PHONE_IMU_RIGHT,
-    tag="IMU RIGHT"
+    tag="LISTEN IMU RIGHT"
 )
 r_thread = threading.Thread(
     target=imu_r.listen,
@@ -50,7 +50,7 @@ r_thread.start()
 wp2ul = WatchPhonePublisher(
     ip=config.IP_OWN,
     port=config.PORT_PUB_WATCH_PHONE_LEFT,
-    tag="UNITY LEFT"
+    tag="PUBLISH LEFT"
 )
 ul_thread = threading.Thread(
     target=wp2ul.stream_loop,
@@ -62,7 +62,7 @@ ul_thread.start()
 wp2ur = WatchPhonePublisher(
     ip=config.IP_OWN,
     port=config.PORT_PUB_WATCH_PHONE_RIGHT,
-    tag="UNITY RIGHT",
+    tag="PUBLISH RIGHT",
     left_hand_mode=False
 )
 ur_thread = threading.Thread(

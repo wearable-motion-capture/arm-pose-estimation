@@ -1,39 +1,33 @@
-import logging
 import queue
 import threading
 
-import rospy
+import wear_mocap_ape.config as config
+from wear_mocap_ape.stream.listener.imu import ImuListener
+from wear_mocap_ape.stream.publisher.watch_phone_to_ros import WatchPhoneToROS
+from wear_mocap_ape.utility import messaging
 
-import config
-from data_deploy.nn import deploy_models
-from experimental_modes.ros_exp.ros_exp_manager import RosExperimentManager
-from stream.listener.audio import AudioListener
-from stream.listener.imu import ImuListener
-from utility import messaging
+# adjust this to your local IP
+ip = config.IP_OWN  # it should be a string, e.g., "192.168.1.101"
 
-# init ros node to stream
-rospy.init_node("smartwatch_stream", log_level=rospy.INFO)
-# enable basic logging
-logging.basicConfig(level=logging.INFO)
+left_q = queue.Queue()  # data for left-hand mode
 
-imu_q = queue.Queue()
-keyword_q = queue.Queue()
-model_hash = deploy_models.FF.CONST_XYZ.value
-
-# listen to watch data
+# left listener
 imu_l = ImuListener(
-    msg_size=messaging.watch_only_imu_msg_len,
-    port=config.PORT_LISTEN_WATCH_IMU_LEFT
+    ip=config.IP_OWN,
+    msg_size=messaging.watch_phone_imu_msg_len,
+    port=config.PORT_LISTEN_WATCH_PHONE_IMU_LEFT,
+    tag="LISTEN IMU LEFT"
 )
-imu_w_l = threading.Thread(
+l_thread = threading.Thread(
     target=imu_l.listen,
-    args=(imu_q,)
+    args=(left_q,)
 )
-imu_w_l.start()
+l_thread.start()
 
-wp_audio = AudioListener(port=config.PORT_LISTEN_WATCH_AUDIO)
-wp_audio.transcription_loop(keyword_q)
-
-# run the ros experiment
-rem = RosExperimentManager(model_hash=model_hash, keyword_q=keyword_q)
-rem.start(imu_q)
+# left ROS publisher
+wp2ul = WatchPhoneToROS()
+ul_thread = threading.Thread(
+    target=wp2ul.stream_loop,
+    args=(left_q,)
+)
+ul_thread.start()

@@ -12,7 +12,7 @@ Associated repositories:
 
 ## Install
 
-If you only want to use this package, you can install it with `pip install wear_mocap_ape`
+If you only want to use this package, you can install it with `pip install wear_mocap_ape`.
 
 If you want to develop this package, clone the git repository and install it
 with `pip install -e \path\to\project\root`.
@@ -38,9 +38,8 @@ the [step-by-step guide](https://docs.google.com/document/d/1ayMBF9kDCB9rlcrqR0s
 ## Experimental Scripts
 
 We augment arm pose estimations with further modes. For example, to interface with ROS or to recognize voice commands.
-These are marked as experimental because they are less extensively documented, and they will be suspect to future
-development.
-Further, they depend on external APIs, such as ROS and the Google Cloud transcription service.
+These are marked as experimental because they are less extensively documented, and it is guaranteed that they will be 
+subject to future development. Further, they depend on external APIs, such as ROS and the Google Cloud transcription service.
 You can find the experimental scripts in the
 [experimental_scripts](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/experimental_scripts)
 directory.
