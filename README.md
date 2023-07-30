@@ -59,10 +59,12 @@ Then, add `GOOGLE_APPLICATION_CREDENTIALS=/path/to/google_auth.json` to your env
 script.
 
 The additional dependencies are for audio services are
+
 ```
 pyaudio
 google-cloud-speech
 ```
+
 Install them via `pip`
 
 Set voice command keyword IDs

@@ -19,7 +19,7 @@ from wear_mocap_ape.data_types import messaging
 
 class WatchOnlyUDP:
     def __init__(self,
-                 ip: str = config.IP_OWN,
+                 ip: str,
                  port: int = config.PORT_PUB_WATCH_IMU_LEFT,
                  model_hash: str = deploy_models.LSTM.H_6DRR.value,
                  smooth: int = 10,
