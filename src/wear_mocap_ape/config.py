@@ -7,9 +7,6 @@ PATHS = {
     "skeleton": f"{proj_path}/data_deploy/"
 }
 
-# your local IP
-IP_OWN = "192.168.1.138"
-
 # ports for publishing to other services
 PORT_PUB_MOTIVE = 50005
 PORT_PUB_WATCH_PHONE_LEFT = 50003
