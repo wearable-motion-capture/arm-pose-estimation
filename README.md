@@ -12,10 +12,10 @@ Associated repositories:
 
 ## Install
 
-If you only want to use this package, you can install it with `pip install wear_mocap_ape`.
+If you only want to use this package, you can install it with ```pip install wear_mocap_ape```.
 
 If you want to develop this package, clone the git repository and install it
-with `pip install -e \path\to\project\root`.
+with ```pip install -e \path\to\project\root```.
 
 ## Use
 
