@@ -31,7 +31,7 @@ Currently, there are two scripts.
   as an example for how to receive data from the watch in standalone mode and how to publish arm pose predictions from
   it.
 
-The scripts require your local IP as input. Run them as, for example, `python3 stream_watch_only.py 192.168.1.123`
+The scripts require your local IP as input. Run them as, for example, ```python3 stream_watch_only.py 192.168.1.123```
 
 
 In case you require more detailed instructions, please read
