@@ -12,10 +12,16 @@ Associated repositories:
 
 ## Install
 
-If you only want to use this package, you can install it with ```pip install wear_mocap_ape```.
+If you only want to use this package, you can install it with 
+```
+pip install wear_mocap_ape
+```
 
 If you want to develop this package, clone the git repository and install it
-with ```pip install -e \path\to\project\root```.
+with 
+```
+pip install -e \path\to\project\root
+```
 
 ## Use
 
@@ -31,7 +37,10 @@ Currently, there are two scripts.
   as an example for how to receive data from the watch in standalone mode and how to publish arm pose predictions from
   it.
 
-The scripts require your local IP as input. Run them as, for example, ```python3 stream_watch_only.py 192.168.1.123```
+The scripts require your local IP as input. Run them as, for example, 
+```
+python3 stream_watch_only.py 192.168.1.123
+```
 
 
 In case you require more detailed instructions, please read
