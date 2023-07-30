@@ -22,12 +22,13 @@ class WatchOnlyUDP:
                  ip: str = config.IP_OWN,
                  port: int = config.PORT_PUB_WATCH_IMU_LEFT,
                  model_hash: str = deploy_models.LSTM.H_6DRR.value,
-                 bonemap: BoneMap = None,
                  smooth: int = 10,
                  stream_monte_carlo=True,
-                 monte_carlo_samples=25):
+                 monte_carlo_samples=25,
+                 bonemap: BoneMap = None,
+                 tag: str = "PUB WATCH"):
 
-        self.__tag = "PUB WATCH"
+        self.__tag = tag
         self.__port = port
         self.__ip = ip
 
@@ -45,7 +46,7 @@ class WatchOnlyUDP:
             self.__larm_vec = np.array([-BoneMap.DEFAULT_LARM_LEN, 0, 0])
             self.__uarm_vec = np.array([-BoneMap.DEFAULT_UARM_LEN, 0, 0])
         else:
-            self.__uarm_l = bonemap.left_upper_arm_length
+            self.__larm_vec = bonemap.left_lower_arm_vec
             self.__uarm_vec = bonemap.left_upper_arm_vec
 
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

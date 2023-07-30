@@ -14,10 +14,10 @@ from wear_mocap_ape.data_types import messaging
 
 class WatchPhoneUDP:
     def __init__(self,
+                 ip: str,
                  port: int,
                  smooth: int = 5,
                  left_hand_mode=True,
-                 ip: str = config.IP_OWN,
                  tag: str = "PUB WATCH PHONE",
                  bonemap: BoneMap = None):
 

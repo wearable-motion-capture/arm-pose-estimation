@@ -11,7 +11,7 @@ class ImuListener:
     def __init__(self,
                  msg_size: int,
                  port: int,
-                 ip: str = config.IP_OWN,
+                 ip: str,
                  tag: str = "IMU LISTENER"):
         """
         :param msg_size: the message size the listener should expect

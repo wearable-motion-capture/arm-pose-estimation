@@ -7,10 +7,22 @@ from wear_mocap_ape.stream.publisher.watch_only_udp import WatchOnlyUDP
 from wear_mocap_ape.stream.listener.imu import ImuListener
 from wear_mocap_ape.data_types import messaging
 
+import argparse
+
+# Instantiate the parser
+parser = argparse.ArgumentParser(description='streams data from the watch in standalone mode')
+
+# Required IP argument
+parser.add_argument('ip', type=str,
+                    help=f'put your local IP here. '
+                         f'The script will publish arm '
+                         f'pose data on PORT {config.PORT_PUB_WATCH_IMU_LEFT}')
+args = parser.parse_args()
+
 logging.basicConfig(level=logging.INFO)
 
 # adjust this to your local IP
-ip = config.IP_OWN  # it should be a string, e.g., "192.168.1.101"
+ip = args.ip
 
 # listener and publisher run in separate threads. Listener fills the queue, publisher empties it
 q = queue.Queue()
