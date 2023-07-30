@@ -1,19 +1,25 @@
+import argparse
 import queue
 import threading
 
 import wear_mocap_ape.config as config
 from wear_mocap_ape.stream.listener.imu import ImuListener
-from wear_mocap_ape.stream.publisher.watch_phone_to_ros import WatchPhoneToROS
+from wear_mocap_ape.stream.publisher.watch_phone_ros import WatchPhoneROS
 from wear_mocap_ape.data_types import messaging
 
-# adjust this to your local IP
-ip = config.IP_OWN  # it should be a string, e.g., "192.168.1.101"
+# parse command line arguments
+parser = argparse.ArgumentParser(description='streams microphone data from the watch in standalone mode, '
+                                             'transcribes it, and checks for a list of keywords for voice commands.')
+# Required IP argument
+parser.add_argument('ip', type=str, help=f'put your local IP here.')
+args = parser.parse_args()
+ip = args.ip
 
 left_q = queue.Queue()  # data for left-hand mode
 
 # left listener
 imu_l = ImuListener(
-    ip=config.IP_OWN,
+    ip=ip,
     msg_size=messaging.watch_phone_imu_msg_len,
     port=config.PORT_LISTEN_WATCH_PHONE_IMU_LEFT,
     tag="LISTEN IMU LEFT"
@@ -25,7 +31,7 @@ l_thread = threading.Thread(
 l_thread.start()
 
 # left ROS publisher
-wp2ul = WatchPhoneToROS()
+wp2ul = WatchPhoneROS()
 ul_thread = threading.Thread(
     target=wp2ul.stream_loop,
     args=(left_q,)

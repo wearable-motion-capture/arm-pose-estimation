@@ -13,7 +13,7 @@ import wear_mocap_ape.utility as utility
 
 
 class AudioListener:
-    def __init__(self, ip: str = config.IP_OWN, port: int = config.PORT_LISTEN_WATCH_PHONE_AUDIO, tag: str = "AUDIO"):
+    def __init__(self, ip: str, port: int = config.PORT_LISTEN_WATCH_PHONE_AUDIO, tag: str = "AUDIO"):
         # Audio recording parameters
         # See https://github.com/googleapis/python-speech/blob/main/samples/microphone/transcribe_streaming_infinite.py
         self.__sample_rate = 16000

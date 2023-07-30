@@ -10,8 +10,8 @@ import wear_mocap_ape.config as config
 
 class AudioUDP:
     def __init__(self,
-                 ip=config.IP_OWN,
-                 port=config.PORT_PUB_TRANSCRIBED_KEYS,
+                 ip: str,
+                 port: int = config.PORT_PUB_TRANSCRIBED_KEYS,
                  tag: str = "AUDIO PUB"):
         self.__ip = ip
         self.__port = port
