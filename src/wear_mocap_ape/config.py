@@ -8,10 +8,9 @@ PATHS = {
 }
 
 # ports for publishing to other services
-PORT_PUB_MOTIVE = 50005
-PORT_PUB_WATCH_PHONE_LEFT = 50003
-PORT_PUB_WATCH_PHONE_RIGHT = 50004
-PORT_PUB_WATCH_IMU_LEFT = 50003
+PORT_PUB_LEFT_ARM = 50003
+PORT_PUB_RIGHT_ARM = 50004
+
 
 # Listener ports for receiving data
 # watch and phone

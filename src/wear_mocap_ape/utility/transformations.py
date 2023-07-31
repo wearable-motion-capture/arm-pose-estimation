@@ -174,6 +174,11 @@ def euler_to_quat(e: np.array) -> np.array:
         return q
 
 
+def hips_sin_cos_to_quat(hips_sin, hips_cos):
+    y_rot = np.arctan2(hips_sin, hips_cos)
+    return euler_to_quat(np.c_[np.zeros(y_rot.shape), y_rot, np.zeros(y_rot.shape)])
+
+
 def calib_watch_left_to_north_quat(sw_quat_fwd: np.array) -> float:
     """
     Estimates rotation around global y-axis (Up) from watch orientation.
@@ -184,11 +189,19 @@ def calib_watch_left_to_north_quat(sw_quat_fwd: np.array) -> float:
     """
     # smartwatch rotation to global coordinates, which are [-w,x,z,y]
     r = android_quat_to_global_no_north(sw_quat_fwd)
-    p = np.array([0, 0, 1])  # forward vector with [x,y,z]
-    pp = quat_rotate_vector(r, p)
-    y_rot = np.arctan2(pp[0], pp[2])  # get angle with atan2
+    y_rot = reduce_global_quat_to_y_rot(r)
     q_north = euler_to_quat(np.array([0, -y_rot, 0]))
     return hamilton_product(np.array([0.7071068, 0, -0.7071068, 0]), q_north)  # rotation to match left hand calibration
+
+
+def reduce_global_quat_to_y_rot(q: np.array):
+    p = np.array([0, 0, 1])  # forward vector with [x,y,z]
+    pp = quat_rotate_vector(q, p)
+    # get angle with atan2
+    if len(q.shape) > 1:
+        return np.arctan2(pp[:, 0], pp[:, 2])
+    else:
+        return np.arctan2(pp[0], pp[2])
 
 
 def calib_watch_right_to_north_quat(sw_quat_fwd: np.array) -> float:
@@ -201,9 +214,7 @@ def calib_watch_right_to_north_quat(sw_quat_fwd: np.array) -> float:
     """
     # smartwatch rotation to global coordinates, which are [-w,x,z,y]
     r = android_quat_to_global_no_north(sw_quat_fwd)
-    p = np.array([0, 0, 1])  # forward vector with [x,y,z]
-    pp = quat_rotate_vector(r, p)
-    y_rot = np.arctan2(pp[0], pp[2])  # get angle with atan2
+    y_rot = reduce_global_quat_to_y_rot(r)
     q_north = euler_to_quat(np.array([0, -y_rot, 0]))
     return hamilton_product(np.array([0.7071068, 0, 0.7071068, 0]), q_north)  # rotation to match right hand calibration
 
@@ -452,6 +463,11 @@ def exponential_map_to_quaternion(em: np.array):
     w = np.cos(.5 * theta)
     # prepend w to x,y,z to get full quaternion
     return np.insert(q_img, 0, w, dtype=np.float64)
+
+
+def six_drr_1x6_to_quat(six_drr: np.array):
+    rmat = six_drr_1x6_to_rot_mat_1x9(six_drr)
+    return rot_mat_1x9_to_quat(rmat)
 
 
 def quat_to_6drr_1x6(quat: np.array):

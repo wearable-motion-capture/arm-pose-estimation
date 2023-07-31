@@ -20,7 +20,7 @@ from wear_mocap_ape.data_types import messaging
 class WatchOnlyUDP:
     def __init__(self,
                  ip: str,
-                 port: int = config.PORT_PUB_WATCH_IMU_LEFT,
+                 port: int = config.PORT_PUB_LEFT_ARM,
                  model_hash: str = deploy_models.LSTM.H_6DRR.value,
                  smooth: int = 10,
                  stream_monte_carlo=True,
@@ -101,9 +101,11 @@ class WatchOnlyUDP:
         slp = messaging.WATCH_ONLY_IMU_LOOKUP
 
         # for quicker access we store a single row containing the used defaults of the given bone map
-        body_measurements = np.repeat(np.array([
-            np.hstack([self.__uarm_vec, self.__larm_vec])
-        ]), self.__mc_samples * self.__smooth, axis=0)
+        body_measurements = np.repeat(
+            np.hstack([self.__uarm_vec, self.__larm_vec]),
+            self.__mc_samples * self.__smooth,
+            axis=0
+        )
 
         # this loops while the socket is listening and/or receiving data
         while True:
@@ -197,7 +199,7 @@ class WatchOnlyUDP:
                     t_preds = np.vstack(smooth_hist)
 
                 # finally, estimate hand and lower arm origins from prediction data
-                est = estimate_joints.estimate_hand_larm_origins_from_predictions(
+                est = estimate_joints.arm_pose_from_predictions(
                     preds=t_preds,
                     body_measurements=body_measurements,
                     y_targets=self.__y_targets_n

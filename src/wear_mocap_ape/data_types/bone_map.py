@@ -41,14 +41,16 @@ class BoneMap:
     # available without initialization
     DEFAULT_LARM_LEN = 0.22
     DEFAULT_UARM_LEN = 0.30
+    # default left shoulder origin relative to hip
+    DEFAULT_L_SHOU_ORIG_RH = np.array([-0.1704612, 0.4309841, -0.00670862])
 
-    def __init__(self, skeleton: str):
+    def __init__(self, skeleton_name: str):
 
         self.__skeleton_name = None
         self.__bonemap = {}  # internal structure is a dict
 
         # location of skeleton folder (where all XML files are stored)
-        skel_path = os.path.join(config.paths["skeleton"], "{}.xml".format(skeleton))
+        skel_path = os.path.join(config.PATHS["skeleton"], "{}.xml".format(skeleton_name))
         tree = ElTr.parse(skel_path)
 
         # traverse XML hierarchy and parse into dict of Bones
@@ -141,3 +143,4 @@ class BoneMap:
     @property
     def hip_origin_g(self):
         return self.__bonemap[1].default_pos  # hips
+

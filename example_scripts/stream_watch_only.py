@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser(description='streams data from the watch in sta
 parser.add_argument('ip', type=str,
                     help=f'put your local IP here. '
                          f'The script will publish arm '
-                         f'pose data on PORT {config.PORT_PUB_WATCH_IMU_LEFT}')
+                         f'pose data on PORT {config.PORT_PUB_LEFT_ARM}')
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
@@ -42,7 +42,7 @@ imu_w_l.start()
 # the publisher estimates arm poses from queued data and publishes them via UDP to given IP and PORT
 joints_p = WatchOnlyUDP(
     ip=ip,
-    port=config.PORT_PUB_WATCH_IMU_LEFT
+    port=config.PORT_PUB_LEFT_ARM
 )
 udp_publisher = threading.Thread(
     target=joints_p.stream_loop,
