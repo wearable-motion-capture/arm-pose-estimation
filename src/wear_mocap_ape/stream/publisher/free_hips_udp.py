@@ -38,6 +38,7 @@ class FreeHipsUDP:
         # average over multiple time steps
         self.__smooth = smooth
         self.__smooth_hist = []
+        self.__last_hip_pred = None
 
         # simple lookup for values of interest
         self.__slp = messaging.WATCH_PHONE_IMU_LOOKUP
@@ -128,6 +129,16 @@ class FreeHipsUDP:
         # pressure - calibrated initial pressure = relative pressure
         r_pres = row[self.__slp["sw_pres"]] - row[self.__slp["sw_init_pres"]]
 
+        if self.__last_hip_pred is not None:
+            gt_hips_yrot_cal_sin_tm1 = self.__last_hip_pred[0]
+            gt_hips_yrot_cal_cos_tm1 = self.__last_hip_pred[1]
+        else:
+            y_rot = ts.reduce_global_quat_to_y_rot(
+                ts.hamilton_product(np.array([0.7071068, 0, -0.7071068, 0]), sw_rot_g)
+            )
+            gt_hips_yrot_cal_sin_tm1 = np.sin(y_rot)
+            gt_hips_yrot_cal_cos_tm1 = np.cos(y_rot)
+
         # assemble the entire input vector of one time step
         xx = np.hstack([
             delta_t,
@@ -141,7 +152,9 @@ class FreeHipsUDP:
             row[self.__slp["ph_lvel_x"]], row[self.__slp["ph_lvel_y"]], row[self.__slp["ph_lvel_z"]],
             row[self.__slp["ph_lacc_x"]], row[self.__slp["ph_lacc_y"]], row[self.__slp["ph_lacc_z"]],
             row[self.__slp["ph_grav_x"]], row[self.__slp["ph_grav_y"]], row[self.__slp["ph_grav_z"]],
-            ph_rot_6drr
+            ph_rot_6drr,
+            gt_hips_yrot_cal_sin_tm1,
+            gt_hips_yrot_cal_cos_tm1
         ])
 
         if self.__normalize:
@@ -192,6 +205,8 @@ class FreeHipsUDP:
             body_measurements=self.__body_measurements,
             y_targets=self.__y_targets_n
         )
+
+        self.__last_hip_pred = [np.mean(t_preds[:, 12]), np.mean(t_preds[:, 13])]
 
         # estimate mean of rotations if we got multiple MC predictions
         if est.shape[0] > 1:

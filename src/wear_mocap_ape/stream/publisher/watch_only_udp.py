@@ -100,9 +100,9 @@ class WatchOnlyUDP:
         # simple lookup for values of interest
         slp = messaging.WATCH_ONLY_IMU_LOOKUP
 
-        # for quicker access we store a single row containing the used defaults of the given bone map
+        # for quicker access we store a matrix with relevant body measurements for quick multiplication
         body_measurements = np.repeat(
-            np.hstack([self.__uarm_vec, self.__larm_vec]),
+            np.r_[self.__uarm_vec, self.__larm_vec][np.newaxis, :],
             self.__mc_samples * self.__smooth,
             axis=0
         )
