@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 import wear_mocap_ape.config as config
-from wear_mocap_ape.data_deploy.nn.deploy_models import LSTM
+from wear_mocap_ape.data_deploy.nn.deploy_models import LSTM, FF
 from wear_mocap_ape.data_types.bone_map import BoneMap
 from wear_mocap_ape.predict import models, estimate_joints
 from wear_mocap_ape.utility import transformations as ts
@@ -22,7 +22,7 @@ class FreeHipsUDP:
     def __init__(self,
                  ip: str,
                  port: int,
-                 model_hash: str = LSTM.FREE_HIPS.value,
+                 model_hash: str = FF.FREE_HIPS_REC.value,
                  smooth: int = 5,
                  stream_monte_carlo=True,
                  monte_carlo_samples=25,
@@ -224,7 +224,6 @@ class FreeHipsUDP:
             p_hand_orig_rh = est[0, 0:3]
             p_larm_orig_rh = est[0, 3:6]
             p_uarm_orig_rh = est[0, 6:9]
-
             p_larm_quat_g = est[0, 9:13]
             p_uarm_quat_g = est[0, 13:17]
             p_hips_quat_g = est[0, 17:]
