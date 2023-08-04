@@ -1,14 +1,16 @@
 import numpy as np
+
+from wear_mocap_ape.utility.names import NNS_TARGETS
 from wear_mocap_ape.utility import transformations as ts
 
 FUNCTION_LOOKUP = {
-    "ORI_CALIB_UARM_LARM": lambda a, b: uarm_larm_6drr_to_origins(a, b),
-    "CONST_XYZ": lambda a, b: hand_larm_xyz_to_origins(a, b),
-    "ORI_CALIB_UARM_LARM_HIPS": lambda a, b: uarm_larm_hip_6dof_rh_to_origins_g(a, b)
+    NNS_TARGETS.ORI_CALIB_UARM_LARM: lambda a, b: uarm_larm_6drr_to_origins(a, b),
+    NNS_TARGETS.CONST_XYZ: lambda a, b: hand_larm_xyz_to_origins(a, b),
+    NNS_TARGETS.ORI_CALIB_UARM_LARM_HIPS: lambda a, b: uarm_larm_hip_6dof_rh_to_origins_g(a, b)
 }
 
 
-def arm_pose_from_predictions(preds: np.array, body_measurements: np.array, y_targets: str):
+def arm_pose_from_nn_targets(preds: np.array, body_measurements: np.array, y_targets: NNS_TARGETS):
     return FUNCTION_LOOKUP[y_targets](preds, body_measurements)
 
 

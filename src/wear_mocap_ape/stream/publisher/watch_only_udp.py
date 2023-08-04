@@ -21,7 +21,7 @@ class WatchOnlyUDP:
     def __init__(self,
                  ip: str,
                  port: int = config.PORT_PUB_LEFT_ARM,
-                 model_hash: str = deploy_models.LSTM.H_6DRR.value,
+                 model_hash: str = deploy_models.LSTM.ORI_CALIB_UARM_LARM.value,
                  smooth: int = 10,
                  stream_monte_carlo=True,
                  monte_carlo_samples=25,
@@ -199,7 +199,7 @@ class WatchOnlyUDP:
                     t_preds = np.vstack(smooth_hist)
 
                 # finally, estimate hand and lower arm origins from prediction data
-                est = estimate_joints.arm_pose_from_predictions(
+                est = estimate_joints.arm_pose_from_nn_targets(
                     preds=t_preds,
                     body_measurements=body_measurements,
                     y_targets=self.__y_targets_n

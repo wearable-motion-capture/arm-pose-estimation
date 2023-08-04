@@ -1,28 +1,25 @@
 import logging
-import pickle
 import socket
 import struct
 import time
 from datetime import datetime
 import queue
-from pathlib import Path
 
 import numpy as np
 import torch
 
-import wear_mocap_ape.config as config
-from wear_mocap_ape.data_deploy.nn.deploy_models import LSTM, FF
 from wear_mocap_ape.data_types.bone_map import BoneMap
 from wear_mocap_ape.predict import models, estimate_joints
-from wear_mocap_ape.utility import transformations as ts
+from wear_mocap_ape.utility import transformations as ts, data_stats
 from wear_mocap_ape.data_types import messaging
+from wear_mocap_ape.utility.names import NNS_TARGETS, NNS_INPUTS
 
 
 class FreeHipsUDP:
     def __init__(self,
                  ip: str,
                  port: int,
-                 model_hash: str = FF.FREE_HIPS_REC.value,
+                 model_hash: str,
                  smooth: int = 5,
                  stream_monte_carlo=True,
                  monte_carlo_samples=25,
@@ -46,6 +43,7 @@ class FreeHipsUDP:
         self.__start = datetime.now()
         self.__dat = 0
         self.__prev_t = datetime.now()
+        self.__row_hist = []
 
         # use arm length measurements for predictions
         if bonemap is None:
@@ -74,25 +72,15 @@ class FreeHipsUDP:
 
         # load model from given parameters
         self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)
-        self.__y_targets_n = params["y_targets_n"]
+        self.__y_targets = NNS_TARGETS(params["y_targets_v"])
+        self.__x_inputs = NNS_INPUTS(params["x_inputs_v"])
         self.__sequence_len = params["sequence_len"]
-        self.__row_hist = []
-        self.__normalize = params["normalize"] if "normalize" in params else True
+        self.__normalize = params["normalize"]
 
         # load normalized data stats if required
         if self.__normalize:
-            f_name = "{}_{}".format(params["x_inputs_n"], self.__y_targets_n)
-            f_dir = Path(config.PATHS["deploy"]) / "data_stats"
-            f_path = f_dir / f_name
-
-            if not f_path.exists():
-                UserWarning("no stats file available in {}".format(f_path))
-
-            with open(f_path, 'rb') as handle:
-                logging.info("loaded data stats from {}".format(f_path))
-                dat = pickle.load(handle)
-                stats = dat
             # data is normalized and has to be transformed with pre-calculated mean and std
+            stats = data_stats.get_norm_stats(x_inputs=self.__x_inputs, y_targets=self.__y_targets)
             self.__xx_m, self.__xx_s = stats["xx_m"], stats["xx_s"]
             self.__yy_m, self.__yy_s = stats["yy_m"], stats["yy_s"]
         else:
@@ -133,9 +121,7 @@ class FreeHipsUDP:
             gt_hips_yrot_cal_sin_tm1 = self.__last_hip_pred[0]
             gt_hips_yrot_cal_cos_tm1 = self.__last_hip_pred[1]
         else:
-            y_rot = ts.reduce_global_quat_to_y_rot(
-                ts.hamilton_product(np.array([0.7071068, 0, -0.7071068, 0]), sw_rot_g)
-            )
+            y_rot = ts.reduce_global_quat_to_y_rot(sw_rot_g)
             gt_hips_yrot_cal_sin_tm1 = np.sin(y_rot)
             gt_hips_yrot_cal_cos_tm1 = np.cos(y_rot)
 
@@ -200,10 +186,10 @@ class FreeHipsUDP:
             t_preds = np.vstack(self.__smooth_hist)
 
         # finally, estimate hand and lower arm origins from prediction data
-        est = estimate_joints.arm_pose_from_predictions(
+        est = estimate_joints.arm_pose_from_nn_targets(
             preds=t_preds,
             body_measurements=self.__body_measurements,
-            y_targets=self.__y_targets_n
+            y_targets=self.__y_targets
         )
 
         self.__last_hip_pred = [np.mean(t_preds[:, 12]), np.mean(t_preds[:, 13])]
