@@ -15,6 +15,7 @@ from wear_mocap_ape.predict import estimate_joints, models
 from wear_mocap_ape.data_types.bone_map import BoneMap
 from wear_mocap_ape.utility import transformations as ts
 from wear_mocap_ape.data_types import messaging
+from wear_mocap_ape.utility.names import NNS_TARGETS
 
 
 class WatchOnlyUDP:
@@ -57,13 +58,13 @@ class WatchOnlyUDP:
 
         # load model from given parameters
         self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)
-        self.__y_targets_n = params["y_targets_n"]
+        self.__y_targets = NNS_TARGETS(params["y_targets_v"])
         self.__sequence_len = params["sequence_len"]
         self.__normalize = params["normalize"] if "normalize" in params else True
 
         # load normalized data stats if required
         if self.__normalize:
-            f_name = "{}_{}".format(params["x_inputs_n"], self.__y_targets_n)
+            f_name = "{}_{}".format(params["x_inputs_n"], self.__y_targets.name)
             f_dir = Path(config.PATHS["deploy"]) / "data_stats"
             f_path = f_dir / f_name
 
@@ -202,7 +203,7 @@ class WatchOnlyUDP:
                 est = estimate_joints.arm_pose_from_nn_targets(
                     preds=t_preds,
                     body_measurements=body_measurements,
-                    y_targets=self.__y_targets_n
+                    y_targets=self.__y_targets
                 )
 
                 # estimate mean of rotations if we got multiple MC predictions

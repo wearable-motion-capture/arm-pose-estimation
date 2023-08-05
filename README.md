@@ -1,13 +1,16 @@
 # Arm Pose Estimator Module
 
-This repository provides code to receive sensor data from smartwatches or smartphones and to estimate the arm pose from
-it.
+This repository is part of the [wearable motion capture](https://github.com/wearable-motion-capture) framework and 
+provides code to estimate the arm pose smartwatch and smartphone sensor data. It opens network sockets to stream 
+sensor data from our smartwatch and smartphone apps provided in [sensor-stream-apps](https://github.com/wearable-motion-capture/sensor-stream-apps).
+You can then either record the arm poses into a `csv` file, or stream them to our [arm-pose-visualization](https://github.com/wearable-motion-capture/arm-pose-visualization) 
+project for a real-time visualization.
 
 Associated repositories:
 
 * [sensor-stream-apps](https://github.com/wearable-motion-capture/sensor-stream-apps) provides the apps to stream sensor
   readings from wearable devices to a remote machine.
-* [arm-pose-visualization](https://github.com/wearable-motion-capture/arm-pose-visualization) offers a real-time
+* [arm-pose-visualization](https://github.com/wearable-motion-capture/arm-pose-visualization) contains the real-time
   visualization of estimated arm poses using Unity.
 
 ## Install
@@ -32,7 +35,7 @@ directory.
 Currently, there are two scripts.
 
 * [stream_watch_phone.py](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/example_scripts/stream_watch_phone.py)
-  as an example for how receive data from watch and phone together and how to publish arm pose predictions from it.
+  as an example for how to receive data from watch and phone together and how to publish arm pose predictions from it.
 * [stream_watch_only.py](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/example_scripts/stream_watch_only.py)
   as an example for how to receive data from the watch in standalone mode and how to publish arm pose predictions from
   it.
@@ -41,7 +44,6 @@ The scripts require your local IP as input. Run them as, for example,
 ```
 python3 stream_watch_only.py 192.168.1.123
 ```
-
 
 In case you require more detailed instructions, please read
 the [step-by-step guide](https://docs.google.com/document/d/1ayMBF9kDCB9rlcrqR0sPumJhIVJgOF-SENTdoE4a6DI/edit?usp=sharing)
