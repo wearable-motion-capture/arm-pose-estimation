@@ -18,8 +18,8 @@ parser = argparse.ArgumentParser(description='streams data from the watch in sta
 parser.add_argument('ip', type=str,
                     help=f'put your local IP here. '
                          f'The script will publish arm '
-                         f'pose data on PORT {config.PORT_PUB_WATCH_PHONE_LEFT} (left hand)'
-                         f'or PORT {config.PORT_PUB_WATCH_PHONE_RIGHT} (right hand)')
+                         f'pose data on PORT {config.PORT_PUB_LEFT_ARM} (left hand)'
+                         f'or PORT {config.PORT_PUB_RIGHT_ARM} (right hand)')
 args = parser.parse_args()
 ip = args.ip
 
@@ -59,7 +59,7 @@ r_thread.start()
 # left publisher
 wp2ul = WatchPhoneUDP(
     ip=ip,
-    port=config.PORT_PUB_WATCH_PHONE_LEFT,
+    port=config.PORT_PUB_LEFT_ARM,
     tag="PUBLISH LEFT"
 )
 ul_thread = threading.Thread(
@@ -71,7 +71,7 @@ ul_thread.start()
 # right publisher
 wp2ur = WatchPhoneUDP(
     ip=ip,
-    port=config.PORT_PUB_WATCH_PHONE_RIGHT,
+    port=config.PORT_PUB_RIGHT_ARM,
     tag="PUBLISH RIGHT",
     left_hand_mode=False
 )

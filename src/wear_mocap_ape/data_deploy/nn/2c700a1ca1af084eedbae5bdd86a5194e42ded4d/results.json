@@ -9,7 +9,7 @@
     "sequence_len": 15,
     "normalize": true,
     "hash": "2c700a1ca1af084eedbae5bdd86a5194e42ded4d",
-    "y_targets_n": "ORIENTATIONS_CALIB",
+    "y_targets_n": "ORI_CALIB_UARM_LARM",
     "x_inputs_n": "WATCH_ONLY",
     "y_targets_v": [
         "gt_uarm_6drr_rh_1",

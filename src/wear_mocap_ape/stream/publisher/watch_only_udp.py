@@ -15,13 +15,14 @@ from wear_mocap_ape.predict import estimate_joints, models
 from wear_mocap_ape.data_types.bone_map import BoneMap
 from wear_mocap_ape.utility import transformations as ts
 from wear_mocap_ape.data_types import messaging
+from wear_mocap_ape.utility.names import NNS_TARGETS
 
 
 class WatchOnlyUDP:
     def __init__(self,
                  ip: str,
-                 port: int = config.PORT_PUB_WATCH_IMU_LEFT,
-                 model_hash: str = deploy_models.LSTM.H_6DRR.value,
+                 port: int = config.PORT_PUB_LEFT_ARM,
+                 model_hash: str = deploy_models.LSTM.ORI_CALIB_UARM_LARM.value,
                  smooth: int = 10,
                  stream_monte_carlo=True,
                  monte_carlo_samples=25,
@@ -57,13 +58,13 @@ class WatchOnlyUDP:
 
         # load model from given parameters
         self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)
-        self.__y_targets_n = params["y_targets_n"]
+        self.__y_targets = NNS_TARGETS(params["y_targets_v"])
         self.__sequence_len = params["sequence_len"]
         self.__normalize = params["normalize"] if "normalize" in params else True
 
         # load normalized data stats if required
         if self.__normalize:
-            f_name = "{}_{}".format(params["x_inputs_n"], self.__y_targets_n)
+            f_name = "{}_{}".format(params["x_inputs_n"], self.__y_targets.name)
             f_dir = Path(config.PATHS["deploy"]) / "data_stats"
             f_path = f_dir / f_name
 
@@ -100,10 +101,12 @@ class WatchOnlyUDP:
         # simple lookup for values of interest
         slp = messaging.WATCH_ONLY_IMU_LOOKUP
 
-        # for quicker access we store a single row containing the used defaults of the given bone map
-        body_measurements = np.repeat(np.array([
-            np.hstack([self.__uarm_vec, self.__larm_vec])
-        ]), self.__mc_samples * self.__smooth, axis=0)
+        # for quicker access we store a matrix with relevant body measurements for quick multiplication
+        body_measurements = np.repeat(
+            np.r_[self.__uarm_vec, self.__larm_vec][np.newaxis, :],
+            self.__mc_samples * self.__smooth,
+            axis=0
+        )
 
         # this loops while the socket is listening and/or receiving data
         while True:
@@ -197,10 +200,10 @@ class WatchOnlyUDP:
                     t_preds = np.vstack(smooth_hist)
 
                 # finally, estimate hand and lower arm origins from prediction data
-                est = estimate_joints.estimate_hand_larm_origins_from_predictions(
+                est = estimate_joints.arm_pose_from_nn_targets(
                     preds=t_preds,
                     body_measurements=body_measurements,
-                    y_targets=self.__y_targets_n
+                    y_targets=self.__y_targets
                 )
 
                 # estimate mean of rotations if we got multiple MC predictions

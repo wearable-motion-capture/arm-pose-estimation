@@ -107,6 +107,67 @@ class DropoutLSTM(torch.nn.Module):
         return self(rep_data, hs)
 
 
+class DropoutFF2D(torch.nn.Module):
+
+    def __init__(self,
+                 output_size,
+                 hidden_layer_size,
+                 hidden_layer_count,
+                 input_size,
+                 seq_len,
+                 dropout=0.2):
+        super(DropoutFF2D, self).__init__()
+
+        self.output_size = output_size
+        self._input_layer = torch.nn.Linear(input_size * seq_len, hidden_layer_size)
+        self._activation_function = F.leaky_relu
+
+        # add hidden layers according to count variable
+        self._hidden_layers = torch.nn.ModuleList()
+        for hl in range(hidden_layer_count):
+            self._hidden_layers.append(torch.nn.Linear(hidden_layer_size, hidden_layer_size))
+
+        # end with dropout and then two final layers
+        self._do = torch.nn.Dropout(dropout)
+        self._output_layer = torch.nn.Linear(hidden_layer_size, output_size)
+
+    def forward(self, x):
+        """
+        simple forward pass
+        :param x: input
+        :return: output layer
+        """
+
+        xf = torch.flatten(x, start_dim=1)
+
+        x = self._activation_function(self._input_layer(xf))
+        # propagate stacked hidden layers
+        for h in self._hidden_layers:
+            x = self._activation_function(h(x))
+        # apply dropout
+        x = self._do(x)
+        # final layer
+        x = self._output_layer(x)
+        return x
+
+    def monte_carlo_predictions(self,
+                                n_samples: int,
+                                x: torch.tensor):
+        """
+        Expects data as a 2D tensor [batch_size, input_data]
+        :param n_samples:
+        :param x:
+        :return:
+        """
+        x = torch.flatten(x, start_dim=1)
+        # mc predictions require the dropout layers.
+        # Make sure training mode is activated to apply dropout
+        self._do.train()
+        # (num_samples * batch_size (1), seq_len, input_size)
+        rep_data = x.repeat((n_samples, 1, 1))
+        return self(rep_data)
+
+
 class DropoutFF(torch.nn.Module):
     """
     this model is our own implementation for Monte Carlo predictions. It has a dropout at the output layer that can be
@@ -155,8 +216,8 @@ class DropoutFF(torch.nn.Module):
                                 x: torch.tensor):
         """
         Expects data as a 2D tensor [batch_size, input_data]
-        :param data:
         :param n_samples:
+        :param x:
         :return:
         """
         # mc predictions require the dropout layers.
