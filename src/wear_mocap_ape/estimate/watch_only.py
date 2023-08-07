@@ -28,6 +28,7 @@ class WatchOnly:
                  tag: str = "PUB WATCH"):
 
         self.__tag = tag
+        self.__active = True
 
         # average over multiple time steps
         self.__smooth = smooth
@@ -79,9 +80,12 @@ class WatchOnly:
     def get_last_msg(self):
         return self.__last_msg
 
-    def stream_loop(self, sensor_q: queue):
+    def terminate(self):
+        self.__active = False
 
-        logging.info(f"[{self.__tag}] starting watch publisher")
+    def processing_loop(self, sensor_q: queue):
+        self.__active = True
+        logging.info(f"[{self.__tag}] starting watch standalone processing loop")
 
         # used to estimate delta time and processing speed in Hz
         start = datetime.now()
@@ -103,7 +107,7 @@ class WatchOnly:
         )
 
         # this loops while the socket is listening and/or receiving data
-        while True:
+        while self.__active:
 
             # get the most recent smartwatch data row from the queue
             row = None
@@ -267,5 +271,5 @@ class WatchOnly:
                 dat += 1
 
     @abstractmethod
-    def process_msg(self, msg : list):
+    def process_msg(self, msg: list):
         return

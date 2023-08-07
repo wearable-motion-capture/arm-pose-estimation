@@ -16,6 +16,7 @@ class WatchPhone:
                  tag: str = "PUB WATCH PHONE",
                  bonemap: BoneMap = None):
 
+        self.__active = True
         self.__tag = tag
         self.__left_hand_mode = left_hand_mode
 
@@ -125,6 +126,9 @@ class WatchPhone:
             avg_uarm_rot_r
         ])
 
+    def terminate(self):
+        self.__active = False
+
     def stream_loop(self, sensor_q: queue):
         # used to estimate delta time and processing speed in Hz
         start = datetime.now()
@@ -132,7 +136,8 @@ class WatchPhone:
         logging.info("[{}] starting Unity stream loop".format(self.__tag))
 
         # this loops while the socket is listening and/or receiving data
-        while True:
+        self.__active = True
+        while self.__active:
             # get the most recent smartwatch data row from the queue
             row = sensor_q.get()
 

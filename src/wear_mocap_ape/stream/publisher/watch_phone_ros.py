@@ -28,6 +28,10 @@ class WatchPhoneROS(WatchPhone):
         rospy.loginfo(f"[{self.__tag}] Initiated ROS publisher")
 
     def process_msg(self, np_msg: np.array):
+        """
+        The paren class calls this method
+        whenever a new arm pose estimation finished
+        """
         # craft ros message and send
         msg = Float32MultiArray()
         # combine positions and rotations

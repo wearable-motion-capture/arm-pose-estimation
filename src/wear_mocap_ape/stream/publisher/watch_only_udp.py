@@ -28,5 +28,9 @@ class WatchOnlyUDP(WatchOnly):
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def process_msg(self, msg: list):
+        """
+        The paren class calls this method
+        whenever a new arm pose estimation finished
+        """
         msg = struct.pack('f' * len(msg), *msg)
         self.__udp_socket.sendto(msg, (self.__ip, self.__port))
