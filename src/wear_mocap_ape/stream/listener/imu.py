@@ -4,8 +4,6 @@ import socket
 import queue
 from datetime import datetime
 
-import wear_mocap_ape.config as config
-
 
 class ImuListener:
     def __init__(self,
@@ -20,10 +18,14 @@ class ImuListener:
         :param tag: this tag will be prepended to logger messages and printouts
         """
 
+        self.__active = False
         self.__msg_size = msg_size
         self.__ip = ip
         self.__port = port
         self.__tag = tag
+
+    def terminate(self):
+        self.__active = False
 
     def listen(self, q: queue):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -32,7 +34,8 @@ class ImuListener:
 
         # begin receiving the data
         dat, start = 0, datetime.now()
-        while 1:
+        self.__active = True
+        while self.__active:
             # log message frequency updates
             now = datetime.now()
             if (now - start).seconds >= 5:

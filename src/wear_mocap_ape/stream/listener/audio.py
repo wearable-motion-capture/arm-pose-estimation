@@ -22,6 +22,10 @@ class AudioListener:
         self.__ip = ip
         self.__port = port  # the dual Port
         self.__tag = tag
+        self.__active = False
+
+    def terminate(self):
+        self.__active = False
 
     def play_stream_loop(self):
         """
@@ -76,7 +80,8 @@ class AudioListener:
         # begin receiving the data
         start = datetime.now()
         dat = 0
-        while 1:
+        self.__active = True
+        while self.__active:
             # second-wise updates to determine message frequency
             now = datetime.now()
             if (now - start).seconds >= 5:
@@ -109,7 +114,8 @@ class AudioListener:
                         output=True)
         logging.info(f"[{self.__tag}] audio player waiting for data")
 
-        while True:
+        self.__active = True
+        while self.__active:
             # get the next smartwatch data row from the queue
             row = q.get()
             if row:
