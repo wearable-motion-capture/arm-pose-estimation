@@ -11,7 +11,7 @@ class WatchOnlyUDP(WatchOnly):
     def __init__(self,
                  ip: str,
                  port: int = config.PORT_PUB_LEFT_ARM,
-                 model_hash: str = deploy_models.LSTM.ORI_CALIB_UARM_LARM.value,
+                 model_hash: str = deploy_models.LSTM.WATCH_ONLY.value,
                  smooth: int = 10,
                  stream_monte_carlo=True,
                  monte_carlo_samples=25,

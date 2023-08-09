@@ -86,5 +86,4 @@ def terminate_all(*args):
 # make sure all handler exit on termination
 atexit.register(terminate_all)
 signal.signal(signal.SIGTERM, terminate_all)
-signal.signal(signal.SIGKILL, terminate_all)
 signal.signal(signal.SIGINT, terminate_all)

@@ -20,7 +20,7 @@ from wear_mocap_ape.utility.names import NNS_TARGETS
 
 class WatchOnly:
     def __init__(self,
-                 model_hash: str = deploy_models.LSTM.ORI_CALIB_UARM_LARM.value,
+                 model_hash: str = deploy_models.LSTM.WATCH_ONLY.value,
                  smooth: int = 10,
                  stream_monte_carlo=True,
                  monte_carlo_samples=25,
