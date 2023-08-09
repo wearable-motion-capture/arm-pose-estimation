@@ -1,11 +1,9 @@
 # Arm Pose Estimator Module
 
-This repository is part of the [wearable motion capture](https://github.com/wearable-motion-capture) framework and
-provides code to estimate the arm pose smartwatch and smartphone sensor data. It opens network sockets to stream
-sensor data from our smartwatch and smartphone apps provided
-in [sensor-stream-apps](https://github.com/wearable-motion-capture/sensor-stream-apps).
-You can then either record the arm poses into a `csv` file, or stream them to
-our [arm-pose-visualization](https://github.com/wearable-motion-capture/arm-pose-visualization)
+This repository is part of the [wearable motion capture](https://github.com/wearable-motion-capture) framework and 
+provides code to estimate the arm pose from smartwatch and smartphone sensor data. It opens network sockets to stream 
+sensor data from our smartwatch and phone apps provided in [sensor-stream-apps](https://github.com/wearable-motion-capture/sensor-stream-apps).
+You can then either record the arm poses into a `csv` file, or stream them to our [arm-pose-visualization](https://github.com/wearable-motion-capture/arm-pose-visualization) 
 project for a real-time visualization.
 
 Associated repositories:
