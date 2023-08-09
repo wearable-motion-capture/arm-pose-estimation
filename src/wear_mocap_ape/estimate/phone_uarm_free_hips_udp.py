@@ -9,13 +9,13 @@ import numpy as np
 import torch
 
 from wear_mocap_ape.data_types.bone_map import BoneMap
-from wear_mocap_ape.predict import models, estimate_joints
+from wear_mocap_ape.estimate import models, estimate_joints
 from wear_mocap_ape.utility import transformations as ts, data_stats
 from wear_mocap_ape.data_types import messaging
 from wear_mocap_ape.utility.names import NNS_TARGETS, NNS_INPUTS
 
 
-class FreeHipsUDP:
+class FreeHipsUarmUDP:
     def __init__(self,
                  ip: str,
                  port: int,

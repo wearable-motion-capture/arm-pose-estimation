@@ -10,7 +10,7 @@ from wear_mocap_ape.estimate.watch_only import WatchOnly
 class WatchOnlyRecorder(WatchOnly):
     def __init__(self,
                  file: Path,
-                 model_hash: str = deploy_models.LSTM.ORI_CALIB_UARM_LARM.value,
+                 model_hash: str = deploy_models.LSTM.WATCH_ONLY.value,
                  smooth: int = 10,
                  stream_monte_carlo=False,
                  monte_carlo_samples=25,
