@@ -29,6 +29,18 @@ directory.
 
 Currently, there are four scripts and two types of scripts.
 
+Namely, the scripts are:
+
+* [stream_watch_only.py](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/example_scripts/stream_watch_only.py)
+  estimates arm poses from watch only data and publishes them via a UDP socket on given IP and PORT 46000.
+* [record_watch_only](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/example_scripts/record_watch_only.py)
+  estimates arm poses from watch data only and writes them into a `.csv` file. Pass the filepath as a parameter.
+* [stream_watch_phone.py](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/example_scripts/stream_watch_phone.py)
+  estimates arm poses from watch and phone data together and publishes them via a UDP socket on given IP and PORT 65000.
+* [record_watch_phone.py](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/example_scripts/record_watch_phone.py)
+  estimates arm poses from watch and phone and writes them into a `.csv` file. Pass the filepath as a parameter.
+
+
 The stream scripts require your local IP as input. Run them as, for example,
 
 ```
@@ -41,16 +53,6 @@ The record scripts also require a file path. Recorded data will be stored into t
 python3 record_watch_only.py 192.168.1.123 path/to/file.csv
 ```
 
-Namely, the scripts are:
-
-* [stream_watch_only.py](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/example_scripts/stream_watch_only.py)
-  estimates arm poses from watch only data and publishes them via a UDP socket on given IP and PORT 46000.
-* [record_watch_only](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/example_scripts/record_watch_only.py)
-  estimates arm poses from watch data only and writes them into a `.csv` file. Pass the filepath as a parameter.
-* [stream_watch_phone.py](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/example_scripts/stream_watch_phone.py)
-  estimates arm poses from watch and phone data together and publishes them via a UDP socket on given IP and PORT 65000.
-* [record_watch_phone.py](https://github.com/wearable-motion-capture/arm-pose-estimation/blob/main/example_scripts/record_watch_phone.py)
-  estimates arm poses from watch and phone and writes them into a `.csv` file. Pass the filepath as a parameter.
 
 In case you require more detailed instructions, please read
 the [step-by-step guide](https://docs.google.com/document/d/1ayMBF9kDCB9rlcrqR0sPumJhIVJgOF-SENTdoE4a6DI/edit?usp=sharing).
