@@ -55,6 +55,7 @@ def terminate_all(*args):
     imu_l.terminate()
     joints_p.terminate()
 
+
 # make sure all handler exit on termination
 atexit.register(terminate_all)
 signal.signal(signal.SIGTERM, terminate_all)

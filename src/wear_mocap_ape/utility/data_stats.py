@@ -27,7 +27,7 @@ def get_norm_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, data_list: list
     :param data_list: list of files to analyze
     :return: stats dictionary
     """
-    f_name = "{}_{}".format(x_inputs.name, y_targets.name)
+    f_name = "{}_{}.pkl".format(x_inputs.name, y_targets.name)
     f_dir = Path(config.PATHS["deploy"]) / "data_stats"
     f_path = f_dir / f_name
 

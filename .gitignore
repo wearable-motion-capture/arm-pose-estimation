@@ -1,3 +1,5 @@
+venv
+build
 .idea
 .cache
 *.csv

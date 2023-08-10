@@ -17,6 +17,7 @@ class AudioUDP:
         self.__port = port
         self.__tag = tag
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.__socket.settimeout(5)
 
     def send_int_msg(self, msg: int) -> int:
         # craft UDP message and send
@@ -44,7 +45,11 @@ class AudioUDP:
                     logging.info("[{}] {} Hz".format(self.__tag, dat / 5))
                     dat = 0
 
-                # send message to Unity
-                self.send_int_msg(msg=row)
+                try:
+                    # send message to Unity
+                    self.send_int_msg(msg=row)
+                except TimeoutError:
+                    logging.info(f"[{self.__tag}] timed out")
+                    continue
                 dat += 1
                 time.sleep(0.01)

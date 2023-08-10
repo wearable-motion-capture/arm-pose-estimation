@@ -129,6 +129,9 @@ class WatchPhone:
     def terminate(self):
         self.__active = False
 
+    def is_active(self):
+        return self.__active
+
     def stream_loop(self, sensor_q: queue):
         # used to estimate delta time and processing speed in Hz
         start = datetime.now()

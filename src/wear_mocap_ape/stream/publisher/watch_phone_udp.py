@@ -1,3 +1,4 @@
+import logging
 import socket
 import struct
 import numpy as np
@@ -23,6 +24,7 @@ class WatchPhoneUDP(WatchPhone):
         self.__tag = tag
         self.__port = port
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.__udp_socket.settimeout(5)
 
     def process_msg(self, msg: np.array):
         """
@@ -31,4 +33,7 @@ class WatchPhoneUDP(WatchPhone):
         """
         # craft UDP message and send
         msg = struct.pack('f' * len(msg), *msg)
-        self.__udp_socket.sendto(msg, (self.__ip, self.__port))
+        try:
+            self.__udp_socket.sendto(msg, (self.__ip, self.__port))
+        except TimeoutError:
+            logging.info(f"[{self.__tag}] timed out")

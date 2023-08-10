@@ -73,6 +73,7 @@ class AudioListener:
         # create a socket to listen on
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.bind((self.__ip, self.__port))
+        s.settimeout(5)
 
         # if stream stopped listen again to wait for a new stream
         logging.info(f"[{self.__tag}] listening on {self.__ip} - {self.__port}")
@@ -90,7 +91,11 @@ class AudioListener:
                 dat = 0
 
             # this function waits
-            data, _ = s.recvfrom(self.__chunk_size)
+            try:
+                data, _ = s.recvfrom(self.__chunk_size)
+            except TimeoutError:
+                logging.info(f"[{self.__tag}] timed out")
+                continue
 
             if len(data) < self.__chunk_size:
                 break

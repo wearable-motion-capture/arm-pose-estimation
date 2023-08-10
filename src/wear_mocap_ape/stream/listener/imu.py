@@ -30,6 +30,7 @@ class ImuListener:
     def listen(self, q: queue):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.bind((self.__ip, self.__port))
+        s.settimeout(5)
         logging.info(f"[{self.__tag}] listening on {self.__ip} - {self.__port}")
 
         # begin receiving the data
@@ -43,7 +44,12 @@ class ImuListener:
                 dat, start = 0, now
 
             # receive and queue the data
-            data, _ = s.recvfrom(self.__msg_size)
+            try:
+                data, _ = s.recvfrom(self.__msg_size)
+            except TimeoutError:
+                logging.info(f"[{self.__tag}] timed out")
+                continue
+
             if not data:
                 logging.info(f"[{self.__tag}] Stream closed")
                 break

@@ -13,9 +13,9 @@ import wear_mocap_ape.config as config
 from wear_mocap_ape.data_deploy.nn import deploy_models
 from wear_mocap_ape.estimate import estimate_joints, models
 from wear_mocap_ape.data_types.bone_map import BoneMap
-from wear_mocap_ape.utility import transformations as ts
+from wear_mocap_ape.utility import transformations as ts, data_stats
 from wear_mocap_ape.data_types import messaging
-from wear_mocap_ape.utility.names import NNS_TARGETS
+from wear_mocap_ape.utility.names import NNS_TARGETS, NNS_INPUTS
 
 
 class WatchOnly:
@@ -59,17 +59,7 @@ class WatchOnly:
 
         # load normalized data stats if required
         if self.__normalize:
-            f_name = "{}_{}".format(params["x_inputs_n"], self.__y_targets.name)
-            f_dir = Path(config.PATHS["deploy"]) / "data_stats"
-            f_path = f_dir / f_name
-
-            if not f_path.exists():
-                UserWarning("no stats file available in {}".format(f_path))
-
-            with open(f_path, 'rb') as handle:
-                logging.info("loaded data stats from {}".format(f_path))
-                dat = pickle.load(handle)
-                stats = dat
+            stats = data_stats.get_norm_stats(x_inputs=NNS_INPUTS(params["x_inputs_v"]), y_targets=self.__y_targets)
             # data is normalized and has to be transformed with pre-calculated mean and std
             self.__xx_m, self.__xx_s = stats["xx_m"], stats["xx_s"]
             self.__yy_m, self.__yy_s = stats["yy_m"], stats["yy_s"]
@@ -79,6 +69,9 @@ class WatchOnly:
 
     def get_last_msg(self):
         return self.__last_msg
+
+    def is_active(self):
+        return self.__active
 
     def terminate(self):
         self.__active = False

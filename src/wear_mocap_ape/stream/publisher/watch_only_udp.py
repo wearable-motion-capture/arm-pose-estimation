@@ -1,3 +1,4 @@
+import logging
 import socket
 import struct
 
@@ -26,6 +27,7 @@ class WatchOnlyUDP(WatchOnly):
         self.__port = port
         self.__ip = ip
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.__udp_socket.settimeout(5)
 
     def process_msg(self, msg: list):
         """
@@ -33,4 +35,7 @@ class WatchOnlyUDP(WatchOnly):
         whenever a new arm pose estimation finished
         """
         msg = struct.pack('f' * len(msg), *msg)
-        self.__udp_socket.sendto(msg, (self.__ip, self.__port))
+        try:
+            self.__udp_socket.sendto(msg, (self.__ip, self.__port))
+        except TimeoutError:
+            logging.info(f"[{self.__tag}] timed out")

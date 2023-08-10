@@ -18,7 +18,7 @@ Associated repositories:
 Clone the git repository and install it with
 
 ```
-pip install -e \path\to\project\root
+pip3 install \path\to\project\root
 ```
 
 ## Use
