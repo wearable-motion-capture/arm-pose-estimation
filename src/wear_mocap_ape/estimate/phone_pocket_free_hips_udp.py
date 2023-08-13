@@ -45,6 +45,8 @@ class FreeHipsPocketUDP:
         self.__prev_t = datetime.now()
         self.__row_hist = []
 
+        self.last_hand_pos = np.zeros(3)
+
         # use arm length measurements for predictions
         if bonemap is None:
             # default values
@@ -239,6 +241,14 @@ class FreeHipsPocketUDP:
             p_larm_quat_g = est[0, 9:13]
             p_uarm_quat_g = est[0, 13:17]
             p_hips_quat_g = est[0, 17:]
+
+        self.last_hand_pos = np.array(
+            [
+                p_hand_orig_rh[0],
+                p_hand_orig_rh[1],
+                p_hand_orig_rh[2]
+            ]
+        )
 
         # this is the list for the actual joint positions and rotations
         msg = [
