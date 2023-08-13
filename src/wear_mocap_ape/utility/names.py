@@ -8,9 +8,14 @@ class NNS_TARGETS(Enum):
         "gt_larm_6drr_rh_1", "gt_larm_6drr_rh_2", "gt_larm_6drr_rh_3",  # larm 6drr
         "gt_larm_6drr_rh_4", "gt_larm_6drr_rh_5", "gt_larm_6drr_rh_6"
     ]
-    CONST_XYZ = [
+    POS_RH_LARM_HAND = [
         "gt_hand_orig_rua_x", "gt_hand_orig_rua_y", "gt_hand_orig_rua_z",
         "gt_larm_orig_rua_x", "gt_larm_orig_rua_y", "gt_larm_orig_rua_z"
+    ]
+    POS_RH_LARM_HAND_HIPS = [
+        "gt_hand_orig_rua_x", "gt_hand_orig_rua_y", "gt_hand_orig_rua_z",
+        "gt_larm_orig_rua_x", "gt_larm_orig_rua_y", "gt_larm_orig_rua_z",
+        "gt_hips_yrot_cal_sin", "gt_hips_yrot_cal_cos"  # hips calibrated y rot
     ]
     ORI_CALIB_UARM_LARM_HIPS = [
         "gt_uarm_6drr_rh_1", "gt_uarm_6drr_rh_2", "gt_uarm_6drr_rh_3",  # uarm 6drr

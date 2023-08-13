@@ -89,33 +89,32 @@ class FreeHipsPocketUDP:
             self.__xx_m, self.__xx_s = 0., 1.
             self.__yy_m, self.__yy_s = 0., 1.
 
-    def calibrate_imus_with_offset(self, row: np.array):
-
+    def calibrate_imus_with_offset(self, seq: np.array):
         # get relevant entries from the row
-        sw_fwd = np.array([
-            row[self.__slp["sw_forward_w"]], row[self.__slp["sw_forward_x"]],
-            row[self.__slp["sw_forward_y"]], row[self.__slp["sw_forward_z"]]
-        ])
+        sw_fwd = np.c_[
+            seq[:, self.__slp["sw_forward_w"]], seq[:, self.__slp["sw_forward_x"]],
+            seq[:, self.__slp["sw_forward_y"]], seq[:, self.__slp["sw_forward_z"]]
+        ]
 
-        sw_rot = np.array([
-            row[self.__slp["sw_rotvec_w"]], row[self.__slp["sw_rotvec_x"]],
-            row[self.__slp["sw_rotvec_y"]], row[self.__slp["sw_rotvec_z"]]
-        ])
+        sw_rot = np.c_[
+            seq[:, self.__slp["sw_rotvec_w"]], seq[:, self.__slp["sw_rotvec_x"]],
+            seq[:, self.__slp["sw_rotvec_y"]], seq[:, self.__slp["sw_rotvec_z"]]
+        ]
 
-        ph_fwd = np.array([
-            row[self.__slp["ph_forward_w"]], row[self.__slp["ph_forward_x"]],
-            row[self.__slp["ph_forward_y"]], row[self.__slp["ph_forward_z"]]
-        ])
+        ph_fwd = np.c_[
+            seq[:, self.__slp["ph_forward_w"]], seq[:, self.__slp["ph_forward_x"]],
+            seq[:, self.__slp["ph_forward_y"]], seq[:, self.__slp["ph_forward_z"]]
+        ]
 
-        ph_rot = np.array([
-            row[self.__slp["ph_rotvec_w"]], row[self.__slp["ph_rotvec_x"]],
-            row[self.__slp["ph_rotvec_y"]], row[self.__slp["ph_rotvec_z"]]
-        ])
+        ph_rot = np.c_[
+            seq[:, self.__slp["ph_rotvec_w"]], seq[:, self.__slp["ph_rotvec_x"]],
+            seq[:, self.__slp["ph_rotvec_y"]], seq[:, self.__slp["ph_rotvec_z"]]
+        ]
 
         # estimate north quat to align Z-axis of global and android coord system
         r = ts.android_quat_to_global_no_north(sw_fwd)
         y_rot = ts.reduce_global_quat_to_y_rot(r)
-        quat_north = ts.euler_to_quat(np.array([0, -y_rot, 0]))
+        quat_north = ts.euler_to_quat(np.c_[np.zeros(y_rot.shape), -y_rot, np.zeros(y_rot.shape)])
 
         # calibrate watch
         sw_cal_g = ts.android_quat_to_global(sw_rot, quat_north)
@@ -129,23 +128,16 @@ class FreeHipsPocketUDP:
 
         return sw_cal_g, ph_cal_g
 
-    def row_to_pose(self, row):
+    def row_hist_to_pose(self, row_hist):
 
-        # second-wise updates to determine message frequency
-        now = datetime.now()
-        if (now - self.__start).seconds >= 5:
-            self.__start = now
-            logging.info(f"[{self.__tag}] {self.__dat / 5} Hz")
-            self.__dat = 0
-        delta_t = now - self.__prev_t
-        delta_t = delta_t.microseconds * 0.000001
-        self.__prev_t = now
+        # stack rows to one big array
+        seq = np.vstack(row_hist)
 
-        sw_cal_g, ph_cal_g = self.calibrate_imus_with_offset(row)
+        sw_cal_g, ph_cal_g = self.calibrate_imus_with_offset(seq)
 
         # hip y rotation from phone
         hips_y_rot = ts.reduce_global_quat_to_y_rot(ph_cal_g)
-        hips_quat_g = ts.euler_to_quat(np.array([0, hips_y_rot, 0]))
+        hips_quat_g = ts.euler_to_quat(np.c_[np.zeros(hips_y_rot.shape), hips_y_rot, np.zeros(hips_y_rot.shape)])
         hips_yrot_cal_sin = np.sin(hips_y_rot)
         hips_yrot_cal_cos = np.cos(hips_y_rot)
 
@@ -154,31 +146,22 @@ class FreeHipsPocketUDP:
         sw_rot_6drr = ts.quat_to_6drr_1x6(sw_cal_rh)
 
         # pressure - calibrated initial pressure = relative pressure
-        r_pres = row[self.__slp["sw_pres"]] - row[self.__slp["sw_init_pres"]]
+        r_pres = seq[:, self.__slp["sw_pres"]] - seq[:, self.__slp["sw_init_pres"]]
 
         # assemble the entire input vector of one time step
-        xx = np.hstack([
-            delta_t,
-            row[self.__slp["sw_gyro_x"]], row[self.__slp["sw_gyro_y"]], row[self.__slp["sw_gyro_z"]],
-            row[self.__slp["sw_lvel_x"]], row[self.__slp["sw_lvel_y"]], row[self.__slp["sw_lvel_z"]],
-            row[self.__slp["sw_lacc_x"]], row[self.__slp["sw_lacc_y"]], row[self.__slp["sw_lacc_z"]],
-            row[self.__slp["sw_grav_x"]], row[self.__slp["sw_grav_y"]], row[self.__slp["sw_grav_z"]],
+        xx = np.c_[
+            seq[:, self.__slp["sw_dt"]],
+            seq[:, self.__slp["sw_gyro_x"]], seq[:, self.__slp["sw_gyro_y"]], seq[:, self.__slp["sw_gyro_z"]],
+            seq[:, self.__slp["sw_lvel_x"]], seq[:, self.__slp["sw_lvel_y"]], seq[:, self.__slp["sw_lvel_z"]],
+            seq[:, self.__slp["sw_lacc_x"]], seq[:, self.__slp["sw_lacc_y"]], seq[:, self.__slp["sw_lacc_z"]],
+            seq[:, self.__slp["sw_grav_x"]], seq[:, self.__slp["sw_grav_y"]], seq[:, self.__slp["sw_grav_z"]],
             sw_rot_6drr,
             r_pres
-        ])
+        ]
 
         if self.__normalize:
             # normalize measurements with pre-calculated mean and std
             xx = (xx - self.__xx_m) / self.__xx_s
-
-        # sequences are used for recurrent nets. Stack time steps along 2nd axis
-        self.__row_hist.append(xx)
-        if len(self.__row_hist) < self.__sequence_len:
-            return None
-
-        while len(self.__row_hist) > self.__sequence_len:
-            del self.__row_hist[0]
-        xx = np.vstack(self.__row_hist)
 
         # finally, cast to a torch tensor with batch size 1
         xx = torch.tensor(xx[None, :, :])
@@ -211,15 +194,20 @@ class FreeHipsPocketUDP:
 
         t_preds = np.c_[
             t_preds,
-            np.repeat(hips_yrot_cal_sin, t_preds.shape[0]),
-            np.repeat(hips_yrot_cal_cos, t_preds.shape[0])
+            np.repeat(hips_yrot_cal_sin[-1], t_preds.shape[0]),
+            np.repeat(hips_yrot_cal_cos[-1], t_preds.shape[0])
         ]
 
         # finally, estimate hand and lower arm origins from prediction data
+        if self.__y_targets == NNS_TARGETS.POS_RH_LARM_HAND:
+            hip_targets = NNS_TARGETS.POS_RH_LARM_HAND_HIPS
+        else:
+            hip_targets = NNS_TARGETS.ORI_CALIB_UARM_LARM_HIPS
+
         est = estimate_joints.arm_pose_from_nn_targets(
             preds=t_preds,
             body_measurements=self.__body_measurements,
-            y_targets=NNS_TARGETS.ORI_CALIB_UARM_LARM_HIPS
+            y_targets=hip_targets
         )
 
         # estimate mean of rotations if we got multiple MC predictions
@@ -306,27 +294,46 @@ class FreeHipsPocketUDP:
         self.__dat = 0
         self.__prev_t = datetime.now()
 
+        row_hist = []
+
         # this loops while the socket is listening and/or receiving data
         while True:
             # get the most recent smartwatch data row from the queue
-            row = sensor_q.get()
+            row_hist.append(sensor_q.get())
 
+            # add rows until the queue is nearly empty
             while sensor_q.qsize() > 5:
-                row = sensor_q.get()
+                row_hist.append(sensor_q.get())
 
-            # process received data
-            if row is not None:
+            # only proceed if the history is long enough
+            if len(row_hist) < self.__sequence_len:
+                continue
 
-                # get message as numpy array
-                np_msg = self.row_to_pose(row)
-                # can return None if not enough historical data for smoothing is available
-                if np_msg is None:
-                    continue
+            # if the history is too long, delete old values
+            while len(row_hist) > self.__sequence_len:
+                del row_hist[0]
 
-                # send message to Unity
-                self.send_np_msg(msg=np_msg)
-                self.__dat += 1
-                time.sleep(0.01)
+            # get message as numpy array
+            np_msg = self.row_hist_to_pose(row_hist)
+
+            # can return None if not enough historical data for smoothing is available
+            if np_msg is None:
+                continue
+
+            # five-secondly updates to log message frequency
+            now = datetime.now()
+            if (now - self.__start).seconds >= 5:
+                self.__start = now
+                logging.info(f"[{self.__tag}] {self.__dat / 5} Hz")
+                self.__dat = 0
+            # delta_t = now - self.__prev_t
+            # delta_t = delta_t.microseconds * 0.000001
+            # self.__prev_t = now
+
+            # send message to Unity
+            self.send_np_msg(msg=np_msg)
+            self.__dat += 1
+            time.sleep(0.01)
 
     def send_np_msg(self, msg: np.array) -> int:
         # craft UDP message and send
