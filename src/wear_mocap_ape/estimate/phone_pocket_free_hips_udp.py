@@ -1,6 +1,7 @@
 import logging
 import socket
 import struct
+import threading
 import time
 from datetime import datetime
 import queue
@@ -8,8 +9,11 @@ import queue
 import numpy as np
 import torch
 
+from wear_mocap_ape import config
+from wear_mocap_ape.data_deploy.nn import deploy_models
 from wear_mocap_ape.data_types.bone_map import BoneMap
 from wear_mocap_ape.estimate import models, estimate_joints
+from wear_mocap_ape.stream.listener.imu import ImuListener
 from wear_mocap_ape.utility import transformations as ts, data_stats
 from wear_mocap_ape.data_types import messaging
 from wear_mocap_ape.utility.names import NNS_TARGETS, NNS_INPUTS
@@ -339,3 +343,35 @@ class FreeHipsPocketUDP:
         # craft UDP message and send
         msg = struct.pack('f' * len(msg), *msg)
         return self.__udp_socket.sendto(msg, (self.__ip, self.__port))
+
+
+def run_free_hips_pocket_udp(ip: str) -> FreeHipsPocketUDP:
+    model_hash = deploy_models.LSTM.WATCH_ONLY.value
+
+    # data for left-hand mode
+    left_q = queue.Queue()
+
+    # listen for imu data from phone and watch
+    imu_l = ImuListener(
+        ip=ip,
+        msg_size=messaging.watch_phone_imu_msg_len,
+        port=config.PORT_LISTEN_WATCH_PHONE_IMU_LEFT,
+        tag="LISTEN IMU LEFT"
+    )
+    l_thread = threading.Thread(
+        target=imu_l.listen,
+        args=(left_q,)
+    )
+    l_thread.start()
+
+    # process into arm pose and body orientation
+    fhp = FreeHipsPocketUDP(ip=ip,
+                            model_hash=model_hash,
+                            port=config.PORT_PUB_LEFT_ARM)
+    p_thread = threading.Thread(
+        target=fhp.stream_loop,
+        args=(left_q,)
+    )
+    p_thread.start()
+
+    return fhp

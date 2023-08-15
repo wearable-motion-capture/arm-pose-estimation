@@ -93,7 +93,7 @@ class AudioListener:
             # this function waits
             try:
                 data, _ = s.recvfrom(self.__chunk_size)
-            except TimeoutError:
+            except socket.timeout:
                 logging.info(f"[{self.__tag}] timed out")
                 continue
 
