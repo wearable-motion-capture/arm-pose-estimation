@@ -49,7 +49,7 @@ class FreeHipsPocketUDP:
         self.__prev_t = datetime.now()
         self.__row_hist = []
 
-        self.last_hand_pos = np.zeros(3)
+        self.last_msg = np.zeros(25)
 
         # use arm length measurements for predictions
         if bonemap is None:
@@ -234,14 +234,6 @@ class FreeHipsPocketUDP:
             p_uarm_quat_g = est[0, 13:17]
             p_hips_quat_g = est[0, 17:]
 
-        self.last_hand_pos = np.array(
-            [
-                p_hand_orig_rh[0],
-                p_hand_orig_rh[1],
-                p_hand_orig_rh[2]
-            ]
-        )
-
         # this is the list for the actual joint positions and rotations
         msg = [
             # hand
@@ -324,6 +316,8 @@ class FreeHipsPocketUDP:
             if np_msg is None:
                 continue
 
+            self.last_msg = np_msg
+
             # five-secondly updates to log message frequency
             now = datetime.now()
             if (now - self.__start).seconds >= 5:
@@ -345,7 +339,7 @@ class FreeHipsPocketUDP:
         return self.__udp_socket.sendto(msg, (self.__ip, self.__port))
 
 
-def run_free_hips_pocket_udp(ip: str) -> FreeHipsPocketUDP:
+def run_free_hips_pocket_udp(ip: str, stream_monte_carlo: bool = False) -> FreeHipsPocketUDP:
     model_hash = deploy_models.LSTM.WATCH_ONLY.value
 
     # data for left-hand mode
@@ -367,7 +361,8 @@ def run_free_hips_pocket_udp(ip: str) -> FreeHipsPocketUDP:
     # process into arm pose and body orientation
     fhp = FreeHipsPocketUDP(ip=ip,
                             model_hash=model_hash,
-                            port=config.PORT_PUB_LEFT_ARM)
+                            port=config.PORT_PUB_LEFT_ARM,
+                            stream_monte_carlo=stream_monte_carlo)
     p_thread = threading.Thread(
         target=fhp.stream_loop,
         args=(left_q,)
