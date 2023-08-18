@@ -30,6 +30,9 @@ class FreeHipsPocketUDP:
                  bonemap: BoneMap = None,
                  tag: str = "PUB FREE HIPS"):
 
+        # smooth should not be smaller 1
+        smooth = max(1, smooth)
+
         self.__tag = tag
         self.__port = port
         self.__ip = ip
@@ -57,7 +60,6 @@ class FreeHipsPocketUDP:
             self.__larm_vec = np.array([-BoneMap.DEFAULT_LARM_LEN, 0, 0])
             self.__uarm_vec = np.array([-BoneMap.DEFAULT_UARM_LEN, 0, 0])
             self.__shou_orig = BoneMap.DEFAULT_L_SHOU_ORIG_RH
-
         else:
             self.__larm_vec = bonemap.left_lower_arm_vec
             self.__uarm_vec = bonemap.left_upper_arm_vec
@@ -92,6 +94,10 @@ class FreeHipsPocketUDP:
         else:
             self.__xx_m, self.__xx_s = 0., 1.
             self.__yy_m, self.__yy_s = 0., 1.
+
+    @property
+    def sequence_len(self):
+        return self.__sequence_len
 
     def calibrate_imus_with_offset(self, seq: np.array):
         # get relevant entries from the row

@@ -24,6 +24,20 @@ class NNS_TARGETS(Enum):
         "gt_larm_6drr_rh_4", "gt_larm_6drr_rh_5", "gt_larm_6drr_rh_6",
         "gt_hips_yrot_cal_sin", "gt_hips_yrot_cal_cos"  # hips calibrated y rot
     ]
+    KALMAN_STATE = [
+        "gt_larm_6drr_rh_1",
+        "gt_larm_6drr_rh_2",
+        "gt_larm_6drr_rh_3",
+        "gt_larm_6drr_rh_4",
+        "gt_larm_6drr_rh_5",
+        "gt_larm_6drr_rh_6",
+        "gt_uarm_6drr_rh_1",
+        "gt_uarm_6drr_rh_2",
+        "gt_uarm_6drr_rh_3",
+        "gt_uarm_6drr_rh_4",
+        "gt_uarm_6drr_rh_5",
+        "gt_uarm_6drr_rh_6"
+    ]
 
 
 class NNS_INPUTS(Enum):

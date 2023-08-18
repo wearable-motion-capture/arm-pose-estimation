@@ -7,7 +7,8 @@ FUNCTION_LOOKUP = {
     NNS_TARGETS.ORI_CALIB_UARM_LARM: lambda a, b: uarm_larm_6drr_to_origins(a, b),
     NNS_TARGETS.POS_RH_LARM_HAND: lambda a, b: hand_larm_xyz_to_origins(a, b),
     NNS_TARGETS.ORI_CALIB_UARM_LARM_HIPS: lambda a, b: uarm_larm_hip_6dof_rh_to_origins_g(a, b),
-    NNS_TARGETS.POS_RH_LARM_HAND_HIPS: lambda a, b: larm_hand_hip_pos_rua_to_origins_g(a, b)
+    NNS_TARGETS.POS_RH_LARM_HAND_HIPS: lambda a, b: larm_hand_hip_pos_rua_to_origins_g(a, b),
+    NNS_TARGETS.KALMAN_STATE: lambda a, b: larm_uarm_6drr_to_origins(a, b)
 }
 
 
@@ -100,6 +101,38 @@ def uarm_larm_6drr_to_origins(preds: np.array, body_measure: np.array):
     # lengths may vary if data is shuffled and from different participants
     uarm_vecs = body_measure[:, :3]
     larm_vecs = body_measure[:, 3:]
+
+    # transform 6dof rotation representations back into quaternions
+    uarm_rot_mat = ts.six_drr_1x6_to_rot_mat_1x9(uarm_6drr)
+    p_uarm_quat_rh = ts.rot_mat_1x9_to_quat(uarm_rot_mat)
+
+    larm_rot_mat = ts.six_drr_1x6_to_rot_mat_1x9(larm_6drr)
+    p_larm_quat_rh = ts.rot_mat_1x9_to_quat(larm_rot_mat)
+
+    # get the transition from upper arm origin to lower arm origin
+    p_larm_orig_rua = ts.quat_rotate_vector(p_uarm_quat_rh, uarm_vecs)
+
+    # get transitions from lower arm origin to hand
+    # RE stands for relative to elbow (lower arm origin)
+    rotated_lower_arms_re = ts.quat_rotate_vector(p_larm_quat_rh, larm_vecs)
+    p_hand_orig_rua = rotated_lower_arms_re + p_larm_orig_rua
+
+    return np.hstack([
+        p_hand_orig_rua,
+        p_larm_orig_rua,
+        p_larm_quat_rh,
+        p_uarm_quat_rh
+    ])
+
+
+def larm_uarm_6drr_to_origins(preds: np.array, body_measure: np.array):
+    # split combined pred rows back into separate arrays
+    larm_6drr, uarm_6drr = preds[:, :6], preds[:, 6:]
+
+    # get the default arm vectors from the row-by-row body measurements data
+    # lengths may vary if data is shuffled and from different participants
+    larm_vecs = body_measure[:, :3]
+    uarm_vecs = body_measure[:, 3:]
 
     # transform 6dof rotation representations back into quaternions
     uarm_rot_mat = ts.six_drr_1x6_to_rot_mat_1x9(uarm_6drr)
