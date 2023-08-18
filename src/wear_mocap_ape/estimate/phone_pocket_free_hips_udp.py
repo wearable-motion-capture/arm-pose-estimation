@@ -99,7 +99,11 @@ class FreeHipsPocketUDP:
     def sequence_len(self):
         return self.__sequence_len
 
-    def calibrate_imus_with_offset(self, seq: np.array):
+    def parse_raw_row_hist(self, row_hist):
+
+        # stack rows to one big array
+        seq = np.vstack(row_hist)
+
         # get relevant entries from the row
         sw_fwd = np.c_[
             seq[:, self.__slp["sw_forward_w"]], seq[:, self.__slp["sw_forward_x"]],
@@ -136,15 +140,6 @@ class FreeHipsPocketUDP:
         ph_off_g = ts.hamilton_product(ts.quat_invert(ph_fwd_g), hips_dst_g)
         ph_cal_g = ts.hamilton_product(ph_rot_g, ph_off_g)
 
-        return sw_cal_g, ph_cal_g
-
-    def row_hist_to_pose(self, row_hist):
-
-        # stack rows to one big array
-        seq = np.vstack(row_hist)
-
-        sw_cal_g, ph_cal_g = self.calibrate_imus_with_offset(seq)
-
         # hip y rotation from phone
         hips_y_rot = ts.reduce_global_quat_to_y_rot(ph_cal_g)
         hips_quat_g = ts.euler_to_quat(np.c_[np.zeros(hips_y_rot.shape), hips_y_rot, np.zeros(hips_y_rot.shape)])
@@ -169,11 +164,15 @@ class FreeHipsPocketUDP:
             r_pres
         ]
 
+        return xx, hips_yrot_cal_sin, hips_yrot_cal_cos
+
+    def params_to_msg(self, xx, hips_yrot_cal_sin, hips_yrot_cal_cos):
+
         if self.__normalize:
             # normalize measurements with pre-calculated mean and std
             xx = (xx - self.__xx_m) / self.__xx_s
 
-        # finally, cast to a torch tensor with batch size 1
+            # finally, cast to a torch tensor with batch size 1
         xx = torch.tensor(xx[None, :, :])
         with torch.no_grad():
             # make mote carlo predictions if the model makes use of dropout
@@ -287,6 +286,10 @@ class FreeHipsPocketUDP:
 
         return msg
 
+    def raw_row_hist_to_msg(self, row_hist):
+        xx, hs, hc = self.parse_raw_row_hist(row_hist)
+        return self.params_to_msg(xx, hs, hc)
+
     def stream_loop(self, sensor_q: queue):
 
         logging.info("[{}] starting Unity stream loop".format(self.__tag))
@@ -316,7 +319,7 @@ class FreeHipsPocketUDP:
                 del row_hist[0]
 
             # get message as numpy array
-            np_msg = self.row_hist_to_pose(row_hist)
+            np_msg = self.raw_row_hist_to_msg(row_hist)
 
             # can return None if not enough historical data for smoothing is available
             if np_msg is None:
