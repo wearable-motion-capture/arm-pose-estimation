@@ -147,8 +147,8 @@ class FreeHipsPocketUDP:
         hips_yrot_cal_cos = np.cos(hips_y_rot)
 
         # relative smartwatch orientation
-        sw_cal_rh = ts.hamilton_product(ts.quat_invert(hips_quat_g), sw_cal_g)
-        sw_rot_6drr = ts.quat_to_6drr_1x6(sw_cal_rh)
+        # sw_cal_rh = ts.hamilton_product(ts.quat_invert(hips_quat_g), sw_cal_g)
+        sw_rot_6drr = ts.quat_to_6drr_1x6(sw_cal_g)
 
         # pressure - calibrated initial pressure = relative pressure
         r_pres = seq[:, self.__slp["sw_pres"]] - seq[:, self.__slp["sw_init_pres"]]
@@ -168,9 +168,11 @@ class FreeHipsPocketUDP:
 
     def params_to_msg(self, xx, hips_yrot_cal_sin, hips_yrot_cal_cos):
 
+        dat = np.c_[xx, hips_yrot_cal_sin, hips_yrot_cal_cos]
+
         if self.__normalize:
             # normalize measurements with pre-calculated mean and std
-            xx = (xx - self.__xx_m) / self.__xx_s
+            xx = (dat - self.__xx_m) / self.__xx_s
 
             # finally, cast to a torch tensor with batch size 1
         xx = torch.tensor(xx[None, :, :])
@@ -201,22 +203,10 @@ class FreeHipsPocketUDP:
 
             t_preds = np.vstack(self.__smooth_hist)
 
-        t_preds = np.c_[
-            t_preds,
-            np.repeat(hips_yrot_cal_sin[-1], t_preds.shape[0]),
-            np.repeat(hips_yrot_cal_cos[-1], t_preds.shape[0])
-        ]
-
-        # finally, estimate hand and lower arm origins from prediction data
-        if self.__y_targets == NNS_TARGETS.POS_RH_LARM_HAND:
-            hip_targets = NNS_TARGETS.POS_RH_LARM_HAND_HIPS
-        else:
-            hip_targets = NNS_TARGETS.ORI_CALIB_UARM_LARM_HIPS
-
         est = estimate_joints.arm_pose_from_nn_targets(
             preds=t_preds,
             body_measurements=self.__body_measurements,
-            y_targets=hip_targets
+            y_targets=self.__y_targets
         )
 
         # estimate mean of rotations if we got multiple MC predictions
@@ -348,9 +338,9 @@ class FreeHipsPocketUDP:
         return self.__udp_socket.sendto(msg, (self.__ip, self.__port))
 
 
-def run_free_hips_pocket_udp(ip: str, stream_monte_carlo: bool = False) -> FreeHipsPocketUDP:
-    model_hash = deploy_models.LSTM.WATCH_ONLY.value
-
+def run_free_hips_pocket_udp(ip: str,
+                             model_hash: str = deploy_models.FF.WATCH_POCKET_PHONE.value,
+                             stream_monte_carlo: bool = False) -> FreeHipsPocketUDP:
     # data for left-hand mode
     left_q = queue.Queue()
 

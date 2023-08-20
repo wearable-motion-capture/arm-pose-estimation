@@ -51,6 +51,19 @@ class NNS_INPUTS(Enum):
         "sw_6drr_cal_4", "sw_6drr_cal_5", "sw_6drr_cal_6",
         "sw_pres_cal"
     ]
+    WATCH_PH_HIP = [
+        "sw_dt",
+        "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
+        "sw_lvel_x", "sw_lvel_y", "sw_lvel_z",
+        "sw_lacc_x", "sw_lacc_y", "sw_lacc_z",
+        "sw_grav_x", "sw_grav_y", "sw_grav_z",
+        "sw_6drr_cal_1", "sw_6drr_cal_2", "sw_6drr_cal_3",
+        "sw_6drr_cal_4", "sw_6drr_cal_5", "sw_6drr_cal_6",
+        "sw_pres_cal",
+        "ph_hips_yrot_cal_sin",
+        "ph_hips_yrot_cal_cos"
+
+    ]
     WATCH_PHONE_CALIB = [
         "sw_dt",
         "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
@@ -66,22 +79,4 @@ class NNS_INPUTS(Enum):
         "ph_grav_x", "ph_grav_y", "ph_grav_z",
         "ph_6drr_cal_1", "ph_6drr_cal_2", "ph_6drr_cal_3",
         "ph_6drr_cal_4", "ph_6drr_cal_5", "ph_6drr_cal_6"
-    ]
-    WATCH_PHONE_CALIB_REC_HIP = [
-        "sw_dt",
-        "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
-        "sw_lvel_x", "sw_lvel_y", "sw_lvel_z",
-        "sw_lacc_x", "sw_lacc_y", "sw_lacc_z",
-        "sw_grav_x", "sw_grav_y", "sw_grav_z",
-        "sw_6drr_cal_1", "sw_6drr_cal_2", "sw_6drr_cal_3",
-        "sw_6drr_cal_4", "sw_6drr_cal_5", "sw_6drr_cal_6",
-        "sw_pres_cal",
-        "ph_gyro_x", "ph_gyro_y", "ph_gyro_z",
-        "ph_lvel_x", "ph_lvel_y", "ph_lvel_z",
-        "ph_lacc_x", "ph_lacc_y", "ph_lacc_z",
-        "ph_grav_x", "ph_grav_y", "ph_grav_z",
-        "ph_6drr_cal_1", "ph_6drr_cal_2", "ph_6drr_cal_3",
-        "ph_6drr_cal_4", "ph_6drr_cal_5", "ph_6drr_cal_6",
-        "gt_hips_yrot_cal_sin_tm1",
-        "gt_hips_yrot_cal_cos_tm1"
     ]
