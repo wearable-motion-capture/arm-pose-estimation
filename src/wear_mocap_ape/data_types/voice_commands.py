@@ -15,6 +15,8 @@ KEY_PHRASES = {
     "follow": 5,  # move EE to hand
     "open": 6,  # open the gripper
     "handover": 6,  # same as "open"
+    "over": 6,
+    "give": 6,
 
     # simple test
     "test": 99
