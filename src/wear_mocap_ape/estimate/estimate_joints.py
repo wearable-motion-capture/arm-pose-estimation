@@ -8,7 +8,7 @@ FUNCTION_LOOKUP = {
     NNS_TARGETS.POS_RH_LARM_HAND: lambda a, b: hand_larm_xyz_to_origins(a, b),
     NNS_TARGETS.ORI_CALIB_UARM_LARM_HIPS: lambda a, b: uarm_larm_hip_6dof_rh_to_origins_g(a, b),
     NNS_TARGETS.POS_RH_LARM_HAND_HIPS: lambda a, b: larm_hand_hip_pos_rua_to_origins_g(a, b),
-    NNS_TARGETS.KALMAN_STATE: lambda a, b: larm_uarm_6drr_to_origins(a, b)
+    NNS_TARGETS.KALMAN_PHONE_POCKET: lambda a, b: larm_uarm_hip_6dof_rh_to_origins_g(a, b)
 }
 
 
@@ -48,6 +48,41 @@ def larm_hand_hip_pos_rua_to_origins_g(preds: np.array, body_measure: np.array):
         hips_quat_g
     ])
 
+
+def larm_uarm_hip_6dof_rh_to_origins_g(preds: np.array, body_measure: np.array):
+    """
+    :param preds: [uarm_6drr, larm_6drr, hips_sin_cos]
+    :param body_measure: [uarm_vec, larm_vec, uarm_orig_rh]
+    :return: [hand_orig, larm_orig, uarm_orig, larm_quat_g, uarm_quat_g, hips_quat_g]
+    """
+    # split combined pred rows back into separate arrays
+    larm_6drr, uarm_6drr, hips_sin, hips_cos = preds[:, :6], preds[:, 6:12], preds[:, 12], preds[:, 13]
+    larm_vecs, uarm_vecs, uarm_orig_rh = body_measure[:, :3], body_measure[:, 3:6], body_measure[:, 6:]
+
+    # transform to quats
+    uarm_quat_rh = ts.six_drr_1x6_to_quat(uarm_6drr)
+    larm_quat_rh = ts.six_drr_1x6_to_quat(larm_6drr)
+    hips_quat_g = ts.hips_sin_cos_to_quat(hips_sin, hips_cos)
+
+    uarm_quat_g = ts.hamilton_product(hips_quat_g, uarm_quat_rh)
+    larm_quat_g = ts.hamilton_product(hips_quat_g, larm_quat_rh)
+
+    # estimate origins in respective reference frame
+    p_uarm_orig_g = ts.quat_rotate_vector(hips_quat_g, uarm_orig_rh)  # relative to hips
+    p_larm_orig_rua = ts.quat_rotate_vector(uarm_quat_g, uarm_vecs)  # relative to uarm origin
+    p_hand_orig_rla = ts.quat_rotate_vector(larm_quat_g, larm_vecs)  # relative to larm origin
+
+    # transform to global positions
+    p_larm_orig_g = p_uarm_orig_g + p_larm_orig_rua
+    p_hand_orig_g = p_hand_orig_rla + p_larm_orig_g
+    return np.hstack([
+        p_hand_orig_g,
+        p_larm_orig_g,
+        p_uarm_orig_g,
+        larm_quat_g,
+        uarm_quat_g,
+        hips_quat_g
+    ])
 
 def uarm_larm_hip_6dof_rh_to_origins_g(preds: np.array, body_measure: np.array):
     """
