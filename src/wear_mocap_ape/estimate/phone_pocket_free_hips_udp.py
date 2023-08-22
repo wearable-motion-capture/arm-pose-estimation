@@ -129,7 +129,6 @@ class FreeHipsPocketUDP:
         r = ts.android_quat_to_global_no_north(sw_fwd)
         y_rot = ts.reduce_global_quat_to_y_rot(r)
         quat_north = ts.euler_to_quat(np.c_[np.zeros(y_rot.shape), -y_rot, np.zeros(y_rot.shape)])
-
         # calibrate watch
         sw_cal_g = ts.android_quat_to_global(sw_rot, quat_north)
 
