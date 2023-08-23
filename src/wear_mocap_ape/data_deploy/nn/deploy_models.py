@@ -8,3 +8,4 @@ class FF(Enum):
 
 class LSTM(Enum):
     WATCH_ONLY = "2c700a1ca1af084eedbae5bdd86a5194e42ded4d"
+    POCKET_MODE = "ea7d49ddfc25408761b055ea3229ec81b29a1b07"

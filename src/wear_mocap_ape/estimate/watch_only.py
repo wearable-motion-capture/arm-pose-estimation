@@ -38,14 +38,17 @@ class WatchOnly:
         self.__mc_samples = monte_carlo_samples
         self.__last_msg = None
 
-        # use arm length measurements for predictions
+        # use body measurements for transitions
         if bonemap is None:
-            # default values
             self.__larm_vec = np.array([-BoneMap.DEFAULT_LARM_LEN, 0, 0])
             self.__uarm_vec = np.array([-BoneMap.DEFAULT_UARM_LEN, 0, 0])
+            self.__uarm_orig = BoneMap.DEFAULT_L_SHOU_ORIG_RH
         else:
-            self.__larm_vec = bonemap.left_lower_arm_vec
-            self.__uarm_vec = bonemap.left_upper_arm_vec
+            # get values from bone map
+            self.__larm_vec = np.array([-bonemap.left_lower_arm_length, 0, 0])
+            self.__uarm_vec = np.array([-bonemap.left_upper_arm_length, 0, 0])
+            self.__uarm_orig = bonemap.left_upper_arm_origin_rh
+        self.__hips_quat = np.array([1, 0, 0, 0])
 
         # load the trained network
         torch.set_default_dtype(torch.float64)
@@ -93,11 +96,7 @@ class WatchOnly:
         slp = messaging.WATCH_ONLY_IMU_LOOKUP
 
         # for quicker access we store a matrix with relevant body measurements for quick multiplication
-        body_measurements = np.repeat(
-            np.r_[self.__uarm_vec, self.__larm_vec][np.newaxis, :],
-            self.__mc_samples * self.__smooth,
-            axis=0
-        )
+        body_measurements = np.r_[self.__uarm_vec, self.__larm_vec, self.__uarm_orig][np.newaxis, :]
 
         # this loops while the socket is listening and/or receiving data
         while self.__active:
@@ -203,58 +202,33 @@ class WatchOnly:
                     pred_larm_rot_rh = ts.average_quaternions(est[:, 6:10])
                     pred_uarm_rot_rh = ts.average_quaternions(est[:, 10:])
                     # use body measurements for transitions
-                    uarm_vec = body_measurements[0, :3]
-                    larm_vec = body_measurements[0, 3:]
                     # get the transition from upper arm origin to lower arm origin
-                    pred_larm_origin_rua = ts.quat_rotate_vector(pred_uarm_rot_rh, uarm_vec)
+                    pred_larm_origin_rh = ts.quat_rotate_vector(pred_uarm_rot_rh, self.__uarm_vec) + self.__uarm_orig
                     # get transitions from lower arm origin to hand
-                    rotated_lower_arms_re = ts.quat_rotate_vector(pred_larm_rot_rh, larm_vec)
-                    pred_hand_origin_rua = rotated_lower_arms_re + pred_larm_origin_rua
+                    rotated_lower_arms_re = ts.quat_rotate_vector(pred_larm_rot_rh, self.__larm_vec)
+                    pred_hand_origin_rh = rotated_lower_arms_re + pred_larm_origin_rh
                 else:
-                    pred_hand_origin_rua = est[0, :3]
-                    pred_larm_origin_rua = est[0, 3:6]
+                    pred_hand_origin_rh = est[0, :3]
+                    pred_larm_origin_rh = est[0, 3:6]
                     pred_larm_rot_rh = est[0, 6:10]
                     pred_uarm_rot_rh = est[0, 10:]
 
-                # # hand from watch
-                # fwd_to_left = np.array([0.7071068, 0., 0.7071068, 0.])  # a 90deg y rotation
-                # hand_rot_r = transformations.watch_left_to_global(sw_quat_cal)
-                # hand_rot_r = transformations.hamilton_product(hand_rot_r, fwd_to_left)
-                hand_rot_r = pred_larm_rot_rh
-
                 # this is the list for the actual joint positions and rotations
-                basic_value_list = [
-                    # we pass a hand orientation too, for future work
-                    # currently, hand rotation is smartwatch rotation
-                    hand_rot_r[0],
-                    hand_rot_r[1],
-                    hand_rot_r[2],
-                    hand_rot_r[3],
-
-                    pred_hand_origin_rua[0],
-                    pred_hand_origin_rua[1],
-                    pred_hand_origin_rua[2],
-
-                    pred_larm_rot_rh[0],
-                    pred_larm_rot_rh[1],
-                    pred_larm_rot_rh[2],
-                    pred_larm_rot_rh[3],
-
-                    pred_larm_origin_rua[0],
-                    pred_larm_origin_rua[1],
-                    pred_larm_origin_rua[2],
-
-                    pred_uarm_rot_rh[0],
-                    pred_uarm_rot_rh[1],
-                    pred_uarm_rot_rh[2],
-                    pred_uarm_rot_rh[3]
-                ]
+                basic_value_list = np.hstack([
+                    pred_larm_rot_rh,  # hand quat
+                    pred_hand_origin_rh,  # hand pos
+                    pred_larm_rot_rh,  # larm quat
+                    pred_larm_origin_rh,
+                    pred_uarm_rot_rh,  # uarm quat
+                    self.__uarm_orig,
+                    self.__hips_quat
+                ])
 
                 # now we attach the monte carlo predictions for XYZ positions
                 if self.__stream_mc:
                     if est.shape[0] > 1:
                         for e_row in est:
-                            basic_value_list += list(e_row[:6])
+                            basic_value_list = np.hstack([basic_value_list, e_row[:6]])
 
                 # store as last msg for getter
                 self.__last_msg = basic_value_list.copy()
@@ -264,5 +238,5 @@ class WatchOnly:
                 dat += 1
 
     @abstractmethod
-    def process_msg(self, msg: list):
+    def process_msg(self, msg: np.array):
         return

@@ -61,14 +61,14 @@ class FreeHipsPocketUDP:
             # default values
             self.__larm_vec = np.array([-BoneMap.DEFAULT_LARM_LEN, 0, 0])
             self.__uarm_vec = np.array([-BoneMap.DEFAULT_UARM_LEN, 0, 0])
-            self.__shou_orig = BoneMap.DEFAULT_L_SHOU_ORIG_RH
+            self.__uarm_orig = BoneMap.DEFAULT_L_SHOU_ORIG_RH
         else:
             self.__larm_vec = bonemap.left_lower_arm_vec
             self.__uarm_vec = bonemap.left_upper_arm_vec
-            self.__shou_orig = bonemap.left_upper_arm_origin_rh
+            self.__uarm_orig = bonemap.left_upper_arm_origin_rh
 
         # for quicker access we store a matrix with relevant body measurements for quick multiplication
-        self.__body_measurements = np.r_[self.__uarm_vec, self.__larm_vec, self.__shou_orig][np.newaxis, :]
+        self.__body_measurements = np.r_[self.__uarm_vec, self.__larm_vec, self.__uarm_orig][np.newaxis, :]
 
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -199,7 +199,7 @@ class FreeHipsPocketUDP:
                 p_uarm_quat_g = ts.average_quaternions(est[:, 13:17])
 
                 # get the transition from upper arm origin to lower arm origin
-                p_uarm_orig_rh = ts.quat_rotate_vector(p_hips_quat_g, self.__shou_orig)
+                p_uarm_orig_rh = ts.quat_rotate_vector(p_hips_quat_g, self.__uarm_orig)
                 p_larm_orig_rh = ts.quat_rotate_vector(p_uarm_quat_g, self.__uarm_vec) + p_uarm_orig_rh
                 p_hand_orig_rh = ts.quat_rotate_vector(p_larm_quat_g, self.__larm_vec) + p_larm_orig_rh
 
@@ -213,13 +213,13 @@ class FreeHipsPocketUDP:
 
             # this is the list for the actual joint positions and rotations
             msg = [
-                p_larm_quat_g[0], p_larm_quat_g[1], p_larm_quat_g[2], p_larm_quat_g[3],
-                p_hand_orig_rh[0], p_hand_orig_rh[1], p_hand_orig_rh[2],
-                p_larm_quat_g[0], p_larm_quat_g[1], p_larm_quat_g[2], p_larm_quat_g[3],
-                p_larm_orig_rh[0], p_larm_orig_rh[1], p_larm_orig_rh[2],
-                p_uarm_quat_g[0], p_uarm_quat_g[1], p_uarm_quat_g[2], p_uarm_quat_g[3],
-                p_uarm_orig_rh[0], p_uarm_orig_rh[1], p_uarm_orig_rh[2],
-                p_hips_quat_g[0], p_hips_quat_g[1], p_hips_quat_g[2], p_hips_quat_g[3]
+                p_larm_quat_g[0], p_larm_quat_g[1], p_larm_quat_g[2], p_larm_quat_g[3], # hand rot
+                p_hand_orig_rh[0], p_hand_orig_rh[1], p_hand_orig_rh[2], # hand orig
+                p_larm_quat_g[0], p_larm_quat_g[1], p_larm_quat_g[2], p_larm_quat_g[3], # larm rot
+                p_larm_orig_rh[0], p_larm_orig_rh[1], p_larm_orig_rh[2], # larm orig
+                p_uarm_quat_g[0], p_uarm_quat_g[1], p_uarm_quat_g[2], p_uarm_quat_g[3], # uarm rot
+                p_uarm_orig_rh[0], p_uarm_orig_rh[1], p_uarm_orig_rh[2], # uarm orig
+                p_hips_quat_g[0], p_hips_quat_g[1], p_hips_quat_g[2], p_hips_quat_g[3] # hips rot
             ]
 
             # now we attach the monte carlo predictions for XYZ positions
@@ -249,21 +249,9 @@ class FreeHipsPocketUDP:
 
         dat = pd.read_csv(file_p)
         for i, row in dat.iterrows():
+
             ## PREDICTIONS
-            xx = row[[
-                "sw_dt",
-                "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
-                "sw_lvel_x", "sw_lvel_y", "sw_lvel_z",
-                "sw_lacc_x", "sw_lacc_y", "sw_lacc_z",
-                "sw_grav_x", "sw_grav_y", "sw_grav_z",
-                "sw_6drr_cal_1", "sw_6drr_cal_2", "sw_6drr_cal_3",
-                "sw_6drr_cal_4", "sw_6drr_cal_5", "sw_6drr_cal_6",
-                "sw_pres_cal",
-                "ph_hips_yrot_cal_sin",
-                "ph_hips_yrot_cal_cos"
-
-            ]].to_numpy()
-
+            xx = row[self.__x_inputs.value].to_numpy()
             # normalize measurements with pre-calculated mean and std
             t_pred = self.make_prediction(xx)
 
@@ -280,7 +268,7 @@ class FreeHipsPocketUDP:
                 p_uarm_quat_g = ts.average_quaternions(est[:, 13:17])
 
                 # get the transition from upper arm origin to lower arm origin
-                p_uarm_orig_rh = ts.quat_rotate_vector(p_hips_quat_g, self.__shou_orig)
+                p_uarm_orig_rh = ts.quat_rotate_vector(p_hips_quat_g, self.__uarm_orig)
                 p_larm_orig_rh = ts.quat_rotate_vector(p_uarm_quat_g, self.__uarm_vec) + p_uarm_orig_rh
                 p_hand_orig_rh = ts.quat_rotate_vector(p_larm_quat_g, self.__larm_vec) + p_larm_orig_rh
             else:
@@ -290,6 +278,25 @@ class FreeHipsPocketUDP:
                 p_larm_quat_g = est[0, 9:13]
                 p_uarm_quat_g = est[0, 13:17]
                 p_hips_quat_g = est[0, 17:]
+
+            # GROUND TRUTH
+            yy = row[self.__y_targets.value].to_numpy()[np.newaxis, :]
+            est = estimate_joints.arm_pose_from_nn_targets(
+                preds=yy,
+                body_measurements=self.__body_measurements,
+                y_targets=self.__y_targets
+            )
+            gt_hand_orig_rh = est[0, 0:3]
+            gt_larm_orig_rh = est[0, 3:6]
+            gt_uarm_orig_rh = est[0, 6:9]
+            gt_larm_quat_g = est[0, 9:13]
+            gt_uarm_quat_g = est[0, 13:17]
+            gt_hips_quat_g = est[0, 17:]
+
+            hand_errors.append(np.linalg.norm(gt_hand_orig_rh - p_hand_orig_rh) * 100)
+            elbow_errors.append(np.linalg.norm(gt_larm_orig_rh - p_larm_orig_rh) * 100)
+            hip_rot_errors.append(
+                np.degrees(np.abs(ts.quat_to_euler(gt_hips_quat_g)[1] - ts.quat_to_euler(p_hips_quat_g)[1])))
 
             # # this is the list for the actual joint positions and rotations
             # msg = [
@@ -310,40 +317,6 @@ class FreeHipsPocketUDP:
             #
             # np_msg = np.array(msg)
             # self.send_np_msg(np_msg)
-
-            # GROUND TRUTH
-            yy = row[[
-                "gt_larm_6drr_rh_1",
-                "gt_larm_6drr_rh_2",
-                "gt_larm_6drr_rh_3",
-                "gt_larm_6drr_rh_4",
-                "gt_larm_6drr_rh_5",
-                "gt_larm_6drr_rh_6",
-                "gt_uarm_6drr_rh_1",
-                "gt_uarm_6drr_rh_2",
-                "gt_uarm_6drr_rh_3",
-                "gt_uarm_6drr_rh_4",
-                "gt_uarm_6drr_rh_5",
-                "gt_uarm_6drr_rh_6",
-                "gt_hips_yrot_cal_sin",
-                "gt_hips_yrot_cal_cos"
-            ]].to_numpy()[np.newaxis, :]
-            est = estimate_joints.arm_pose_from_nn_targets(
-                preds=yy,
-                body_measurements=self.__body_measurements,
-                y_targets=self.__y_targets
-            )
-            gt_hand_orig_rh = est[0, 0:3]
-            gt_larm_orig_rh = est[0, 3:6]
-            gt_uarm_orig_rh = est[0, 6:9]
-            gt_larm_quat_g = est[0, 9:13]
-            gt_uarm_quat_g = est[0, 13:17]
-            gt_hips_quat_g = est[0, 17:]
-
-            hand_errors.append(np.linalg.norm(gt_hand_orig_rh - p_hand_orig_rh) * 100)
-            elbow_errors.append(np.linalg.norm(gt_larm_orig_rh - p_larm_orig_rh) * 100)
-            hip_rot_errors.append(
-                np.degrees(np.abs(ts.quat_to_euler(gt_hips_quat_g)[1] - ts.quat_to_euler(p_hips_quat_g)[1])))
 
             if (int(i) + 1) % 100 == 0:
                 logging.info(f"[{self.__tag}] processed {i} rows")

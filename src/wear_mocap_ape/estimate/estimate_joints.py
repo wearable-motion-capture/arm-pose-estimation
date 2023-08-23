@@ -84,6 +84,7 @@ def larm_uarm_hip_6dof_rh_to_origins_g(preds: np.array, body_measure: np.array):
         hips_quat_g
     ])
 
+
 def uarm_larm_hip_6dof_rh_to_origins_g(preds: np.array, body_measure: np.array):
     """
     :param preds: [uarm_6drr, larm_6drr, hips_sin_cos]
@@ -125,7 +126,7 @@ def uarm_larm_6drr_to_origins(preds: np.array, body_measure: np.array):
     takes predictions from a model that has 6dof for lower and upper arm
     as well as upper arm radius as its outputs
     :param preds: [uarm_6drr, larm_6drr]
-    :param body_measure: [uarm_vec, larm_vec]
+    :param body_measure: [uarm_vec, larm_vec, uarm_orig_rh]
     :return: [hand_orig, larm_orig, larm_quat_rh, uarm_quat_rh]
     """
 
@@ -135,7 +136,8 @@ def uarm_larm_6drr_to_origins(preds: np.array, body_measure: np.array):
     # get the default arm vectors from the row-by-row body measurements data
     # lengths may vary if data is shuffled and from different participants
     uarm_vecs = body_measure[:, :3]
-    larm_vecs = body_measure[:, 3:]
+    larm_vecs = body_measure[:, 3:6]
+    uarm_orig = body_measure[:, 6:]
 
     # transform 6dof rotation representations back into quaternions
     uarm_rot_mat = ts.six_drr_1x6_to_rot_mat_1x9(uarm_6drr)
@@ -145,16 +147,16 @@ def uarm_larm_6drr_to_origins(preds: np.array, body_measure: np.array):
     p_larm_quat_rh = ts.rot_mat_1x9_to_quat(larm_rot_mat)
 
     # get the transition from upper arm origin to lower arm origin
-    p_larm_orig_rua = ts.quat_rotate_vector(p_uarm_quat_rh, uarm_vecs)
+    p_larm_orig_rh = ts.quat_rotate_vector(p_uarm_quat_rh, uarm_vecs) + uarm_orig
 
     # get transitions from lower arm origin to hand
     # RE stands for relative to elbow (lower arm origin)
     rotated_lower_arms_re = ts.quat_rotate_vector(p_larm_quat_rh, larm_vecs)
-    p_hand_orig_rua = rotated_lower_arms_re + p_larm_orig_rua
+    p_hand_orig_rh = rotated_lower_arms_re + p_larm_orig_rh
 
     return np.hstack([
-        p_hand_orig_rua,
-        p_larm_orig_rua,
+        p_hand_orig_rh,
+        p_larm_orig_rh,
         p_larm_quat_rh,
         p_uarm_quat_rh
     ])

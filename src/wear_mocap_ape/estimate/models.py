@@ -107,6 +107,47 @@ class DropoutLSTM(torch.nn.Module):
         return self(rep_data, hs)
 
 
+class ImuPoseLSTM(torch.nn.Module):
+    def __init__(self,
+                 input_size,
+                 hidden_layer_size,
+                 hidden_layer_count,
+                 output_size,
+                 dropout=0.2):
+        """
+        We kept the unused parameters to be compatible with our regular training code
+        """
+
+        super().__init__()
+        self.input_layer = torch.nn.Linear(input_size, 256)
+        self.lstm = torch.nn.LSTM(256,
+                                  hidden_size=256,
+                                  num_layers=2,
+                                  batch_first=True,
+                                  bidirectional=True)
+        self._activation_function = F.relu
+        self.output_layer = torch.nn.Linear(256, output_size)
+        self.output_size = output_size
+        self.input_size = input_size
+
+    def forward(self, x, hs=None):
+        """
+        :param x: expects data as a 3D tensor [batch_size, sequence, input]
+        :param hs: Defaults to zeros if (h_0, c_0) is not provided
+        :return:
+        """
+        x = self._activation_function(self.input_layer(x))
+        a, hs_n = self.lstm(x, hs)
+        return self.output_layer(a)
+
+    def monte_carlo_predictions(self, n_samples: int, x: torch.tensor):
+        """
+        This model does not have a dropout layer, therefore MC predictions are the same as regular forward passes.
+        We kept this function such that it is compatible with our evaluation code
+        """
+        return self(x, None)
+
+
 class DropoutFF2D(torch.nn.Module):
 
     def __init__(self,
