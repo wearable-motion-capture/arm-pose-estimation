@@ -5,8 +5,10 @@ import threading
 import time
 from datetime import datetime
 import queue
+from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import torch
 
 from wear_mocap_ape import config
@@ -66,11 +68,7 @@ class FreeHipsPocketUDP:
             self.__shou_orig = bonemap.left_upper_arm_origin_rh
 
         # for quicker access we store a matrix with relevant body measurements for quick multiplication
-        self.__body_measurements = np.repeat(
-            np.r_[self.__uarm_vec, self.__larm_vec, self.__shou_orig][np.newaxis, :],
-            self.__mc_samples * self.__smooth,
-            axis=0
-        )
+        self.__body_measurements = np.r_[self.__uarm_vec, self.__larm_vec, self.__shou_orig][np.newaxis, :]
 
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -99,30 +97,26 @@ class FreeHipsPocketUDP:
     def sequence_len(self):
         return self.__sequence_len
 
-    def parse_raw_row_hist(self, row_hist):
-
-        # stack rows to one big array
-        seq = np.vstack(row_hist)
-
+    def parse_row_to_xx(self, row):
         # get relevant entries from the row
         sw_fwd = np.c_[
-            seq[:, self.__slp["sw_forward_w"]], seq[:, self.__slp["sw_forward_x"]],
-            seq[:, self.__slp["sw_forward_y"]], seq[:, self.__slp["sw_forward_z"]]
+            row[self.__slp["sw_forward_w"]], row[self.__slp["sw_forward_x"]],
+            row[self.__slp["sw_forward_y"]], row[self.__slp["sw_forward_z"]]
         ]
 
         sw_rot = np.c_[
-            seq[:, self.__slp["sw_rotvec_w"]], seq[:, self.__slp["sw_rotvec_x"]],
-            seq[:, self.__slp["sw_rotvec_y"]], seq[:, self.__slp["sw_rotvec_z"]]
+            row[self.__slp["sw_rotvec_w"]], row[self.__slp["sw_rotvec_x"]],
+            row[self.__slp["sw_rotvec_y"]], row[self.__slp["sw_rotvec_z"]]
         ]
 
         ph_fwd = np.c_[
-            seq[:, self.__slp["ph_forward_w"]], seq[:, self.__slp["ph_forward_x"]],
-            seq[:, self.__slp["ph_forward_y"]], seq[:, self.__slp["ph_forward_z"]]
+            row[self.__slp["ph_forward_w"]], row[self.__slp["ph_forward_x"]],
+            row[self.__slp["ph_forward_y"]], row[self.__slp["ph_forward_z"]]
         ]
 
         ph_rot = np.c_[
-            seq[:, self.__slp["ph_rotvec_w"]], seq[:, self.__slp["ph_rotvec_x"]],
-            seq[:, self.__slp["ph_rotvec_y"]], seq[:, self.__slp["ph_rotvec_z"]]
+            row[self.__slp["ph_rotvec_w"]], row[self.__slp["ph_rotvec_x"]],
+            row[self.__slp["ph_rotvec_y"]], row[self.__slp["ph_rotvec_z"]]
         ]
 
         # estimate north quat to align Z-axis of global and android coord system
@@ -141,37 +135,244 @@ class FreeHipsPocketUDP:
 
         # hip y rotation from phone
         hips_y_rot = ts.reduce_global_quat_to_y_rot(ph_cal_g)
-        hips_quat_g = ts.euler_to_quat(np.c_[np.zeros(hips_y_rot.shape), hips_y_rot, np.zeros(hips_y_rot.shape)])
         hips_yrot_cal_sin = np.sin(hips_y_rot)
         hips_yrot_cal_cos = np.cos(hips_y_rot)
 
-        # relative smartwatch orientation
-        # sw_cal_rh = ts.hamilton_product(ts.quat_invert(hips_quat_g), sw_cal_g)
         sw_rot_6drr = ts.quat_to_6drr_1x6(sw_cal_g)
 
         # pressure - calibrated initial pressure = relative pressure
-        r_pres = seq[:, self.__slp["sw_pres"]] - seq[:, self.__slp["sw_init_pres"]]
+        r_pres = row[self.__slp["sw_pres"]] - row[self.__slp["sw_init_pres"]]
 
         # assemble the entire input vector of one time step
-        xx = np.c_[
-            seq[:, self.__slp["sw_dt"]],
-            seq[:, self.__slp["sw_gyro_x"]], seq[:, self.__slp["sw_gyro_y"]], seq[:, self.__slp["sw_gyro_z"]],
-            seq[:, self.__slp["sw_lvel_x"]], seq[:, self.__slp["sw_lvel_y"]], seq[:, self.__slp["sw_lvel_z"]],
-            seq[:, self.__slp["sw_lacc_x"]], seq[:, self.__slp["sw_lacc_y"]], seq[:, self.__slp["sw_lacc_z"]],
-            seq[:, self.__slp["sw_grav_x"]], seq[:, self.__slp["sw_grav_y"]], seq[:, self.__slp["sw_grav_z"]],
+        return np.c_[
+            row[self.__slp["sw_dt"]],
+            row[self.__slp["sw_gyro_x"]], row[self.__slp["sw_gyro_y"]], row[self.__slp["sw_gyro_z"]],
+            row[self.__slp["sw_lvel_x"]], row[self.__slp["sw_lvel_y"]], row[self.__slp["sw_lvel_z"]],
+            row[self.__slp["sw_lacc_x"]], row[self.__slp["sw_lacc_y"]], row[self.__slp["sw_lacc_z"]],
+            row[self.__slp["sw_grav_x"]], row[self.__slp["sw_grav_y"]], row[self.__slp["sw_grav_z"]],
             sw_rot_6drr,
-            r_pres
+            r_pres,
+            hips_yrot_cal_sin,
+            hips_yrot_cal_cos
         ]
 
-        return xx, hips_yrot_cal_sin, hips_yrot_cal_cos
+    def stream_loop(self, sensor_q: queue):
+        logging.info("[{}] starting Unity stream loop".format(self.__tag))
+        # used to estimate delta time and processing speed in Hz
+        self.__start = datetime.now()
+        self.__dat = 0
+        self.__prev_t = datetime.now()
+        self.__row_hist = []
+        # this loops while the socket is listening and/or receiving data
+        while True:
+            # get the most recent smartwatch data row from the queue
+            xx = self.parse_row_to_xx(sensor_q.get())
 
-    def params_to_msg(self, xx, hips_yrot_cal_sin, hips_yrot_cal_cos):
+            # add rows until the queue is nearly empty
+            while sensor_q.qsize() > 5:
+                self.__row_hist.append(xx)  # add row to history and immediately continue with the next
+                xx = self.parse_row_to_xx(sensor_q.get())
 
-        dat = np.c_[xx, hips_yrot_cal_sin, hips_yrot_cal_cos]
+            # get message as numpy array
+            t_preds = self.make_prediction(xx)
+
+            # store t_preds in history if smoothing is required
+            if self.__smooth > 1:
+                self.__smooth_hist.append(t_preds)
+                while len(self.__smooth_hist) < self.__smooth:
+                    self.__smooth_hist.append(t_preds)
+                while len(self.__smooth_hist) > self.__smooth:
+                    del self.__smooth_hist[0]
+                t_preds = np.vstack(self.__smooth_hist)
+
+            est = estimate_joints.arm_pose_from_nn_targets(
+                preds=t_preds,
+                body_measurements=self.__body_measurements,
+                y_targets=self.__y_targets
+            )
+
+            # estimate mean of rotations if we got multiple MC predictions
+            if est.shape[0] > 1:
+                # Calculate the mean of all predictions mean
+                p_hips_quat_g = ts.average_quaternions(est[:, 17:])
+                p_larm_quat_g = ts.average_quaternions(est[:, 9:13])
+                p_uarm_quat_g = ts.average_quaternions(est[:, 13:17])
+
+                # get the transition from upper arm origin to lower arm origin
+                p_uarm_orig_rh = ts.quat_rotate_vector(p_hips_quat_g, self.__shou_orig)
+                p_larm_orig_rh = ts.quat_rotate_vector(p_uarm_quat_g, self.__uarm_vec) + p_uarm_orig_rh
+                p_hand_orig_rh = ts.quat_rotate_vector(p_larm_quat_g, self.__larm_vec) + p_larm_orig_rh
+
+            else:
+                p_hand_orig_rh = est[0, 0:3]
+                p_larm_orig_rh = est[0, 3:6]
+                p_uarm_orig_rh = est[0, 6:9]
+                p_larm_quat_g = est[0, 9:13]
+                p_uarm_quat_g = est[0, 13:17]
+                p_hips_quat_g = est[0, 17:]
+
+            # this is the list for the actual joint positions and rotations
+            msg = [
+                p_larm_quat_g[0], p_larm_quat_g[1], p_larm_quat_g[2], p_larm_quat_g[3],
+                p_hand_orig_rh[0], p_hand_orig_rh[1], p_hand_orig_rh[2],
+                p_larm_quat_g[0], p_larm_quat_g[1], p_larm_quat_g[2], p_larm_quat_g[3],
+                p_larm_orig_rh[0], p_larm_orig_rh[1], p_larm_orig_rh[2],
+                p_uarm_quat_g[0], p_uarm_quat_g[1], p_uarm_quat_g[2], p_uarm_quat_g[3],
+                p_uarm_orig_rh[0], p_uarm_orig_rh[1], p_uarm_orig_rh[2],
+                p_hips_quat_g[0], p_hips_quat_g[1], p_hips_quat_g[2], p_hips_quat_g[3]
+            ]
+
+            # now we attach the monte carlo predictions for XYZ positions
+            if self.__stream_mc:
+                if est.shape[0] > 1:
+                    for e_row in est:
+                        msg += list(e_row[:9])
+
+            np_msg = np.array(msg)
+            self.last_msg = np_msg
+
+            # five-secondly updates to log message frequency
+            now = datetime.now()
+            if (now - self.__start).seconds >= 5:
+                self.__start = now
+                logging.info(f"[{self.__tag}] {self.__dat / 5} Hz")
+                self.__dat = 0
+
+            # send message to Unity
+            self.send_np_msg(msg=np_msg)
+            self.__dat += 1
+            time.sleep(0.01)
+
+    def from_file(self, file_p: Path):
+        logging.info(f"[{self.__tag}] processing from file")
+        hand_errors, elbow_errors, hip_rot_errors = [], [], []
+
+        dat = pd.read_csv(file_p)
+        for i, row in dat.iterrows():
+            ## PREDICTIONS
+            xx = row[[
+                "sw_dt",
+                "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
+                "sw_lvel_x", "sw_lvel_y", "sw_lvel_z",
+                "sw_lacc_x", "sw_lacc_y", "sw_lacc_z",
+                "sw_grav_x", "sw_grav_y", "sw_grav_z",
+                "sw_6drr_cal_1", "sw_6drr_cal_2", "sw_6drr_cal_3",
+                "sw_6drr_cal_4", "sw_6drr_cal_5", "sw_6drr_cal_6",
+                "sw_pres_cal",
+                "ph_hips_yrot_cal_sin",
+                "ph_hips_yrot_cal_cos"
+
+            ]].to_numpy()
+
+            # normalize measurements with pre-calculated mean and std
+            t_pred = self.make_prediction(xx)
+
+            est = estimate_joints.arm_pose_from_nn_targets(
+                preds=t_pred,
+                body_measurements=self.__body_measurements,
+                y_targets=self.__y_targets
+            )
+            # estimate mean of rotations if we got multiple MC predictions
+            if est.shape[0] > 1:
+                # Calculate the mean of all predictions mean
+                p_hips_quat_g = ts.average_quaternions(est[:, 17:])
+                p_larm_quat_g = ts.average_quaternions(est[:, 9:13])
+                p_uarm_quat_g = ts.average_quaternions(est[:, 13:17])
+
+                # get the transition from upper arm origin to lower arm origin
+                p_uarm_orig_rh = ts.quat_rotate_vector(p_hips_quat_g, self.__shou_orig)
+                p_larm_orig_rh = ts.quat_rotate_vector(p_uarm_quat_g, self.__uarm_vec) + p_uarm_orig_rh
+                p_hand_orig_rh = ts.quat_rotate_vector(p_larm_quat_g, self.__larm_vec) + p_larm_orig_rh
+            else:
+                p_hand_orig_rh = est[0, 0:3]
+                p_larm_orig_rh = est[0, 3:6]
+                p_uarm_orig_rh = est[0, 6:9]
+                p_larm_quat_g = est[0, 9:13]
+                p_uarm_quat_g = est[0, 13:17]
+                p_hips_quat_g = est[0, 17:]
+
+            # # this is the list for the actual joint positions and rotations
+            # msg = [
+            #     p_larm_quat_g[0], p_larm_quat_g[1], p_larm_quat_g[2], p_larm_quat_g[3],
+            #     p_hand_orig_rh[0], p_hand_orig_rh[1], p_hand_orig_rh[2],
+            #     p_larm_quat_g[0], p_larm_quat_g[1], p_larm_quat_g[2], p_larm_quat_g[3],
+            #     p_larm_orig_rh[0], p_larm_orig_rh[1], p_larm_orig_rh[2],
+            #     p_uarm_quat_g[0], p_uarm_quat_g[1], p_uarm_quat_g[2], p_uarm_quat_g[3],
+            #     p_uarm_orig_rh[0], p_uarm_orig_rh[1], p_uarm_orig_rh[2],
+            #     p_hips_quat_g[0], p_hips_quat_g[1], p_hips_quat_g[2], p_hips_quat_g[3]
+            # ]
+            #
+            # # now we attach the monte carlo predictions for XYZ positions
+            # if self.__stream_mc:
+            #     if est.shape[0] > 1:
+            #         for e_row in est:
+            #             msg += list(e_row[:9])
+            #
+            # np_msg = np.array(msg)
+            # self.send_np_msg(np_msg)
+
+            # GROUND TRUTH
+            yy = row[[
+                "gt_larm_6drr_rh_1",
+                "gt_larm_6drr_rh_2",
+                "gt_larm_6drr_rh_3",
+                "gt_larm_6drr_rh_4",
+                "gt_larm_6drr_rh_5",
+                "gt_larm_6drr_rh_6",
+                "gt_uarm_6drr_rh_1",
+                "gt_uarm_6drr_rh_2",
+                "gt_uarm_6drr_rh_3",
+                "gt_uarm_6drr_rh_4",
+                "gt_uarm_6drr_rh_5",
+                "gt_uarm_6drr_rh_6",
+                "gt_hips_yrot_cal_sin",
+                "gt_hips_yrot_cal_cos"
+            ]].to_numpy()[np.newaxis, :]
+            est = estimate_joints.arm_pose_from_nn_targets(
+                preds=yy,
+                body_measurements=self.__body_measurements,
+                y_targets=self.__y_targets
+            )
+            gt_hand_orig_rh = est[0, 0:3]
+            gt_larm_orig_rh = est[0, 3:6]
+            gt_uarm_orig_rh = est[0, 6:9]
+            gt_larm_quat_g = est[0, 9:13]
+            gt_uarm_quat_g = est[0, 13:17]
+            gt_hips_quat_g = est[0, 17:]
+
+            hand_errors.append(np.linalg.norm(gt_hand_orig_rh - p_hand_orig_rh) * 100)
+            elbow_errors.append(np.linalg.norm(gt_larm_orig_rh - p_larm_orig_rh) * 100)
+            hip_rot_errors.append(
+                np.degrees(np.abs(ts.quat_to_euler(gt_hips_quat_g)[1] - ts.quat_to_euler(p_hips_quat_g)[1])))
+
+            if (int(i) + 1) % 100 == 0:
+                logging.info(f"[{self.__tag}] processed {i} rows")
+
+        return hand_errors, elbow_errors, hip_rot_errors
+
+    def send_np_msg(self, msg: np.array) -> int:
+        # craft UDP message and send
+        msg = struct.pack('f' * len(msg), *msg)
+        return self.__udp_socket.sendto(msg, (self.__ip, self.__port))
+
+    def make_prediction(self, xx):
+
+        self.__row_hist.append(xx)
+
+        # if not enough data is available yet, simply repeat the input as a first estimate
+        while len(self.__row_hist) < self.__sequence_len:
+            self.__row_hist.append(xx)
+
+        # if the history is too long, delete old values
+        while len(self.__row_hist) > self.__sequence_len:
+            del self.__row_hist[0]
+
+        # stack rows to one big array
+        seq = np.vstack(self.__row_hist.copy())
 
         if self.__normalize:
             # normalize measurements with pre-calculated mean and std
-            xx = (dat - self.__xx_m) / self.__xx_s
+            xx = (seq - self.__xx_m) / self.__xx_s
 
             # finally, cast to a torch tensor with batch size 1
         xx = torch.tensor(xx[None, :, :])
@@ -191,150 +392,7 @@ class FreeHipsPocketUDP:
             # transform predictions back from normalized labels
             t_preds = t_preds * self.__yy_s + self.__yy_m
 
-        # store t_preds in history if smoothing is required
-        if self.__smooth > 1:
-            self.__smooth_hist.append(t_preds)
-            if len(self.__smooth_hist) < self.__smooth:
-                return None
-
-            while len(self.__smooth_hist) > self.__smooth:
-                del self.__smooth_hist[0]
-
-            t_preds = np.vstack(self.__smooth_hist)
-
-        est = estimate_joints.arm_pose_from_nn_targets(
-            preds=t_preds,
-            body_measurements=self.__body_measurements,
-            y_targets=self.__y_targets
-        )
-
-        # estimate mean of rotations if we got multiple MC predictions
-        if est.shape[0] > 1:
-            # Calculate the mean of all predictions mean
-            p_hips_quat_g = ts.average_quaternions(est[:, 17:])
-            p_larm_quat_g = ts.average_quaternions(est[:, 9:13])
-            p_uarm_quat_g = ts.average_quaternions(est[:, 13:17])
-
-            # get the transition from upper arm origin to lower arm origin
-            p_uarm_orig_rh = ts.quat_rotate_vector(p_hips_quat_g, self.__shou_orig)
-            p_larm_orig_rh = ts.quat_rotate_vector(p_uarm_quat_g, self.__uarm_vec) + p_uarm_orig_rh
-            p_hand_orig_rh = ts.quat_rotate_vector(p_larm_quat_g, self.__larm_vec) + p_larm_orig_rh
-
-        else:
-            p_hand_orig_rh = est[0, 0:3]
-            p_larm_orig_rh = est[0, 3:6]
-            p_uarm_orig_rh = est[0, 6:9]
-            p_larm_quat_g = est[0, 9:13]
-            p_uarm_quat_g = est[0, 13:17]
-            p_hips_quat_g = est[0, 17:]
-
-        # this is the list for the actual joint positions and rotations
-        msg = [
-            # hand
-            p_larm_quat_g[0],
-            p_larm_quat_g[1],
-            p_larm_quat_g[2],
-            p_larm_quat_g[3],
-
-            p_hand_orig_rh[0],
-            p_hand_orig_rh[1],
-            p_hand_orig_rh[2],
-
-            # larm
-            p_larm_quat_g[0],
-            p_larm_quat_g[1],
-            p_larm_quat_g[2],
-            p_larm_quat_g[3],
-
-            p_larm_orig_rh[0],
-            p_larm_orig_rh[1],
-            p_larm_orig_rh[2],
-
-            # uarm
-            p_uarm_quat_g[0],
-            p_uarm_quat_g[1],
-            p_uarm_quat_g[2],
-            p_uarm_quat_g[3],
-
-            p_uarm_orig_rh[0],
-            p_uarm_orig_rh[1],
-            p_uarm_orig_rh[2],
-
-            # hips
-            p_hips_quat_g[0],
-            p_hips_quat_g[1],
-            p_hips_quat_g[2],
-            p_hips_quat_g[3]
-        ]
-
-        # now we attach the monte carlo predictions for XYZ positions
-        if self.__stream_mc:
-            if est.shape[0] > 1:
-                for e_row in est:
-                    msg += list(e_row[:9])
-
-        return msg
-
-    def raw_row_hist_to_msg(self, row_hist):
-        xx, hs, hc = self.parse_raw_row_hist(row_hist)
-        return self.params_to_msg(xx, hs, hc)
-
-    def stream_loop(self, sensor_q: queue):
-
-        logging.info("[{}] starting Unity stream loop".format(self.__tag))
-
-        # used to estimate delta time and processing speed in Hz
-        self.__start = datetime.now()
-        self.__dat = 0
-        self.__prev_t = datetime.now()
-
-        row_hist = []
-
-        # this loops while the socket is listening and/or receiving data
-        while True:
-            # get the most recent smartwatch data row from the queue
-            row_hist.append(sensor_q.get())
-
-            # add rows until the queue is nearly empty
-            while sensor_q.qsize() > 5:
-                row_hist.append(sensor_q.get())
-
-            # only proceed if the history is long enough
-            if len(row_hist) < self.__sequence_len:
-                continue
-
-            # if the history is too long, delete old values
-            while len(row_hist) > self.__sequence_len:
-                del row_hist[0]
-
-            # get message as numpy array
-            np_msg = self.raw_row_hist_to_msg(row_hist)
-
-            # can return None if not enough historical data for smoothing is available
-            if np_msg is None:
-                continue
-
-            self.last_msg = np_msg
-
-            # five-secondly updates to log message frequency
-            now = datetime.now()
-            if (now - self.__start).seconds >= 5:
-                self.__start = now
-                logging.info(f"[{self.__tag}] {self.__dat / 5} Hz")
-                self.__dat = 0
-            # delta_t = now - self.__prev_t
-            # delta_t = delta_t.microseconds * 0.000001
-            # self.__prev_t = now
-
-            # send message to Unity
-            self.send_np_msg(msg=np_msg)
-            self.__dat += 1
-            time.sleep(0.01)
-
-    def send_np_msg(self, msg: np.array) -> int:
-        # craft UDP message and send
-        msg = struct.pack('f' * len(msg), *msg)
-        return self.__udp_socket.sendto(msg, (self.__ip, self.__port))
+        return t_preds
 
 
 def run_free_hips_pocket_udp(ip: str,
