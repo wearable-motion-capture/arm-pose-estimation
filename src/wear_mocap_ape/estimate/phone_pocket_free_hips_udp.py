@@ -26,7 +26,7 @@ class FreeHipsPocketUDP:
                  ip: str,
                  port: int,
                  model_hash: str,
-                 smooth: int = 5,
+                 smooth: int = 1,
                  stream_monte_carlo=True,
                  monte_carlo_samples=25,
                  bonemap: BoneMap = None,
@@ -62,13 +62,34 @@ class FreeHipsPocketUDP:
             self.__larm_vec = np.array([-BoneMap.DEFAULT_LARM_LEN, 0, 0])
             self.__uarm_vec = np.array([-BoneMap.DEFAULT_UARM_LEN, 0, 0])
             self.__uarm_orig = BoneMap.DEFAULT_L_SHOU_ORIG_RH
+
+            self.__larm_vert = np.array([
+                [-BoneMap.DEFAULT_LARM_LEN, 0.03, 0.03],
+                [-BoneMap.DEFAULT_LARM_LEN, 0.03, -0.03],
+                [-BoneMap.DEFAULT_LARM_LEN, -0.03, -0.03],
+                [-BoneMap.DEFAULT_LARM_LEN, -0.03, 0.03],
+                [0, 0.03, 0.03],
+                [0, 0.03, -0.03],
+                [0, -0.03, -0.03],
+                [0, -0.03, 0.03],
+            ])
+            self.__uarm_vert = np.array([
+                [-BoneMap.DEFAULT_UARM_LEN, 0.05, 0.05],
+                [-BoneMap.DEFAULT_UARM_LEN, 0.05, -0.05],
+                [-BoneMap.DEFAULT_UARM_LEN, -0.05, -0.05],
+                [-BoneMap.DEFAULT_UARM_LEN, -0.05, 0.05],
+                [0, 0.05, 0.05],
+                [0, 0.05, -0.05],
+                [0, -0.05, -0.05],
+                [0, -0.05, 0.05],
+            ])
         else:
             self.__larm_vec = bonemap.left_lower_arm_vec
             self.__uarm_vec = bonemap.left_upper_arm_vec
             self.__uarm_orig = bonemap.left_upper_arm_origin_rh
 
         # for quicker access we store a matrix with relevant body measurements for quick multiplication
-        self.__body_measurements = np.r_[self.__uarm_vec, self.__larm_vec, self.__uarm_orig][np.newaxis, :]
+        self.__body_measurements = np.r_[self.__larm_vec, self.__uarm_vec, self.__uarm_orig][np.newaxis, :]
 
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -174,22 +195,7 @@ class FreeHipsPocketUDP:
                 xx = self.parse_row_to_xx(sensor_q.get())
 
             # get message as numpy array
-            t_preds = self.make_prediction(xx)
-
-            # store t_preds in history if smoothing is required
-            if self.__smooth > 1:
-                self.__smooth_hist.append(t_preds)
-                while len(self.__smooth_hist) < self.__smooth:
-                    self.__smooth_hist.append(t_preds)
-                while len(self.__smooth_hist) > self.__smooth:
-                    del self.__smooth_hist[0]
-                t_preds = np.vstack(self.__smooth_hist)
-
-            est = estimate_joints.arm_pose_from_nn_targets(
-                preds=t_preds,
-                body_measurements=self.__body_measurements,
-                y_targets=self.__y_targets
-            )
+            est = self.make_prediction(xx)
 
             # estimate mean of rotations if we got multiple MC predictions
             if est.shape[0] > 1:
@@ -199,34 +205,33 @@ class FreeHipsPocketUDP:
                 p_uarm_quat_g = ts.average_quaternions(est[:, 13:17])
 
                 # get the transition from upper arm origin to lower arm origin
-                p_uarm_orig_rh = ts.quat_rotate_vector(p_hips_quat_g, self.__uarm_orig)
-                p_larm_orig_rh = ts.quat_rotate_vector(p_uarm_quat_g, self.__uarm_vec) + p_uarm_orig_rh
-                p_hand_orig_rh = ts.quat_rotate_vector(p_larm_quat_g, self.__larm_vec) + p_larm_orig_rh
+                p_uarm_orig_g = ts.quat_rotate_vector(p_hips_quat_g, self.__uarm_orig)
+                p_larm_orig_g = ts.quat_rotate_vector(p_uarm_quat_g, self.__uarm_vec) + p_uarm_orig_g
+                p_hand_orig_g = ts.quat_rotate_vector(p_larm_quat_g, self.__larm_vec) + p_larm_orig_g
 
             else:
-                p_hand_orig_rh = est[0, 0:3]
-                p_larm_orig_rh = est[0, 3:6]
-                p_uarm_orig_rh = est[0, 6:9]
+                p_hand_orig_g = est[0, 0:3]
+                p_larm_orig_g = est[0, 3:6]
+                p_uarm_orig_g = est[0, 6:9]
                 p_larm_quat_g = est[0, 9:13]
                 p_uarm_quat_g = est[0, 13:17]
                 p_hips_quat_g = est[0, 17:]
 
             # this is the list for the actual joint positions and rotations
-            msg = [
-                p_larm_quat_g[0], p_larm_quat_g[1], p_larm_quat_g[2], p_larm_quat_g[3], # hand rot
-                p_hand_orig_rh[0], p_hand_orig_rh[1], p_hand_orig_rh[2], # hand orig
-                p_larm_quat_g[0], p_larm_quat_g[1], p_larm_quat_g[2], p_larm_quat_g[3], # larm rot
-                p_larm_orig_rh[0], p_larm_orig_rh[1], p_larm_orig_rh[2], # larm orig
-                p_uarm_quat_g[0], p_uarm_quat_g[1], p_uarm_quat_g[2], p_uarm_quat_g[3], # uarm rot
-                p_uarm_orig_rh[0], p_uarm_orig_rh[1], p_uarm_orig_rh[2], # uarm orig
-                p_hips_quat_g[0], p_hips_quat_g[1], p_hips_quat_g[2], p_hips_quat_g[3] # hips rot
-            ]
+            msg = np.hstack([
+                p_larm_quat_g,  # hand rot
+                p_hand_orig_g,  # hand orig
+                p_larm_quat_g,  # larm rot
+                p_larm_orig_g,  # larm orig
+                p_uarm_quat_g,  # uarm rot
+                p_uarm_orig_g,  # uarm orig
+                p_hips_quat_g  # hips rot
+            ])
 
             # now we attach the monte carlo predictions for XYZ positions
             if self.__stream_mc:
                 if est.shape[0] > 1:
-                    for e_row in est:
-                        msg += list(e_row[:9])
+                    msg = np.hstack([msg, est[:, :9].flatten()])
 
             np_msg = np.array(msg)
             self.last_msg = np_msg
@@ -243,9 +248,9 @@ class FreeHipsPocketUDP:
             self.__dat += 1
             time.sleep(0.01)
 
-    def from_file(self, file_p: Path):
+    def errors_from_file(self, file_p: Path, publish: bool = False):
         logging.info(f"[{self.__tag}] processing from file")
-        hand_errors, elbow_errors, hip_rot_errors = [], [], []
+        hand_errors, elbow_errors, hip_rot_errors, mpjve = [], [], [], []
 
         dat = pd.read_csv(file_p)
         for i, row in dat.iterrows():
@@ -253,31 +258,52 @@ class FreeHipsPocketUDP:
             ## PREDICTIONS
             xx = row[self.__x_inputs.value].to_numpy()
             # normalize measurements with pre-calculated mean and std
-            t_pred = self.make_prediction(xx)
+            est = self.make_prediction(xx)
 
-            est = estimate_joints.arm_pose_from_nn_targets(
-                preds=t_pred,
-                body_measurements=self.__body_measurements,
-                y_targets=self.__y_targets
-            )
             # estimate mean of rotations if we got multiple MC predictions
             if est.shape[0] > 1:
                 # Calculate the mean of all predictions mean
-                p_hips_quat_g = ts.average_quaternions(est[:, 17:])
-                p_larm_quat_g = ts.average_quaternions(est[:, 9:13])
-                p_uarm_quat_g = ts.average_quaternions(est[:, 13:17])
+                p_larm_quat_rh = ts.average_quaternions(est[:, 9:13])
+                p_uarm_quat_rh = ts.average_quaternions(est[:, 13:17])
+                p_hips_quat_rh = ts.average_quaternions(est[:, 17:])
 
                 # get the transition from upper arm origin to lower arm origin
-                p_uarm_orig_rh = ts.quat_rotate_vector(p_hips_quat_g, self.__uarm_orig)
-                p_larm_orig_rh = ts.quat_rotate_vector(p_uarm_quat_g, self.__uarm_vec) + p_uarm_orig_rh
-                p_hand_orig_rh = ts.quat_rotate_vector(p_larm_quat_g, self.__larm_vec) + p_larm_orig_rh
+                p_uarm_orig_rh = ts.quat_rotate_vector(p_hips_quat_rh, self.__uarm_orig)
+                p_larm_orig_rh = ts.quat_rotate_vector(p_uarm_quat_rh, self.__uarm_vec) + p_uarm_orig_rh
+                p_hand_orig_rh = ts.quat_rotate_vector(p_larm_quat_rh, self.__larm_vec) + p_larm_orig_rh
             else:
                 p_hand_orig_rh = est[0, 0:3]
                 p_larm_orig_rh = est[0, 3:6]
                 p_uarm_orig_rh = est[0, 6:9]
-                p_larm_quat_g = est[0, 9:13]
-                p_uarm_quat_g = est[0, 13:17]
-                p_hips_quat_g = est[0, 17:]
+                p_larm_quat_rh = est[0, 9:13]
+                p_uarm_quat_rh = est[0, 13:17]
+                p_hips_quat_rh = est[0, 17:]
+
+            # publish the estimation for our unity visualization
+            if publish:
+                msg = np.hstack([
+                    p_larm_quat_rh,
+                    p_hand_orig_rh,
+                    p_larm_quat_rh,
+                    p_larm_orig_rh,
+                    p_uarm_quat_rh,
+                    p_uarm_orig_rh,
+                    p_hips_quat_rh
+                ])
+                if est.shape[0] > 1:
+                    if est.shape[0] > 1:
+                        msg = np.hstack([msg, est[:, :9].flatten()])
+
+                # five-secondly updates to log message frequency
+                now = datetime.now()
+                if (now - self.__start).seconds >= 5:
+                    self.__start = now
+                    logging.info(f"[{self.__tag}] {self.__dat / 5} Hz")
+                    self.__dat = 0
+
+                # send message to Unity
+                self.send_np_msg(msg=msg)
+                self.__dat += 1
 
             # GROUND TRUTH
             yy = row[self.__y_targets.value].to_numpy()[np.newaxis, :]
@@ -293,35 +319,27 @@ class FreeHipsPocketUDP:
             gt_uarm_quat_g = est[0, 13:17]
             gt_hips_quat_g = est[0, 17:]
 
+            p_larm_vrtx = ts.quat_rotate_vector(p_larm_quat_rh, self.__larm_vert) + p_larm_orig_rh
+            p_uarm_vrtx = ts.quat_rotate_vector(p_uarm_quat_rh, self.__uarm_vert) + p_uarm_orig_rh
+            gt_larm_vrtx = ts.quat_rotate_vector(gt_larm_quat_g, self.__larm_vert) + gt_larm_orig_rh
+            gt_uarm_vrtx = ts.quat_rotate_vector(gt_uarm_quat_g, self.__uarm_vert) + gt_uarm_orig_rh
+
+            le = gt_larm_vrtx - p_larm_vrtx
+            ue = gt_uarm_vrtx - p_uarm_vrtx
+            ae = np.vstack([le, ue])
+            me = np.linalg.norm(ae, axis=1)
+
+            mpjve.append(np.mean(me) * 100)
             hand_errors.append(np.linalg.norm(gt_hand_orig_rh - p_hand_orig_rh) * 100)
             elbow_errors.append(np.linalg.norm(gt_larm_orig_rh - p_larm_orig_rh) * 100)
             hip_rot_errors.append(
-                np.degrees(np.abs(ts.quat_to_euler(gt_hips_quat_g)[1] - ts.quat_to_euler(p_hips_quat_g)[1])))
-
-            # # this is the list for the actual joint positions and rotations
-            # msg = [
-            #     p_larm_quat_g[0], p_larm_quat_g[1], p_larm_quat_g[2], p_larm_quat_g[3],
-            #     p_hand_orig_rh[0], p_hand_orig_rh[1], p_hand_orig_rh[2],
-            #     p_larm_quat_g[0], p_larm_quat_g[1], p_larm_quat_g[2], p_larm_quat_g[3],
-            #     p_larm_orig_rh[0], p_larm_orig_rh[1], p_larm_orig_rh[2],
-            #     p_uarm_quat_g[0], p_uarm_quat_g[1], p_uarm_quat_g[2], p_uarm_quat_g[3],
-            #     p_uarm_orig_rh[0], p_uarm_orig_rh[1], p_uarm_orig_rh[2],
-            #     p_hips_quat_g[0], p_hips_quat_g[1], p_hips_quat_g[2], p_hips_quat_g[3]
-            # ]
-            #
-            # # now we attach the monte carlo predictions for XYZ positions
-            # if self.__stream_mc:
-            #     if est.shape[0] > 1:
-            #         for e_row in est:
-            #             msg += list(e_row[:9])
-            #
-            # np_msg = np.array(msg)
-            # self.send_np_msg(np_msg)
+                np.degrees(np.abs(ts.quat_to_euler(gt_hips_quat_g)[1] - ts.quat_to_euler(p_hips_quat_rh)[1]))
+            )
 
             if (int(i) + 1) % 100 == 0:
                 logging.info(f"[{self.__tag}] processed {i} rows")
 
-        return hand_errors, elbow_errors, hip_rot_errors
+        return hand_errors, elbow_errors, hip_rot_errors, mpjve
 
     def send_np_msg(self, msg: np.array) -> int:
         # craft UDP message and send
@@ -365,11 +383,26 @@ class FreeHipsPocketUDP:
             # transform predictions back from normalized labels
             t_preds = t_preds * self.__yy_s + self.__yy_m
 
-        return t_preds
+        est = estimate_joints.arm_pose_from_nn_targets(
+            preds=t_preds,
+            body_measurements=self.__body_measurements,
+            y_targets=self.__y_targets
+        )
+
+        # store t_preds in history if smoothing is required
+        if self.__smooth > 1:
+            self.__smooth_hist.append(est)
+            while len(self.__smooth_hist) < self.__smooth:
+                self.__smooth_hist.append(est)
+            while len(self.__smooth_hist) > self.__smooth:
+                del self.__smooth_hist[0]
+            est = np.vstack(self.__smooth_hist)
+
+        return est
 
 
 def run_free_hips_pocket_udp(ip: str,
-                             model_hash: str = deploy_models.FF.WATCH_POCKET_PHONE.value,
+                             model_hash: str = deploy_models.LSTM.POCKET_MODE.value,
                              stream_monte_carlo: bool = False) -> FreeHipsPocketUDP:
     # data for left-hand mode
     left_q = queue.Queue()
@@ -390,7 +423,9 @@ def run_free_hips_pocket_udp(ip: str,
     # process into arm pose and body orientation
     fhp = FreeHipsPocketUDP(ip=ip,
                             model_hash=model_hash,
+                            smooth=10,
                             port=config.PORT_PUB_LEFT_ARM,
+                            monte_carlo_samples=25,
                             stream_monte_carlo=stream_monte_carlo)
     p_thread = threading.Thread(
         target=fhp.stream_loop,

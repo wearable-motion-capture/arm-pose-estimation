@@ -69,12 +69,10 @@ def larm_uarm_hip_6dof_rh_to_origins_g(preds: np.array, body_measure: np.array):
 
     # estimate origins in respective reference frame
     p_uarm_orig_g = ts.quat_rotate_vector(hips_quat_g, uarm_orig_rh)  # relative to hips
-    p_larm_orig_rua = ts.quat_rotate_vector(uarm_quat_g, uarm_vecs)  # relative to uarm origin
-    p_hand_orig_rla = ts.quat_rotate_vector(larm_quat_g, larm_vecs)  # relative to larm origin
+    p_larm_orig_g = ts.quat_rotate_vector(uarm_quat_g, uarm_vecs) + p_uarm_orig_g
+    p_hand_orig_g = ts.quat_rotate_vector(larm_quat_g, larm_vecs) + p_larm_orig_g
 
     # transform to global positions
-    p_larm_orig_g = p_uarm_orig_g + p_larm_orig_rua
-    p_hand_orig_g = p_hand_orig_rla + p_larm_orig_g
     return np.hstack([
         p_hand_orig_g,
         p_larm_orig_g,

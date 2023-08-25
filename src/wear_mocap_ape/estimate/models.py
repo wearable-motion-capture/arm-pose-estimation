@@ -124,7 +124,7 @@ class ImuPoseLSTM(torch.nn.Module):
                                   hidden_size=256,
                                   num_layers=2,
                                   batch_first=True,
-                                  bidirectional=True)
+                                  bidirectional=False)
         self._activation_function = F.relu
         self.output_layer = torch.nn.Linear(256, output_size)
         self.output_size = output_size
@@ -293,6 +293,8 @@ def load_deployed_model_from_hash(hash_str: str):
         params["model"] = DropoutLSTM
     elif params["model"] == "DropoutFF":
         params["model"] = DropoutFF
+    elif params["model"] == "ImuPoseLSTM":
+        params["model"] = ImuPoseLSTM
     else:
         raise UserWarning(f"{params['model']} not handled")
 
