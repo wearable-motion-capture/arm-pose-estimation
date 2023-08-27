@@ -208,7 +208,6 @@ class FreeHipsPocketUDP:
                 p_uarm_orig_g = ts.quat_rotate_vector(p_hips_quat_g, self.__uarm_orig)
                 p_larm_orig_g = ts.quat_rotate_vector(p_uarm_quat_g, self.__uarm_vec) + p_uarm_orig_g
                 p_hand_orig_g = ts.quat_rotate_vector(p_larm_quat_g, self.__larm_vec) + p_larm_orig_g
-
             else:
                 p_hand_orig_g = est[0, 0:3]
                 p_larm_orig_g = est[0, 3:6]
