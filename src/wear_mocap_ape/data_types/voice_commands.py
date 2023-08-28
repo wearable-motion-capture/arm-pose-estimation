@@ -11,13 +11,15 @@ KEY_PHRASES = {
     # # ROS experiment commands
     "stop": 3,  # stop current task
     # "move": 4,  # carry on with original task
-    "continue": 4,  # same as "move"
+    # "continue": 4,  # same as "move"
     "follow": 5,  # move EE to hand
     "open": 6,  # open the gripper
+    "close": 7,
+
     # "handover": 6,  # same as "open"
     # "over": 6,
-    "give": 6,
-    "cube": 6,
+    # "give": 6,
+    # "cube": 6,
     "home": 10,
 
     # # simple test

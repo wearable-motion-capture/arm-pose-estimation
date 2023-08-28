@@ -177,25 +177,71 @@ class FreeHipsPocketUDP:
             hips_yrot_cal_cos
         ]
 
+    def msg_from_est(self, est):
+        # estimate mean of rotations if we got multiple MC predictions
+        if est.shape[0] > 1:
+            # Calculate the mean of all predictions mean
+            p_hips_quat_g = ts.average_quaternions(est[:, 17:])
+            p_larm_quat_g = ts.average_quaternions(est[:, 9:13])
+            p_uarm_quat_g = ts.average_quaternions(est[:, 13:17])
+
+            # get the transition from upper arm origin to lower arm origin
+            p_uarm_orig_g = ts.quat_rotate_vector(p_hips_quat_g, self.__uarm_orig)
+            p_larm_orig_g = ts.quat_rotate_vector(p_uarm_quat_g, self.__uarm_vec) + p_uarm_orig_g
+            p_hand_orig_g = ts.quat_rotate_vector(p_larm_quat_g, self.__larm_vec) + p_larm_orig_g
+        else:
+            p_hand_orig_g = est[0, 0:3]
+            p_larm_orig_g = est[0, 3:6]
+            p_uarm_orig_g = est[0, 6:9]
+            p_larm_quat_g = est[0, 9:13]
+            p_uarm_quat_g = est[0, 13:17]
+            p_hips_quat_g = est[0, 17:]
+
+        # this is the list for the actual joint positions and rotations
+        msg = np.hstack([
+            p_larm_quat_g,  # hand rot
+            p_hand_orig_g,  # hand orig
+            p_larm_quat_g,  # larm rot
+            p_larm_orig_g,  # larm orig
+            p_uarm_quat_g,  # uarm rot
+            p_uarm_orig_g,  # uarm orig
+            p_hips_quat_g  # hips rot
+        ])
+
+        # now we attach the monte carlo predictions for XYZ positions
+        if self.__stream_mc:
+            if est.shape[0] > 1:
+                msg = np.hstack([msg, est[:, :9].flatten()])
+
+        return np.array(msg)
+
     def stream_loop(self, sensor_q: queue):
         logging.info("[{}] starting Unity stream loop".format(self.__tag))
         # used to estimate delta time and processing speed in Hz
         self.__start = datetime.now()
         self.__dat = 0
         self.__prev_t = datetime.now()
-        self.__row_hist = []
+        row_hist = []
         # this loops while the socket is listening and/or receiving data
         while True:
             # get the most recent smartwatch data row from the queue
-            xx = self.parse_row_to_xx(sensor_q.get())
+            row_hist.append(self.parse_row_to_xx(sensor_q.get()))
 
             # add rows until the queue is nearly empty
             while sensor_q.qsize() > 5:
-                self.__row_hist.append(xx)  # add row to history and immediately continue with the next
-                xx = self.parse_row_to_xx(sensor_q.get())
+                # add row to history and immediately continue with the next
+                row_hist.append(self.parse_row_to_xx(sensor_q.get()))
+
+            # if not enough data is available yet, simply repeat the input as a first estimate
+            while len(row_hist) < self.__sequence_len:
+                row_hist.append(row_hist[-1].copy())
+
+            # if the history is too long, delete old values
+            while len(row_hist) > self.__sequence_len:
+                del row_hist[0]
 
             # get message as numpy array
-            est = self.make_prediction(xx)
+            est = self.make_prediction_from_row_hist(row_hist)
 
             # estimate mean of rotations if we got multiple MC predictions
             if est.shape[0] > 1:
@@ -251,13 +297,23 @@ class FreeHipsPocketUDP:
         logging.info(f"[{self.__tag}] processing from file")
         hand_errors, elbow_errors, hip_rot_errors, mpjve = [], [], [], []
 
+        row_hist = []
         dat = pd.read_csv(file_p)
         for i, row in dat.iterrows():
-
             ## PREDICTIONS
             xx = row[self.__x_inputs.value].to_numpy()
-            # normalize measurements with pre-calculated mean and std
-            est = self.make_prediction(xx)
+            row_hist.append(xx)
+
+            # if not enough data is available yet, simply repeat the input as a first estimate
+            while len(row_hist) < self.__sequence_len:
+                row_hist.append(xx)
+
+            # if the history is too long, delete old values
+            while len(row_hist) > self.__sequence_len:
+                del row_hist[0]
+
+            # get message as numpy array
+            est = self.make_prediction_from_row_hist(row_hist)
 
             # estimate mean of rotations if we got multiple MC predictions
             if est.shape[0] > 1:
@@ -345,20 +401,9 @@ class FreeHipsPocketUDP:
         msg = struct.pack('f' * len(msg), *msg)
         return self.__udp_socket.sendto(msg, (self.__ip, self.__port))
 
-    def make_prediction(self, xx):
-
-        self.__row_hist.append(xx)
-
-        # if not enough data is available yet, simply repeat the input as a first estimate
-        while len(self.__row_hist) < self.__sequence_len:
-            self.__row_hist.append(xx)
-
-        # if the history is too long, delete old values
-        while len(self.__row_hist) > self.__sequence_len:
-            del self.__row_hist[0]
-
+    def make_prediction_from_row_hist(self, row_hist):
         # stack rows to one big array
-        seq = np.vstack(self.__row_hist.copy())
+        seq = np.vstack(row_hist.copy())
 
         if self.__normalize:
             # normalize measurements with pre-calculated mean and std
@@ -401,8 +446,9 @@ class FreeHipsPocketUDP:
 
 
 def run_free_hips_pocket_udp(ip: str,
-                             model_hash: str = deploy_models.LSTM.POCKET_MODE.value,
-                             stream_monte_carlo: bool = False) -> FreeHipsPocketUDP:
+                             model_hash: str = deploy_models.LSTM.IMU_POSE_CAL.value,
+                             stream_monte_carlo: bool = False,
+                             smooth: int = 10) -> FreeHipsPocketUDP:
     # data for left-hand mode
     left_q = queue.Queue()
 
@@ -422,7 +468,7 @@ def run_free_hips_pocket_udp(ip: str,
     # process into arm pose and body orientation
     fhp = FreeHipsPocketUDP(ip=ip,
                             model_hash=model_hash,
-                            smooth=10,
+                            smooth=smooth,
                             port=config.PORT_PUB_LEFT_ARM,
                             monte_carlo_samples=25,
                             stream_monte_carlo=stream_monte_carlo)
