@@ -10,4 +10,4 @@ class LSTM(Enum):
     WATCH_ONLY = "2c700a1ca1af084eedbae5bdd86a5194e42ded4d"
     POCKET_MODE = "ea7d49ddfc25408761b055ea3229ec81b29a1b07"
     IMU_POSE = "dd0812a5d3ac7aaedebd6ab77717ab31212c7e50"
-    IMU_POSE_CAL = "63fc7c8abbd2fc94ab7492d7e8ea5b88cef399e6"
+    IMU_POSE_CAL = "04d2d059ee8980e13e5e16fe048b6bd0f8265c9a"

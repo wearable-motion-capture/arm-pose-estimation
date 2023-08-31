@@ -185,5 +185,5 @@ class AudioListener:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    wp_audio = AudioListener(ip="192.168.1.138", port=config.PORT_LISTEN_WATCH_AUDIO)
+    wp_audio = AudioListener(ip="10.218.100.139", port=config.PORT_LISTEN_WATCH_PHONE_AUDIO)
     wp_audio.play_stream_loop()

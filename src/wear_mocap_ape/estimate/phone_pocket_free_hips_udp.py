@@ -410,6 +410,7 @@ class FreeHipsPocketUDP:
             xx = (seq - self.__xx_m) / self.__xx_s
 
             # finally, cast to a torch tensor with batch size 1
+
         xx = torch.tensor(xx[None, :, :])
         with torch.no_grad():
             # make mote carlo predictions if the model makes use of dropout
