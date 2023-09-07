@@ -21,6 +21,7 @@ KEY_PHRASES = {
     # "give": 6,
     # "cube": 6,
     "home": 10,
+    "record": 11
 
     # # simple test
     # "test": 99
