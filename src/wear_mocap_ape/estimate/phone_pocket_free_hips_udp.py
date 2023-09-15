@@ -295,7 +295,9 @@ class FreeHipsPocketUDP:
 
     def errors_from_file(self, file_p: Path, publish: bool = False):
         logging.info(f"[{self.__tag}] processing from file")
-        hand_errors, elbow_errors, hip_rot_errors, mpjve = [], [], [], []
+        hand_l_err, hand_r_err = [], []
+        elbow_l_err, elbow_r_err = [], []
+        hip_rot_errors = []
 
         row_hist = []
         dat = pd.read_csv(file_p)
@@ -374,27 +376,34 @@ class FreeHipsPocketUDP:
             gt_uarm_quat_g = est[0, 13:17]
             gt_hips_quat_g = est[0, 17:]
 
-            p_larm_vrtx = ts.quat_rotate_vector(p_larm_quat_rh, self.__larm_vert) + p_larm_orig_rh
-            p_uarm_vrtx = ts.quat_rotate_vector(p_uarm_quat_rh, self.__uarm_vert) + p_uarm_orig_rh
-            gt_larm_vrtx = ts.quat_rotate_vector(gt_larm_quat_g, self.__larm_vert) + gt_larm_orig_rh
-            gt_uarm_vrtx = ts.quat_rotate_vector(gt_uarm_quat_g, self.__uarm_vert) + gt_uarm_orig_rh
+            # p_larm_vrtx = ts.quat_rotate_vector(p_larm_quat_rh, self.__larm_vert) + p_larm_orig_rh
+            # p_uarm_vrtx = ts.quat_rotate_vector(p_uarm_quat_rh, self.__uarm_vert) + p_uarm_orig_rh
+            # gt_larm_vrtx = ts.quat_rotate_vector(gt_larm_quat_g, self.__larm_vert) + gt_larm_orig_rh
+            # gt_uarm_vrtx = ts.quat_rotate_vector(gt_uarm_quat_g, self.__uarm_vert) + gt_uarm_orig_rh
+            # le = gt_larm_vrtx - p_larm_vrtx
+            # ue = gt_uarm_vrtx - p_uarm_vrtx
+            # ae = np.vstack([le, ue])
+            # me = np.linalg.norm(ae, axis=1)
+            # mpjve.append(np.mean(me) * 100)
 
-            le = gt_larm_vrtx - p_larm_vrtx
-            ue = gt_uarm_vrtx - p_uarm_vrtx
-            ae = np.vstack([le, ue])
-            me = np.linalg.norm(ae, axis=1)
+            hand_l_err.append(np.linalg.norm(gt_hand_orig_rh - p_hand_orig_rh) * 100)
+            hre = ts.quat_to_euler(gt_larm_quat_g) - ts.quat_to_euler(p_larm_quat_rh)
+            hree = np.sum(np.abs(np.degrees(np.arctan2(np.sin(hre), np.cos(hre)))))
+            hand_r_err.append(hree)
 
-            mpjve.append(np.mean(me) * 100)
-            hand_errors.append(np.linalg.norm(gt_hand_orig_rh - p_hand_orig_rh) * 100)
-            elbow_errors.append(np.linalg.norm(gt_larm_orig_rh - p_larm_orig_rh) * 100)
-            hip_rot_errors.append(
-                np.degrees(np.abs(ts.quat_to_euler(gt_hips_quat_g)[1] - ts.quat_to_euler(p_hips_quat_rh)[1]))
-            )
+            elbow_l_err.append(np.linalg.norm(gt_larm_orig_rh - p_larm_orig_rh) * 100)
+            ere = ts.quat_to_euler(gt_uarm_quat_g) - ts.quat_to_euler(p_uarm_quat_rh)
+            eree = np.sum(np.abs(np.degrees(np.arctan2(np.sin(ere), np.cos(ere)))))
+            elbow_r_err.append(eree)
+
+            ydiff = ts.quat_to_euler(gt_hips_quat_g)[1] - ts.quat_to_euler(p_hips_quat_rh)[1]
+            err = np.abs(np.degrees(np.arctan2(np.sin(ydiff), np.cos(ydiff))))
+            hip_rot_errors.append(err)
 
             if (int(i) + 1) % 100 == 0:
                 logging.info(f"[{self.__tag}] processed {i} rows")
 
-        return hand_errors, elbow_errors, hip_rot_errors, mpjve
+        return hand_l_err, hand_r_err, elbow_l_err, elbow_r_err, hip_rot_errors
 
     def send_np_msg(self, msg: np.array) -> int:
         # craft UDP message and send
