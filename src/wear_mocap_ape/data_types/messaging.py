@@ -56,14 +56,14 @@ WATCH_ONLY_IMU_LOOKUP = {
     "sw_grav_z": 22,
 
     # calibration measurements
-    # pressure at chest height
-    "sw_init_pres": 23,
-
     # forward facing direction
-    "sw_forward_w": 24,
-    "sw_forward_x": 25,
-    "sw_forward_y": 26,
-    "sw_forward_z": 27
+    "sw_forward_w": 23,
+    "sw_forward_x": 24,
+    "sw_forward_y": 25,
+    "sw_forward_z": 26,
+
+    # pressure at chest height
+    "sw_init_pres": 27
 }
 watch_only_imu_msg_len = len(WATCH_ONLY_IMU_LOOKUP) * 4
 

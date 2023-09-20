@@ -40,6 +40,7 @@ class FreeHipsPocketUDP:
         self.__ip = ip
         self.__stream_mc = stream_monte_carlo
         self.__mc_samples = monte_carlo_samples
+        self.__active = False
 
         # average over multiple time steps
         self.__smooth = smooth
@@ -62,27 +63,6 @@ class FreeHipsPocketUDP:
             self.__larm_vec = np.array([-BoneMap.DEFAULT_LARM_LEN, 0, 0])
             self.__uarm_vec = np.array([-BoneMap.DEFAULT_UARM_LEN, 0, 0])
             self.__uarm_orig = BoneMap.DEFAULT_L_SHOU_ORIG_RH
-
-            self.__larm_vert = np.array([
-                [-BoneMap.DEFAULT_LARM_LEN, 0.03, 0.03],
-                [-BoneMap.DEFAULT_LARM_LEN, 0.03, -0.03],
-                [-BoneMap.DEFAULT_LARM_LEN, -0.03, -0.03],
-                [-BoneMap.DEFAULT_LARM_LEN, -0.03, 0.03],
-                [0, 0.03, 0.03],
-                [0, 0.03, -0.03],
-                [0, -0.03, -0.03],
-                [0, -0.03, 0.03],
-            ])
-            self.__uarm_vert = np.array([
-                [-BoneMap.DEFAULT_UARM_LEN, 0.05, 0.05],
-                [-BoneMap.DEFAULT_UARM_LEN, 0.05, -0.05],
-                [-BoneMap.DEFAULT_UARM_LEN, -0.05, -0.05],
-                [-BoneMap.DEFAULT_UARM_LEN, -0.05, 0.05],
-                [0, 0.05, 0.05],
-                [0, 0.05, -0.05],
-                [0, -0.05, -0.05],
-                [0, -0.05, 0.05],
-            ])
         else:
             self.__larm_vec = bonemap.left_lower_arm_vec
             self.__uarm_vec = bonemap.left_upper_arm_vec
@@ -90,7 +70,6 @@ class FreeHipsPocketUDP:
 
         # for quicker access we store a matrix with relevant body measurements for quick multiplication
         self.__body_measurements = np.r_[self.__larm_vec, self.__uarm_vec, self.__uarm_orig][np.newaxis, :]
-
         self.__udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         # load the trained network
@@ -113,6 +92,9 @@ class FreeHipsPocketUDP:
         else:
             self.__xx_m, self.__xx_s = 0., 1.
             self.__yy_m, self.__yy_s = 0., 1.
+
+    def terminate(self):
+        self.__active = False
 
     @property
     def sequence_len(self):
@@ -144,6 +126,7 @@ class FreeHipsPocketUDP:
         r = ts.android_quat_to_global_no_north(sw_fwd)
         y_rot = ts.reduce_global_quat_to_y_rot(r)
         quat_north = ts.euler_to_quat(np.c_[np.zeros(y_rot.shape), -y_rot, np.zeros(y_rot.shape)])
+
         # calibrate watch
         sw_cal_g = ts.android_quat_to_global(sw_rot, quat_north)
 
@@ -223,7 +206,8 @@ class FreeHipsPocketUDP:
         self.__prev_t = datetime.now()
         row_hist = []
         # this loops while the socket is listening and/or receiving data
-        while True:
+        self.__active = True
+        while self.__active:
             # get the most recent smartwatch data row from the queue
             row_hist.append(self.parse_row_to_xx(sensor_q.get()))
 
@@ -371,20 +355,9 @@ class FreeHipsPocketUDP:
             )
             gt_hand_orig_rh = est[0, 0:3]
             gt_larm_orig_rh = est[0, 3:6]
-            gt_uarm_orig_rh = est[0, 6:9]
             gt_larm_quat_g = est[0, 9:13]
             gt_uarm_quat_g = est[0, 13:17]
             gt_hips_quat_g = est[0, 17:]
-
-            # p_larm_vrtx = ts.quat_rotate_vector(p_larm_quat_rh, self.__larm_vert) + p_larm_orig_rh
-            # p_uarm_vrtx = ts.quat_rotate_vector(p_uarm_quat_rh, self.__uarm_vert) + p_uarm_orig_rh
-            # gt_larm_vrtx = ts.quat_rotate_vector(gt_larm_quat_g, self.__larm_vert) + gt_larm_orig_rh
-            # gt_uarm_vrtx = ts.quat_rotate_vector(gt_uarm_quat_g, self.__uarm_vert) + gt_uarm_orig_rh
-            # le = gt_larm_vrtx - p_larm_vrtx
-            # ue = gt_uarm_vrtx - p_uarm_vrtx
-            # ae = np.vstack([le, ue])
-            # me = np.linalg.norm(ae, axis=1)
-            # mpjve.append(np.mean(me) * 100)
 
             hand_l_err.append(np.linalg.norm(gt_hand_orig_rh - p_hand_orig_rh) * 100)
             hre = ts.quat_to_euler(gt_larm_quat_g) - ts.quat_to_euler(p_larm_quat_rh)
@@ -418,8 +391,7 @@ class FreeHipsPocketUDP:
             # normalize measurements with pre-calculated mean and std
             xx = (seq - self.__xx_m) / self.__xx_s
 
-            # finally, cast to a torch tensor with batch size 1
-
+        # finally, cast to a torch tensor with batch size 1
         xx = torch.tensor(xx[None, :, :])
         with torch.no_grad():
             # make mote carlo predictions if the model makes use of dropout
@@ -456,9 +428,13 @@ class FreeHipsPocketUDP:
 
 
 def run_free_hips_pocket_udp(ip: str,
-                             model_hash: str = deploy_models.LSTM.IMU_POSE_CAL.value,
+                             model_hash: str = deploy_models.LSTM.WATCH_PHONE_POCKET.value,
                              stream_monte_carlo: bool = False,
                              smooth: int = 10) -> FreeHipsPocketUDP:
+    """
+    convenience function to create a default running instance
+    """
+
     # data for left-hand mode
     left_q = queue.Queue()
 
