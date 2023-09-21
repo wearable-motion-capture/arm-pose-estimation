@@ -124,11 +124,11 @@ class FreeHipsPocketUDP:
 
         # estimate north quat to align Z-axis of global and android coord system
         r = ts.android_quat_to_global_no_north(sw_fwd)
-        y_rot = ts.reduce_global_quat_to_y_rot(r)
-        quat_north = ts.euler_to_quat(np.c_[np.zeros(y_rot.shape), -y_rot, np.zeros(y_rot.shape)])
-
+        y_rot = ts.reduce_global_quat_to_y_rot(r)[0]
+        quat_north = ts.euler_to_quat(np.array([0, -y_rot, 0]))
         # calibrate watch
         sw_cal_g = ts.android_quat_to_global(sw_rot, quat_north)
+        sw_6drr_cal = ts.quat_to_6drr_1x6(sw_cal_g)
 
         # the device orientations if the calib position with left arm forward is perfect
         hips_dst_g = np.array([1, 0, 0, 0])
@@ -142,7 +142,6 @@ class FreeHipsPocketUDP:
         hips_yrot_cal_sin = np.sin(hips_y_rot)
         hips_yrot_cal_cos = np.cos(hips_y_rot)
 
-        sw_rot_6drr = ts.quat_to_6drr_1x6(sw_cal_g)
 
         # pressure - calibrated initial pressure = relative pressure
         r_pres = row[self.__slp["sw_pres"]] - row[self.__slp["sw_init_pres"]]
@@ -154,7 +153,7 @@ class FreeHipsPocketUDP:
             row[self.__slp["sw_lvel_x"]], row[self.__slp["sw_lvel_y"]], row[self.__slp["sw_lvel_z"]],
             row[self.__slp["sw_lacc_x"]], row[self.__slp["sw_lacc_y"]], row[self.__slp["sw_lacc_z"]],
             row[self.__slp["sw_grav_x"]], row[self.__slp["sw_grav_y"]], row[self.__slp["sw_grav_z"]],
-            sw_rot_6drr,
+            sw_6drr_cal,
             r_pres,
             hips_yrot_cal_sin,
             hips_yrot_cal_cos

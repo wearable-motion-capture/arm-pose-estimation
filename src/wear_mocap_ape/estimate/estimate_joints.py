@@ -8,7 +8,7 @@ FUNCTION_LOOKUP = {
     NNS_TARGETS.POS_RH_LARM_HAND: lambda a, b: hand_larm_xyz_to_origins(a, b),
     NNS_TARGETS.ORI_RH_UARM_LARM_HIPS: lambda a, b: uarm_larm_hip_6dof_rh_to_origins_g(a, b),
     NNS_TARGETS.POS_RH_LARM_HAND_HIPS: lambda a, b: larm_hand_hip_pos_rua_to_origins_g(a, b),
-    NNS_TARGETS.KALMAN_PHONE_POCKET: lambda a, b: larm_uarm_hip_6dof_rh_to_origins_g(a, b),
+    # NNS_TARGETS.KALMAN_PHONE_POCKET: lambda a, b: larm_uarm_hip_6dof_rh_to_origins_g(a, b),
     NNS_TARGETS.ORI_CAL_LARM_UARM_HIPS: lambda a, b: larm_uarm_hip_6dof_cal_to_origins_cal(a, b)
 }
 
