@@ -10,14 +10,16 @@ from google.cloud import speech_v1 as speech
 
 import wear_mocap_ape.config as config
 import wear_mocap_ape.utility as utility
+from wear_mocap_ape import data_types
+from wear_mocap_ape.data_types import voice_commands
 
 
 class AudioListener:
     def __init__(self, ip: str, port: int = config.PORT_LISTEN_WATCH_PHONE_AUDIO, tag: str = "AUDIO"):
         # Audio recording parameters
         # See https://github.com/googleapis/python-speech/blob/main/samples/microphone/transcribe_streaming_infinite.py
-        self.__sample_rate = 16000
-        self.__chunk_size = 1600  # int(16000 / 10)  # 100ms
+        self.__sample_rate = 32000
+        self.__chunk_size = 800  # int(16000 / 10)  # 100ms
         self.__language_code = "en-US"  # a BCP-47 language tag
         self.__ip = ip
         self.__port = port  # the dual Port
@@ -93,7 +95,7 @@ class AudioListener:
             # this function waits
             try:
                 data, _ = s.recvfrom(self.__chunk_size)
-            except TimeoutError:
+            except socket.timeout:
                 logging.info(f"[{self.__tag}] timed out")
                 continue
 
@@ -173,7 +175,7 @@ class AudioListener:
                 phrase = str(transcript).lower()
                 logging.info("[THREAD TRANSCRIBE] {}".format(phrase))
 
-                for k, v in utility.voice_commands.KEY_PHRASES.items():
+                for k, v in voice_commands.KEY_PHRASES.items():
                     if k in phrase:
                         q_out.put(v)
                         logging.info("[THREAD TRANSCRIBE] sent {} queue size {}".format(k, q_out.qsize()))
@@ -183,5 +185,5 @@ class AudioListener:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    wp_audio = AudioListener(port=config.PORT_LISTEN_WATCH_AUDIO)
+    wp_audio = AudioListener(ip="10.218.100.139", port=config.PORT_LISTEN_WATCH_PHONE_AUDIO)
     wp_audio.play_stream_loop()

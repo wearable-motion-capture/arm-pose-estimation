@@ -5,16 +5,24 @@ See the transcription script for details.
 """
 KEY_PHRASES = {
     # dual manipulation task
-    "blue sky": 0,  # left
-    "red apple": 1,  # right
-
-    # ROS experiment commands
+    # "blue": 0,  # left
+    # "red": 1,  # right
+    #
+    # # ROS experiment commands
     "stop": 3,  # stop current task
-    "move": 4,  # carry on with original task
-    "continue": 4,  # carry on with original task
+    # "move": 4,  # carry on with original task
+    # "continue": 4,  # same as "move"
     "follow": 5,  # move EE to hand
     "open": 6,  # open the gripper
+    "close": 7,
 
-    # simple test
-    "test": 99
+    # "handover": 6,  # same as "open"
+    # "over": 6,
+    # "give": 6,
+    # "cube": 6,
+    "home": 10,
+    "record": 11
+
+    # # simple test
+    # "test": 99
 }

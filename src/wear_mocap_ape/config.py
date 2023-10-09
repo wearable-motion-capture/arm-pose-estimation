@@ -1,10 +1,10 @@
-import os
+from pathlib import Path
 
-proj_path = os.path.dirname(os.path.abspath(__file__))
+proj_path = Path(__file__).parent.absolute()
 
 PATHS = {
-    "deploy": f"{proj_path}/data_deploy/",
-    "skeleton": f"{proj_path}/data_deploy/"
+    "deploy": proj_path / "data_deploy",
+    "skeleton": proj_path / "data_deploy"
 }
 
 # ports for publishing to other services

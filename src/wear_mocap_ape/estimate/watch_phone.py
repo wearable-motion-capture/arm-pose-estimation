@@ -1,4 +1,5 @@
 import logging
+import time
 from abc import abstractmethod
 from datetime import datetime
 import queue
@@ -31,15 +32,19 @@ class WatchPhone:
         if bonemap is None:
             self.__larm_vec = np.array([BoneMap.DEFAULT_LARM_LEN, 0, 0])
             self.__uarm_vec = np.array([BoneMap.DEFAULT_UARM_LEN, 0, 0])
+            self.__uarm_orig = BoneMap.DEFAULT_L_SHOU_ORIG_RH
         else:
             # get values from bone map
             self.__larm_vec = np.array([bonemap.left_lower_arm_length, 0, 0])
             self.__uarm_vec = np.array([bonemap.left_upper_arm_length, 0, 0])
+            self.__uarm_orig = bonemap.left_upper_arm_origin_rh
+        self.__hips_quat = np.array([1, 0, 0, 0])
 
         # in left hand mode, the arm is stretched along the negative X-axis in T pose
         if left_hand_mode:
             self.__larm_vec[0] = -self.__larm_vec[0]
             self.__uarm_vec[0] = -self.__uarm_vec[0]
+            self.__uarm_orig = self.__uarm_orig * np.array([-1, 1, 1])  # invert x
 
     def calibrate_imus_with_offset(self, row: np.array):
 
@@ -119,11 +124,13 @@ class WatchPhone:
         hand_origin_rua = larm_rotated + larm_origin_rua
         # this is the list for the actual joint positions and rotations
         return np.hstack([
-            avg_larm_rot_r,  # in this case, hand rotation is larm rotation
-            hand_origin_rua,
-            avg_larm_rot_r,
-            larm_origin_rua,
-            avg_uarm_rot_r
+            avg_larm_rot_r,  # hand quat
+            hand_origin_rua,  # hand orig
+            avg_larm_rot_r,  # larm quat
+            larm_origin_rua,  # larm orig
+            avg_uarm_rot_r,  # uarm quat
+            self.__uarm_orig,
+            self.__hips_quat
         ])
 
     def terminate(self):
@@ -164,6 +171,7 @@ class WatchPhone:
 
                 # send message to Unity
                 self.process_msg(msg=np_msg)
+                time.sleep(0.01)
                 dat += 1
 
     @abstractmethod

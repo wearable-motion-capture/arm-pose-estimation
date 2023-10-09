@@ -46,7 +46,7 @@ class ImuListener:
             # receive and queue the data
             try:
                 data, _ = s.recvfrom(self.__msg_size)
-            except TimeoutError:
+            except socket.timeout:
                 logging.info(f"[{self.__tag}] timed out")
                 continue
 

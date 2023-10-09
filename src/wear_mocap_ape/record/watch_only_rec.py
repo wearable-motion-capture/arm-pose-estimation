@@ -2,6 +2,8 @@ import datetime
 import time
 from pathlib import Path
 
+import numpy as np
+
 from wear_mocap_ape.data_deploy.nn import deploy_models
 from wear_mocap_ape.data_types.bone_map import BoneMap
 from wear_mocap_ape.estimate.watch_only import WatchOnly
@@ -51,11 +53,12 @@ class WatchOnlyRecorder(WatchOnly):
         with open(self.__file, 'w') as fd:
             fd.write(",".join(header) + "\n")
 
-    def process_msg(self, msg: list):
+    def process_msg(self, msg: np.array):
         """
         The paren class calls this method
         whenever a new arm pose estimation finished
         """
+        msg = msg.tolist()
         with open(self.__file, 'a') as fd:
             msg.insert(0, datetime.datetime.now())
             msg = [str(x) for x in msg]
