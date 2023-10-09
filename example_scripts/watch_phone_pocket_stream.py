@@ -6,10 +6,9 @@ import signal
 import threading
 
 from wear_mocap_ape import config
-from wear_mocap_ape.data_deploy.nn import deploy_models
 from wear_mocap_ape.data_types import messaging
-from wear_mocap_ape.estimate.phone_pocket_free_hips_udp import FreeHipsPocketUDP
 from wear_mocap_ape.stream.listener.imu import ImuListener
+from wear_mocap_ape.stream.publisher.kalman_pocket_phone_udp import KalmanPhonePocket
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -42,15 +41,16 @@ if __name__ == "__main__":
     )
 
     # process into arm pose and body orientation
-    fhp = FreeHipsPocketUDP(ip=ip_arg,
-                            model_hash=deploy_models.LSTM.WATCH_PHONE_POCKET.value,
+    kpp = KalmanPhonePocket(ip=ip_arg,
                             smooth=smooth_arg,
+                            num_ensemble=48,
                             port=config.PORT_PUB_LEFT_ARM,
-                            monte_carlo_samples=25,
-                            stream_monte_carlo=stream_mc_arg)
+                            window_size=10,
+                            stream_mc=stream_mc_arg,
+                            model_name="SW-model-sept-4")
     p_thread = threading.Thread(
-        target=fhp.stream_loop,
-        args=(left_q,)
+        target=kpp.stream_wearable_devices,
+        args=(left_q, True,)
     )
 
     l_thread.start()
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     def terminate_all(*args):
         imu_l.terminate()
-        fhp.terminate()
+        kpp.terminate()
 
 
     # make sure all handler exit on termination
