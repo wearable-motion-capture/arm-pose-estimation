@@ -10,11 +10,11 @@ from wear_mocap_ape.utility import transformations as ts
 from wear_mocap_ape.data_types import messaging
 
 
-class WatchPhone:
+class WatchPhoneUarm:
     def __init__(self,
                  smooth: int = 5,
                  left_hand_mode=True,
-                 tag: str = "PUB WATCH PHONE",
+                 tag: str = "PUB WATCH PHONE UARM",
                  bonemap: BoneMap = None):
 
         self.__active = True
@@ -44,6 +44,7 @@ class WatchPhone:
         if left_hand_mode:
             self.__larm_vec[0] = -self.__larm_vec[0]
             self.__uarm_vec[0] = -self.__uarm_vec[0]
+        else:
             self.__uarm_orig = self.__uarm_orig * np.array([-1, 1, 1])  # invert x
 
     def calibrate_imus_with_offset(self, row: np.array):
@@ -118,16 +119,16 @@ class WatchPhone:
 
         # get the transition from upper arm origin to lower arm origin
         # get transitions from lower arm origin to hand
-        larm_origin_rua = ts.quat_rotate_vector(avg_uarm_rot_r, self.__uarm_vec)
+        larm_origin_rh = ts.quat_rotate_vector(avg_uarm_rot_r, self.__uarm_vec) + self.__uarm_orig
         larm_rotated = ts.quat_rotate_vector(avg_larm_rot_r, self.__larm_vec)
 
-        hand_origin_rua = larm_rotated + larm_origin_rua
+        hand_origin_rh = larm_rotated + larm_origin_rh
         # this is the list for the actual joint positions and rotations
         return np.hstack([
             avg_larm_rot_r,  # hand quat
-            hand_origin_rua,  # hand orig
+            hand_origin_rh,  # hand orig
             avg_larm_rot_r,  # larm quat
-            larm_origin_rua,  # larm orig
+            larm_origin_rh,  # larm orig
             avg_uarm_rot_r,  # uarm quat
             self.__uarm_orig,
             self.__hips_quat

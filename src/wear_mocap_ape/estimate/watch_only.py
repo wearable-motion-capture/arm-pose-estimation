@@ -1,15 +1,11 @@
 import logging
-import pickle
-import struct
 from abc import abstractmethod
 from datetime import datetime
-from pathlib import Path
 
 import torch
 import queue
 import numpy as np
 
-import wear_mocap_ape.config as config
 from wear_mocap_ape.data_deploy.nn import deploy_models
 from wear_mocap_ape.estimate import estimate_joints, models
 from wear_mocap_ape.data_types.bone_map import BoneMap

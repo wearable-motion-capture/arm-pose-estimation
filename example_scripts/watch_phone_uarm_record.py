@@ -4,7 +4,7 @@ import queue
 import signal
 import threading
 import wear_mocap_ape.config as config
-from wear_mocap_ape.record.watch_phone_rec import WatchPhoneRecorder
+from wear_mocap_ape.record.watch_phone_uarm_rec import WatchPhoneUarmRecorder
 
 from wear_mocap_ape.stream.listener.imu import ImuListener
 from wear_mocap_ape.data_types import messaging
@@ -58,14 +58,14 @@ r_thread = threading.Thread(
 )
 
 # left publisher
-wp_rl = WatchPhoneRecorder(file=args.file)
+wp_rl = WatchPhoneUarmRecorder(file=args.file)
 rl_thread = threading.Thread(
     target=wp_rl.stream_loop,
     args=(left_q,)
 )
 
 # right publisher
-wp_rr = WatchPhoneRecorder(file=args.file, left_hand_mode=False)
+wp_rr = WatchPhoneUarmRecorder(file=args.file, left_hand_mode=False)
 rr_thread = threading.Thread(
     target=wp_rr.stream_loop,
     args=(right_q,)

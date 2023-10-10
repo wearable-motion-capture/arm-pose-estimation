@@ -4,10 +4,10 @@ import struct
 import numpy as np
 
 from wear_mocap_ape.data_types.bone_map import BoneMap
-from wear_mocap_ape.estimate.watch_phone import WatchPhone
+from wear_mocap_ape.estimate.watch_phone_uarm import WatchPhoneUarm
 
 
-class WatchPhoneUDP(WatchPhone):
+class WatchPhoneUarmUDP(WatchPhoneUarm):
     def __init__(self,
                  ip: str,
                  port: int,
@@ -15,10 +15,12 @@ class WatchPhoneUDP(WatchPhone):
                  left_hand_mode=True,
                  tag: str = "PUB WATCH PHONE",
                  bonemap: BoneMap = None):
-        super().__init__(smooth=smooth,
-                         left_hand_mode=left_hand_mode,
-                         tag=tag,
-                         bonemap=bonemap)
+        super().__init__(
+            smooth=smooth,
+            left_hand_mode=left_hand_mode,
+            tag=tag,
+            bonemap=bonemap
+        )
         self.__ip = ip
         self.__port = port
         self.__tag = tag
