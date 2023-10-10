@@ -57,7 +57,7 @@ class WatchPhonePocket:
         self.win_size = window_size
         self.mode = "Test"
 
-        self.model = kalman_models.new_smartwatch_model(
+        self.model = kalman_models.KalmanSmartwatchModel(
             self.num_ensemble,
             self.win_size,
             self.dim_x,
@@ -65,7 +65,7 @@ class WatchPhonePocket:
             self.input_size_1
         )
 
-        self.utils_ = kalman_models.utils(self.num_ensemble, self.dim_x, self.dim_z)
+        self.utils_ = kalman_models.Utils(self.num_ensemble, self.dim_x, self.dim_z)
 
         # Check model type
         if not isinstance(self.model, torch.nn.Module):
