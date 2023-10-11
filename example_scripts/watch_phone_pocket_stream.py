@@ -8,7 +8,7 @@ import threading
 from wear_mocap_ape import config
 from wear_mocap_ape.data_types import messaging
 from wear_mocap_ape.stream.listener.imu import ImuListener
-from wear_mocap_ape.stream.publisher.kalman_pocket_phone_udp import KalmanPhonePocket
+from wear_mocap_ape.stream.publisher.watch_phone_pocket_udp import WatchPhonePocketUDP
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -18,7 +18,8 @@ if __name__ == "__main__":
     # Required IP argument
     parser.add_argument('ip', type=str, help=f'put your local IP here.')
     parser.add_argument('smooth', nargs='?', type=int, default=5, help=f'smooth predicted trajectories')
-    parser.add_argument('stream_mc', nargs='?', type=bool, default=True, help=f'whether you want to stream the full pose ensemble')
+    parser.add_argument('stream_mc', nargs='?', type=bool, default=True,
+                        help=f'whether you want to stream the full pose ensemble')
     args = parser.parse_args()
 
     ip_arg = args.ip
@@ -41,13 +42,13 @@ if __name__ == "__main__":
     )
 
     # process into arm pose and body orientation
-    kpp = KalmanPhonePocket(ip=ip_arg,
-                            smooth=smooth_arg,
-                            num_ensemble=48,
-                            port=config.PORT_PUB_LEFT_ARM,
-                            window_size=10,
-                            stream_mc=stream_mc_arg,
-                            model_name="SW-model-sept-4")
+    kpp = WatchPhonePocketUDP(ip=ip_arg,
+                              smooth=smooth_arg,
+                              num_ensemble=48,
+                              port=config.PORT_PUB_LEFT_ARM,
+                              window_size=10,
+                              stream_mc=stream_mc_arg,
+                              model_name="SW-model-sept-4")
     p_thread = threading.Thread(
         target=kpp.stream_wearable_devices,
         args=(left_q, True,)
@@ -66,4 +67,3 @@ if __name__ == "__main__":
     atexit.register(terminate_all)
     signal.signal(signal.SIGTERM, terminate_all)
     signal.signal(signal.SIGINT, terminate_all)
-

@@ -3,10 +3,10 @@ import rospy
 from std_msgs.msg import Float32MultiArray
 
 from wear_mocap_ape.data_types.bone_map import BoneMap
-from wear_mocap_ape.estimate.watch_phone import WatchPhone
+from wear_mocap_ape.estimate.watch_phone_uarm import WatchPhoneUarm
 
 
-class WatchPhoneROS(WatchPhone):
+class WatchPhoneROS(WatchPhoneUarm):
 
     def __init__(self,
                  ros_node_name="/wear_mocap",

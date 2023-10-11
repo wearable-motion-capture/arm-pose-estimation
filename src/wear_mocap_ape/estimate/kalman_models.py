@@ -6,7 +6,8 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 
-class utils:
+
+class Utils:
     def __init__(self, num_ensemble, dim_x, dim_z):
         self.num_ensemble = num_ensemble
         self.dim_x = dim_x
@@ -30,10 +31,9 @@ class utils:
         return state
 
 
-
-class Seq_MLP_process_model(nn.Module):
+class ProcessModelSeqMLP(nn.Module):
     def __init__(self, num_ensemble, dim_x, win_size, dim_model, num_heads):
-        super(Seq_MLP_process_model, self).__init__()
+        super(ProcessModelSeqMLP, self).__init__()
         self.num_ensemble = num_ensemble
         self.dim_x = dim_x
         self.dim_model = dim_model
@@ -89,7 +89,7 @@ class NewObservationNoise(nn.Module):
         return R
 
 
-class SeqSensorModel(nn.Module):
+class SensorModelSeq(nn.Module):
     """
     the sensor model takes the current raw sensor (usually high-dimensional images)
     and map the raw sensor to low-dimension
@@ -101,7 +101,7 @@ class SeqSensorModel(nn.Module):
     """
 
     def __init__(self, num_ensemble, dim_z, win_size, input_size_1):
-        super(SeqSensorModel, self).__init__()
+        super(SensorModelSeq, self).__init__()
         self.dim_z = dim_z
         self.num_ensemble = num_ensemble
 
@@ -137,11 +137,9 @@ class SeqSensorModel(nn.Module):
         return obs, obs_z, encoding
 
 
-
-
-class new_smartwatch_model(nn.Module):
+class KalmanSmartwatchModel(nn.Module):
     def __init__(self, num_ensemble, win_size, dim_x, dim_z, input_size_1):
-        super(new_smartwatch_model, self).__init__()
+        super(KalmanSmartwatchModel, self).__init__()
         self.num_ensemble = num_ensemble
         self.dim_x = dim_x
         self.dim_z = dim_z
@@ -150,10 +148,10 @@ class new_smartwatch_model(nn.Module):
         self.r_diag = self.r_diag.astype(np.float32)
 
         # instantiate model
-        self.process_model = Seq_MLP_process_model(
+        self.process_model = ProcessModelSeqMLP(
             self.num_ensemble, self.dim_x, self.win_size, 256, 8
         )
-        self.sensor_model = SeqSensorModel(
+        self.sensor_model = SensorModelSeq(
             self.num_ensemble, self.dim_z, win_size, input_size_1
         )
         self.observation_noise = NewObservationNoise(self.dim_z, self.r_diag)

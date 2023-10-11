@@ -4,7 +4,7 @@ import threading
 
 import wear_mocap_ape.config as config
 from wear_mocap_ape.stream.listener.imu import ImuListener
-from wear_mocap_ape.stream.publisher.watch_phone_ros import WatchPhoneROS
+from wear_mocap_ape.stream.publisher.watch_phone_uarm_ros import WatchPhoneROS
 from wear_mocap_ape.data_types import messaging
 
 # parse command line arguments
