@@ -23,7 +23,7 @@ class WatchPhonePocket:
     def __init__(self,
                  smooth: int = 1,
                  num_ensemble: int = 32,
-                 model_name="SW-model",
+                 model_name="SW-model-sept-4",
                  window_size: int = 10,
                  stream_mc: bool = True,
                  tag: str = "KALMAN POCKET PHONE"):
