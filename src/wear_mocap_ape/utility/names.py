@@ -43,7 +43,7 @@ class NNS_INPUTS(Enum):
         "sw_6drr_cal_4", "sw_6drr_cal_5", "sw_6drr_cal_6",
         "sw_pres_cal"
     ]
-    WATCH_PH_HIP = [
+    WATCH_PHONE_POCKET_ORI_CAL = [
         "sw_dt",
         "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
         "sw_lvel_x", "sw_lvel_y", "sw_lvel_z",

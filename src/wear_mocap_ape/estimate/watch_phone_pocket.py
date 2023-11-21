@@ -29,7 +29,7 @@ class WatchPhonePocket:
                  tag: str = "KALMAN POCKET PHONE"):
 
         self.__y_targets = NNS_TARGETS.ORI_CAL_LARM_UARM_HIPS
-        self.x_inputs = NNS_INPUTS.WATCH_PH_HIP
+        self.x_inputs = NNS_INPUTS.WATCH_PHONE_POCKET_ORI_CAL
         self.__prev_time = datetime.now()
 
         self.__tag = tag

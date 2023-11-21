@@ -104,8 +104,8 @@ class WatchPhoneUarm:
         # store rotations in history if smoothing is required
         if self.__smooth > 1:
             self.__smooth_hist.append(np.hstack([larm_quat, uarm_quat]))
-            if len(self.__smooth_hist) < self.__smooth:
-                return None
+            while len(self.__smooth_hist) < self.__smooth:
+                self.__smooth_hist.append(np.hstack([larm_quat, uarm_quat]))
             while len(self.__smooth_hist) > self.__smooth:
                 del self.__smooth_hist[0]
 
