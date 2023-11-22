@@ -19,7 +19,7 @@ from wear_mocap_ape.data_types import messaging
 from wear_mocap_ape.utility.names import NNS_TARGETS, NNS_INPUTS
 
 
-class WatchPhonePocket:
+class WatchPhonePocketKalman:
     def __init__(self,
                  smooth: int = 1,
                  num_ensemble: int = 32,
@@ -271,6 +271,15 @@ class WatchPhonePocket:
             y_targets=self.__y_targets
         )
 
+        # store est in history if smoothing is required
+        if self.__smooth > 1:
+            self.__smooth_hist.append(est)
+            while len(self.__smooth_hist) < self.__smooth:
+                self.__smooth_hist.append(est)
+            while len(self.__smooth_hist) > self.__smooth:
+                del self.__smooth_hist[0]
+            est = np.vstack(self.__smooth_hist)
+
         # estimate mean of rotations if we got multiple MC predictions
         if est.shape[0] > 1:
             # Calculate the mean of all predictions mean
@@ -311,7 +320,7 @@ class WatchPhonePocket:
                     msg += list(e_row[:6])
         return msg
 
-    def stream_wearable_devices(self, sensor_q: queue = None, process_msg: bool = True):
+    def processing_loop(self, sensor_q: queue = None):
         logging.info(f"[{self.__tag}] wearable streaming loop")
         self.__init_step = 0
 
@@ -344,13 +353,8 @@ class WatchPhonePocket:
             xx = self.parse_row_to_xx(row)
             t_pred, input_state = self.add_obs_and_make_prediction(xx, input_state)
             msg = self.msg_from_pred(t_pred)
-            if process_msg:
-                self.process_msg(msg)
+            self.process_msg(msg)
             dat += 1
-
-    @abstractmethod
-    def process_msg(self, msg: np.array):
-        return
 
     def make_prediction_from_row_hist(self, xx, input_state=None):
 
@@ -407,15 +411,6 @@ class WatchPhonePocket:
         if self.__normalize:
             t_preds = t_preds * self.__yy_s + self.__yy_m
 
-        # store t_preds in history if smoothing is required
-        if self.__smooth > 1:
-            self.__smooth_hist.append(t_preds)
-            while len(self.__smooth_hist) < self.__smooth:
-                self.__smooth_hist.append(t_preds)
-            while len(self.__smooth_hist) > self.__smooth:
-                del self.__smooth_hist[0]
-            t_preds = np.vstack(self.__smooth_hist)
-
         return t_preds, input_state
 
     def add_obs_and_make_prediction(self, x, input_state=None):
@@ -429,3 +424,7 @@ class WatchPhonePocket:
 
         t_preds, input_state = self.make_prediction_from_row_hist(np.vstack(self.__row_hist), input_state)
         return t_preds, input_state
+
+    @abstractmethod
+    def process_msg(self, msg: np.array):
+        return

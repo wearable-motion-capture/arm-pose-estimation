@@ -8,7 +8,7 @@ import threading
 from wear_mocap_ape import config
 from wear_mocap_ape.data_types import messaging
 from wear_mocap_ape.stream.listener.imu import ImuListener
-from wear_mocap_ape.stream.publisher.watch_phone_pocket_udp import WatchPhonePocketUDP
+from wear_mocap_ape.stream.publisher.watch_phone_pocket_kalman_udp import WatchPhonePocketKalmanUDP
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -42,16 +42,16 @@ if __name__ == "__main__":
     )
 
     # process into arm pose and body orientation
-    kpp = WatchPhonePocketUDP(ip=ip_arg,
-                              smooth=smooth_arg,
-                              num_ensemble=48,
-                              port=config.PORT_PUB_LEFT_ARM,
-                              window_size=10,
-                              stream_mc=stream_mc_arg,
-                              model_name="SW-model-sept-4")
+    kpp = WatchPhonePocketKalmanUDP(ip=ip_arg,
+                                    smooth=smooth_arg,
+                                    num_ensemble=48,
+                                    port=config.PORT_PUB_LEFT_ARM,
+                                    window_size=10,
+                                    stream_mc=stream_mc_arg,
+                                    model_name="SW-model-sept-4")
     p_thread = threading.Thread(
-        target=kpp.stream_wearable_devices,
-        args=(left_q, True,)
+        target=kpp.processing_loop,
+        args=(left_q,)
     )
 
     l_thread.start()

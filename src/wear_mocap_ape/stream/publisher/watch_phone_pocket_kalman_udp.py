@@ -2,10 +2,10 @@ import logging
 import socket
 import struct
 import numpy as np
-from wear_mocap_ape.estimate.watch_phone_pocket import WatchPhonePocket
+from wear_mocap_ape.estimate.watch_phone_pocket_kalman import WatchPhonePocketKalman
 
 
-class WatchPhonePocketUDP(WatchPhonePocket):
+class WatchPhonePocketKalmanUDP(WatchPhonePocketKalman):
     def __init__(self,
                  ip,
                  port,
