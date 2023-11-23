@@ -533,6 +533,7 @@ def rot_mat_to_quat(rot_mat: np.array):
     ) / 3.0
     # Use Hermitian eigenvectors, values for speed
     vals, vecs = np.linalg.eigh(k)
+
     # Select largest eigenvector, reorder to w,x,y,z quaternion
     q = vecs[[3, 0, 1, 2], np.argmax(vals)]
     # Prefer quaternion with positive w

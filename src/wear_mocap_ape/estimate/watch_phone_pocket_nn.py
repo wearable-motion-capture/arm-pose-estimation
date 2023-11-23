@@ -1,6 +1,5 @@
 import logging
 
-import time
 from abc import abstractmethod
 from datetime import datetime
 import queue
@@ -79,10 +78,6 @@ class WatchPhonePocketNN:
 
     def terminate(self):
         self.__active = False
-
-    @property
-    def sequence_len(self):
-        return self.__sequence_len
 
     def processing_loop(self, sensor_q: queue):
         logging.info("[{}] starting Unity stream loop".format(self.__tag))
@@ -268,111 +263,34 @@ class WatchPhonePocketNN:
                     msg += list(e_row[:6])
         return msg
 
-    def errors_from_file(self, file_p: Path, publish: bool = False):
-        logging.info(f"[{self.__tag}] processing from file")
-        hand_l_err, hand_r_err = [], []
-        elbow_l_err, elbow_r_err = [], []
-        hip_rot_errors = []
-
-        # used to estimate delta time and processing speed in Hz
-        start = datetime.now()
-        dat = 0
-
-        row_hist = []
-        dat = pd.read_csv(file_p)
-        for i, row in dat.iterrows():
-            ## PREDICTIONS
-            xx = row[self.__x_inputs.value].to_numpy()
-            row_hist.append(xx)
-
-            # if not enough data is available yet, simply repeat the input as a first estimate
-            while len(row_hist) < self.__sequence_len:
-                row_hist.append(xx)
-
-            # if the history is too long, delete old values
-            while len(row_hist) > self.__sequence_len:
-                del row_hist[0]
-
-            # get message as numpy array
-            est = self.make_prediction_from_row_hist(row_hist)
-
-            # estimate mean of rotations if we got multiple MC predictions
-            if est.shape[0] > 1:
-                # Calculate the mean of all predictions mean
-                p_larm_quat_rh = ts.average_quaternions(est[:, 9:13])
-                p_uarm_quat_rh = ts.average_quaternions(est[:, 13:17])
-                p_hips_quat_rh = ts.average_quaternions(est[:, 17:])
-
-                # get the transition from upper arm origin to lower arm origin
-                p_uarm_orig_rh = ts.quat_rotate_vector(p_hips_quat_rh, self.__uarm_orig)
-                p_larm_orig_rh = ts.quat_rotate_vector(p_uarm_quat_rh, self.__uarm_vec) + p_uarm_orig_rh
-                p_hand_orig_rh = ts.quat_rotate_vector(p_larm_quat_rh, self.__larm_vec) + p_larm_orig_rh
-            else:
-                p_hand_orig_rh = est[0, 0:3]
-                p_larm_orig_rh = est[0, 3:6]
-                p_uarm_orig_rh = est[0, 6:9]
-                p_larm_quat_rh = est[0, 9:13]
-                p_uarm_quat_rh = est[0, 13:17]
-                p_hips_quat_rh = est[0, 17:]
-
-            # publish the estimation for our unity visualization
-            if publish:
-                msg = np.hstack([
-                    p_larm_quat_rh,
-                    p_hand_orig_rh,
-                    p_larm_quat_rh,
-                    p_larm_orig_rh,
-                    p_uarm_quat_rh,
-                    p_uarm_orig_rh,
-                    p_hips_quat_rh
-                ])
-                if est.shape[0] > 1:
-                    if est.shape[0] > 1:
-                        msg = np.hstack([msg, est[:, :9].flatten()])
-
-                # five-secondly updates to log message frequency
-                now = datetime.now()
-                if (now - start).seconds >= 5:
-                    start = now
-                    logging.info(f"[{self.__tag}] {dat / 5} Hz")
-                    dat = 0
-
-                # send message to Unity
-                self.process_msg(msg=msg)
-                dat += 1
-
-            # GROUND TRUTH
-            yy = row[self.__y_targets.value].to_numpy()[np.newaxis, :]
-            est = estimate_joints.arm_pose_from_nn_targets(
-                preds=yy,
-                body_measurements=self.__body_measurements,
-                y_targets=self.__y_targets
-            )
-            gt_hand_orig_rh = est[0, 0:3]
-            gt_larm_orig_rh = est[0, 3:6]
-            gt_larm_quat_g = est[0, 9:13]
-            gt_uarm_quat_g = est[0, 13:17]
-            gt_hips_quat_g = est[0, 17:]
-
-            hand_l_err.append(np.linalg.norm(gt_hand_orig_rh - p_hand_orig_rh) * 100)
-            hre = ts.quat_to_euler(gt_larm_quat_g) - ts.quat_to_euler(p_larm_quat_rh)
-            hree = np.sum(np.abs(np.degrees(np.arctan2(np.sin(hre), np.cos(hre)))))
-            hand_r_err.append(hree)
-
-            elbow_l_err.append(np.linalg.norm(gt_larm_orig_rh - p_larm_orig_rh) * 100)
-            ere = ts.quat_to_euler(gt_uarm_quat_g) - ts.quat_to_euler(p_uarm_quat_rh)
-            eree = np.sum(np.abs(np.degrees(np.arctan2(np.sin(ere), np.cos(ere)))))
-            elbow_r_err.append(eree)
-
-            ydiff = ts.quat_to_euler(gt_hips_quat_g)[1] - ts.quat_to_euler(p_hips_quat_rh)[1]
-            err = np.abs(np.degrees(np.arctan2(np.sin(ydiff), np.cos(ydiff))))
-            hip_rot_errors.append(err)
-
-            if (int(i) + 1) % 100 == 0:
-                logging.info(f"[{self.__tag}] processed {i} rows")
-
-        return hand_l_err, hand_r_err, elbow_l_err, elbow_r_err, hip_rot_errors
-
     @abstractmethod
     def process_msg(self, msg: np.array):
         return
+
+    @property
+    def sequence_len(self):
+        return self.__sequence_len
+
+    @property
+    def x_inputs(self):
+        return self.__x_inputs
+
+    @property
+    def y_targets(self):
+        return self.__y_targets
+
+    @property
+    def body_measurements(self):
+        return self.__body_measurements
+
+    @property
+    def uarm_orig(self):
+        return self.__uarm_orig
+
+    @property
+    def uarm_vec(self):
+        return self.__uarm_vec
+
+    @property
+    def larm_vec(self):
+        return self.__larm_vec

@@ -9,7 +9,7 @@ from wear_mocap_ape import config
 from wear_mocap_ape.data_deploy.nn import deploy_models
 from wear_mocap_ape.data_types import messaging
 from wear_mocap_ape.stream.listener.imu import ImuListener
-from wear_mocap_ape.stream.publisher.watch_phone_pocket_nn_udp import WatchPhonePocketNNUDP
+from wear_mocap_ape.stream.publisher.watch_phone_pocket_nn_udp import WatchPhonePocketNnUDP
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     )
 
     # process into arm pose and body orientation
-    kpp = WatchPhonePocketNNUDP(ip=ip_arg,
+    kpp = WatchPhonePocketNnUDP(ip=ip_arg,
                                 port=config.PORT_PUB_LEFT_ARM,
                                 smooth=smooth_arg,
                                 model_hash=deploy_models.LSTM.WATCH_PHONE_POCKET.value,

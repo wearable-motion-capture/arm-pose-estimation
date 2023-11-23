@@ -8,7 +8,7 @@ from wear_mocap_ape.data_types.bone_map import BoneMap
 from wear_mocap_ape.estimate.watch_phone_pocket_nn import WatchPhonePocketNN
 
 
-class WatchPhonePocketNNUDP(WatchPhonePocketNN):
+class WatchPhonePocketNnUDP(WatchPhonePocketNN):
     def __init__(self,
                  ip,
                  port,

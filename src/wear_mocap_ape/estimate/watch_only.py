@@ -28,11 +28,14 @@ class WatchOnly:
 
         # average over multiple time steps
         self.__smooth = smooth
+        self.__smooth_hist = []
 
         # monte carlo predictions
         self.__stream_mc = stream_monte_carlo
         self.__mc_samples = monte_carlo_samples
         self.__last_msg = None
+
+        self.__row_hist = []
 
         # use body measurements for transitions
         if bonemap is None:
@@ -45,6 +48,9 @@ class WatchOnly:
             self.__uarm_vec = np.array([-bonemap.left_upper_arm_length, 0, 0])
             self.__uarm_orig = bonemap.left_upper_arm_origin_rh
         self.__hips_quat = np.array([1, 0, 0, 0])
+
+        # for quicker access we store a matrix with relevant body measurements for quick multiplication
+        self.__body_measurements = np.r_[self.__uarm_vec, self.__larm_vec, self.__uarm_orig][np.newaxis, :]
 
         # load the trained network
         torch.set_default_dtype(torch.float64)
@@ -75,6 +81,94 @@ class WatchOnly:
     def terminate(self):
         self.__active = False
 
+    def add_obs_and_make_prediction(self, xx):
+        if self.__normalize:
+            # normalize measurements with pre-calculated mean and std
+            xx = (xx - self.__xx_m) / self.__xx_s
+
+        self.__row_hist.append(xx)
+        # if not enough data is available yet, simply repeat the input as a first estimate
+        while len(self.__row_hist) < self.__sequence_len:
+            self.__row_hist.append(xx)
+        # if the history is too long, delete old values
+        while len(self.__row_hist) > self.__sequence_len:
+            del self.__row_hist[0]
+
+        xx = np.vstack(self.__row_hist)
+        # finally, cast to a torch tensor with batch size 1
+        xx = torch.tensor(xx[None, :, :])
+        with torch.no_grad():
+            # make mote carlo predictions if the model makes use of dropout
+            t_preds = self.__nn_model.monte_carlo_predictions(x=xx, n_samples=self.__mc_samples)
+
+        # if on GPU copy the tensor to host memory first
+        if self.__device.type == 'cuda':
+            t_preds = t_preds.cpu()
+        t_preds = t_preds.numpy()
+
+        # we are only interested in the last prediction of the sequence
+        t_preds = t_preds[:, -1, :]
+
+        if self.__normalize:
+            # transform predictions back from normalized labels
+            t_preds = t_preds * self.__yy_s + self.__yy_m
+
+        return t_preds
+
+    def msg_from_pred(self, pred):
+        est = estimate_joints.arm_pose_from_nn_targets(
+            preds=pred,
+            body_measurements=self.__body_measurements,
+            y_targets=self.__y_targets
+        )
+
+        # store est in history if smoothing is required
+        if self.__smooth > 1:
+            self.__smooth_hist.append(est)
+            while len(self.__smooth_hist) < self.__smooth:
+                self.__smooth_hist.append(est)
+            while len(self.__smooth_hist) > self.__smooth:
+                del self.__smooth_hist[0]
+            est = np.vstack(self.__smooth_hist)
+
+        # estimate mean of rotations if we got multiple MC predictions
+        if est.shape[0] > 1:
+            # Calculate the mean of all predictions mean
+            pred_larm_rot_rh = ts.average_quaternions(est[:, 6:10])
+            pred_uarm_rot_rh = ts.average_quaternions(est[:, 10:])
+            # use body measurements for transitions
+            # get the transition from upper arm origin to lower arm origin
+            pred_larm_origin_rh = ts.quat_rotate_vector(pred_uarm_rot_rh, self.__uarm_vec) + self.__uarm_orig
+            # get transitions from lower arm origin to hand
+            rotated_lower_arms_re = ts.quat_rotate_vector(pred_larm_rot_rh, self.__larm_vec)
+            pred_hand_origin_rh = rotated_lower_arms_re + pred_larm_origin_rh
+        else:
+            pred_hand_origin_rh = est[0, :3]
+            pred_larm_origin_rh = est[0, 3:6]
+            pred_larm_rot_rh = est[0, 6:10]
+            pred_uarm_rot_rh = est[0, 10:]
+
+        # this is the list for the actual joint positions and rotations
+        msg = np.hstack([
+            pred_larm_rot_rh,  # hand quat
+            pred_hand_origin_rh,  # hand pos
+            pred_larm_rot_rh,  # larm quat
+            pred_larm_origin_rh,
+            pred_uarm_rot_rh,  # uarm quat
+            self.__uarm_orig,
+            self.__hips_quat
+        ])
+        # store as last msg for getter
+        self.__last_msg = msg.copy()
+
+        if self.__stream_mc:
+            msg = list(msg)
+            # now we attach the monte carlo predictions for XYZ positions
+            if est.shape[0] > 1:
+                for e_row in est:
+                    msg += list(e_row[:6])
+        return msg
+
     def processing_loop(self, sensor_q: queue):
         self.__active = True
         logging.info(f"[{self.__tag}] starting watch standalone processing loop")
@@ -84,15 +178,8 @@ class WatchOnly:
         prev_time = datetime.now()
         dat = 0
 
-        # historical data for time series predictions
-        row_hist = []  # history of predictions for sequence data
-        smooth_hist = []  # smoothing averages over a series of time steps
-
         # simple lookup for values of interest
         slp = messaging.WATCH_ONLY_IMU_LOOKUP
-
-        # for quicker access we store a matrix with relevant body measurements for quick multiplication
-        body_measurements = np.r_[self.__uarm_vec, self.__larm_vec, self.__uarm_orig][np.newaxis, :]
 
         # this loops while the socket is listening and/or receiving data
         while self.__active:
@@ -146,91 +233,14 @@ class WatchOnly:
                     r_pres
                 ])
 
-                if self.__normalize:
-                    # normalize measurements with pre-calculated mean and std
-                    xx = (xx - self.__xx_m) / self.__xx_s
-
-                # sequences are used for recurrent nets. Stack time steps along 2nd axis
-                row_hist.append(xx)
-                if len(row_hist) < self.__sequence_len:
-                    continue
-                while len(row_hist) > self.__sequence_len:
-                    del row_hist[0]
-                xx = np.vstack(row_hist)
-
-                # finally, cast to a torch tensor with batch size 1
-                xx = torch.tensor(xx[None, :, :])
-                with torch.no_grad():
-                    # make mote carlo predictions if the model makes use of dropout
-                    t_preds = self.__nn_model.monte_carlo_predictions(x=xx, n_samples=self.__mc_samples)
-
-                # if on GPU copy the tensor to host memory first
-                if self.__device.type == 'cuda':
-                    t_preds = t_preds.cpu()
-                t_preds = t_preds.numpy()
-
-                # we are only interested in the last prediction of the sequence
-                t_preds = t_preds[:, -1, :]
-
-                if self.__normalize:
-                    # transform predictions back from normalized labels
-                    t_preds = t_preds * self.__yy_s + self.__yy_m
-
-                # store t_preds in history if smoothing is required
-                if self.__smooth > 1:
-                    smooth_hist.append(t_preds)
-                    if len(smooth_hist) < self.__smooth:
-                        continue
-                    while len(smooth_hist) > self.__smooth:
-                        del smooth_hist[0]
-                    t_preds = np.vstack(smooth_hist)
-
-                # finally, estimate hand and lower arm origins from prediction data
-                est = estimate_joints.arm_pose_from_nn_targets(
-                    preds=t_preds,
-                    body_measurements=body_measurements,
-                    y_targets=self.__y_targets
-                )
-
-                # estimate mean of rotations if we got multiple MC predictions
-                if est.shape[0] > 1:
-                    # Calculate the mean of all predictions mean
-                    pred_larm_rot_rh = ts.average_quaternions(est[:, 6:10])
-                    pred_uarm_rot_rh = ts.average_quaternions(est[:, 10:])
-                    # use body measurements for transitions
-                    # get the transition from upper arm origin to lower arm origin
-                    pred_larm_origin_rh = ts.quat_rotate_vector(pred_uarm_rot_rh, self.__uarm_vec) + self.__uarm_orig
-                    # get transitions from lower arm origin to hand
-                    rotated_lower_arms_re = ts.quat_rotate_vector(pred_larm_rot_rh, self.__larm_vec)
-                    pred_hand_origin_rh = rotated_lower_arms_re + pred_larm_origin_rh
-                else:
-                    pred_hand_origin_rh = est[0, :3]
-                    pred_larm_origin_rh = est[0, 3:6]
-                    pred_larm_rot_rh = est[0, 6:10]
-                    pred_uarm_rot_rh = est[0, 10:]
-
-                # this is the list for the actual joint positions and rotations
-                basic_value_list = np.hstack([
-                    pred_larm_rot_rh,  # hand quat
-                    pred_hand_origin_rh,  # hand pos
-                    pred_larm_rot_rh,  # larm quat
-                    pred_larm_origin_rh,
-                    pred_uarm_rot_rh,  # uarm quat
-                    self.__uarm_orig,
-                    self.__hips_quat
-                ])
-
-                # now we attach the monte carlo predictions for XYZ positions
-                if self.__stream_mc:
-                    if est.shape[0] > 1:
-                        for e_row in est:
-                            basic_value_list = np.hstack([basic_value_list, e_row[:6]])
+                t_preds = self.add_obs_and_make_prediction(xx)
+                msg = self.msg_from_pred(t_preds)
 
                 # store as last msg for getter
-                self.__last_msg = basic_value_list.copy()
+                self.__last_msg = msg.copy()
 
                 # craft UDP message and send
-                self.process_msg(msg=basic_value_list)
+                self.process_msg(msg=msg)
                 dat += 1
 
     @abstractmethod

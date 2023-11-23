@@ -31,8 +31,16 @@ class NNS_TARGETS(Enum):
         "gt_uarm_6drr_cal_4", "gt_uarm_6drr_cal_5", "gt_uarm_6drr_cal_6",
         "gt_hips_yrot_cal_sin", "gt_hips_yrot_cal_cos"  # hips calibrated y rot
     ]
+    ORI_CAL_LARM_UARM = [
+        "gt_larm_6drr_cal_1", "gt_larm_6drr_cal_2", "gt_larm_6drr_cal_3",  # larm 6drr
+        "gt_larm_6drr_cal_4", "gt_larm_6drr_cal_5", "gt_larm_6drr_cal_6",
+        "gt_uarm_6drr_cal_1", "gt_uarm_6drr_cal_2", "gt_uarm_6drr_cal_3",  # uarm 6drr
+        "gt_uarm_6drr_cal_4", "gt_uarm_6drr_cal_5", "gt_uarm_6drr_cal_6"
+    ]
+
 
 class NNS_INPUTS(Enum):
+    # watch data only
     WATCH_ONLY = [
         "sw_dt",
         "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
@@ -43,7 +51,8 @@ class NNS_INPUTS(Enum):
         "sw_6drr_cal_4", "sw_6drr_cal_5", "sw_6drr_cal_6",
         "sw_pres_cal"
     ]
-    WATCH_PH_HIP = [
+    # watch data and the PH_HIPS estimate
+    WATCH_HIP = [
         "sw_dt",
         "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
         "sw_lvel_x", "sw_lvel_y", "sw_lvel_z",
@@ -56,7 +65,8 @@ class NNS_INPUTS(Enum):
         "ph_hips_yrot_cal_cos"
 
     ]
-    WATCH_PHONE_CALIB = [
+    # watch and phone data
+    WATCH_PHONE_CAL = [
         "sw_dt",
         "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
         "sw_lvel_x", "sw_lvel_y", "sw_lvel_z",

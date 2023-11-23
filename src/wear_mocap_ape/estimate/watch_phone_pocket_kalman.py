@@ -29,7 +29,7 @@ class WatchPhonePocketKalman:
                  tag: str = "KALMAN POCKET PHONE"):
 
         self.__y_targets = NNS_TARGETS.ORI_CAL_LARM_UARM_HIPS
-        self.x_inputs = NNS_INPUTS.WATCH_PH_HIP
+        self.__x_inputs = NNS_INPUTS.WATCH_HIP
         self.__prev_time = datetime.now()
 
         self.__tag = tag
@@ -47,36 +47,33 @@ class WatchPhonePocketKalman:
         self.last_msg = None
         self.__normalize = True
 
-        self.batch_size = 1
-        self.dim_x = 14
-        self.dim_z = 14
-        self.dim_gt = 14
-        self.sensor_len = 1
-        self.input_size_1 = 22
-        self.num_ensemble = num_ensemble
-        self.win_size = window_size
-        self.mode = "Test"
+        self.__batch_size = 1
+        self.__dim_x = 14
+        self.__dim_z = 14
+        self.__input_size_1 = 22
+        self.__num_ensemble = num_ensemble
+        self.__win_size = window_size
 
-        self.model = kalman_models.KalmanSmartwatchModel(
-            self.num_ensemble,
-            self.win_size,
-            self.dim_x,
-            self.dim_z,
-            self.input_size_1
+        self.__model = kalman_models.KalmanSmartwatchModel(
+            self.__num_ensemble,
+            self.__win_size,
+            self.__dim_x,
+            self.__dim_z,
+            self.__input_size_1
         )
 
-        self.utils_ = kalman_models.Utils(self.num_ensemble, self.dim_x, self.dim_z)
+        self.__utils = kalman_models.Utils(self.__num_ensemble, self.__dim_x, self.__dim_z)
 
         # Check model type
-        if not isinstance(self.model, torch.nn.Module):
+        if not isinstance(self.__model, torch.nn.Module):
             raise TypeError("model must be an instance of nn.Module")
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.__device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if torch.cuda.is_available():
-            self.model.cuda()
+            self.__model.cuda()
 
         # load normalized data stats if required
         stats = data_stats.get_norm_stats(
-            x_inputs=self.x_inputs,
+            x_inputs=self.__x_inputs,
             y_targets=self.__y_targets
         )
 
@@ -87,21 +84,17 @@ class WatchPhonePocketKalman:
         # Load the pretrained model
         if torch.cuda.is_available():
             checkpoint = torch.load(config.PATHS["deploy"] / "kalman" / model_name)
-            self.model.load_state_dict(checkpoint["model"])
+            self.__model.load_state_dict(checkpoint["model"])
         else:
             checkpoint = torch.load(config.PATHS["deploy"] / "kalman" / model_name,
                                     map_location=torch.device("cpu"))
-            self.model.load_state_dict(checkpoint["model"])
-        self.model.eval()
+            self.__model.load_state_dict(checkpoint["model"])
+        self.__model.eval()
 
         # INIT MODEL
         # for quicker access we store a matrix with relevant body measurements for quick multiplication
         self.__body_measurements = np.r_[self.__larm_vec, self.__uarm_vec, self.__shou_orig][np.newaxis, :]
         self.__init_step = 0
-
-    @property
-    def sequence_len(self):
-        return self.win_size
 
     def is_active(self):
         return self.__active
@@ -109,18 +102,14 @@ class WatchPhonePocketKalman:
     def terminate(self):
         self.__active = False
 
-    def get_y_targets(self):
-        return self.__y_targets
-
     def get_body_measurements(self):
         return self.__body_measurements
 
     def errors_from_file(self, file_p: Path, process_msg: bool = False):
         logging.info(f"[{self.__tag}] processing from file")
-        # init some dummy input
-        input_state = np.zeros((self.batch_size, self.num_ensemble, self.win_size, self.dim_x))
+        input_state = np.zeros((self.__batch_size, self.__num_ensemble, self.__win_size, self.__dim_x))
         input_state = torch.tensor(input_state, dtype=torch.float32)
-        input_state = input_state.to(self.device)
+        input_state = input_state.to(self.__device)
 
         hand_l_err, hand_r_err = [], []
         elbow_l_err, elbow_r_err = [], []
@@ -129,7 +118,7 @@ class WatchPhonePocketKalman:
         dat = pd.read_csv(file_p)
         for i, row in dat.iterrows():
             ## PREDICTIONS
-            xx = row[self.x_inputs.value].to_numpy()
+            xx = row[self.__x_inputs.value].to_numpy()
             t_pred, input_state = self.add_obs_and_make_prediction(xx, input_state)
 
             est = estimate_joints.arm_pose_from_nn_targets(
@@ -181,7 +170,6 @@ class WatchPhonePocketKalman:
             )
             gt_hand_orig_rh = est[0, 0:3]
             gt_larm_orig_rh = est[0, 3:6]
-            gt_uarm_orig_rh = est[0, 6:9]
             gt_larm_quat_g = est[0, 9:13]
             gt_uarm_quat_g = est[0, 13:17]
             gt_hips_quat_g = est[0, 17:]
@@ -360,35 +348,35 @@ class WatchPhonePocketKalman:
 
         if input_state is None:
             # init some dummy input -> [batch_size, ensemble, timestep, dim_x]
-            input_state = np.zeros((self.batch_size, self.num_ensemble, self.win_size, self.dim_x))
+            input_state = np.zeros((self.__batch_size, self.__num_ensemble, self.__win_size, self.__dim_x))
             input_state = torch.tensor(input_state, dtype=torch.float32)
-            input_state = input_state.to(self.device)
+            input_state = input_state.to(self.__device)
 
         if self.__normalize:
             xx = (xx - self.__xx_m) / self.__xx_s
 
         xx_seq = rearrange(xx, "(bs seq) (en feat) -> bs seq en feat", bs=1, en=1)
-        xx_seq = torch.tensor(xx_seq, dtype=torch.float32).to(self.device)
+        xx_seq = torch.tensor(xx_seq, dtype=torch.float32).to(self.__device)
 
         with torch.no_grad():
-            output = self.model(xx_seq, input_state)
+            output = self.__model(xx_seq, input_state)
 
         # not enough history yet. Make sensor model predictions until we have a time-window worth of data
-        if self.__init_step <= self.win_size:
+        if self.__init_step <= self.__win_size:
             # there will be no prediction in this time window
             pred_ = output[3]
             pred_ = rearrange(pred_, "bs en dim -> (bs en) dim")
-            pred_ = self.utils_.format_state(pred_)
+            pred_ = self.__utils.format_state(pred_)
             pred_ = rearrange(
-                pred_, "(bs en) (k dim) -> bs en k dim", bs=self.batch_size, k=1
+                pred_, "(bs en) (k dim) -> bs en k dim", bs=self.__batch_size, k=1
             )
             input_state = torch.cat(
                 (input_state[:, :, 1:, :], pred_), axis=2
             )
-            input_state = input_state.to(self.device)
+            input_state = input_state.to(self.__device)
             self.__init_step += 1
             # if on GPU copy the tensor to host memory first
-            if self.device.type == 'cuda':
+            if self.__device.type == 'cuda':
                 smp = output[3].cpu().detach().numpy()[0]
             else:
                 smp = output[3].detach().numpy()[0]
@@ -399,10 +387,10 @@ class WatchPhonePocketKalman:
         input_state = torch.cat(
             (input_state[:, :, 1:, :], ensemble_), axis=2
         )
-        input_state = input_state.to(self.device)
+        input_state = input_state.to(self.__device)
 
         # if on GPU copy the tensor to host memory first
-        if self.device.type == 'cuda':
+        if self.__device.type == 'cuda':
             ensemble = ensemble.cpu()
 
         # get the output
@@ -416,10 +404,10 @@ class WatchPhonePocketKalman:
     def add_obs_and_make_prediction(self, x, input_state=None):
         self.__row_hist.append(x)
         # if not enough data is available yet, simply repeat the input as a first estimate
-        while len(self.__row_hist) < self.win_size:
+        while len(self.__row_hist) < self.__win_size:
             self.__row_hist.append(x)
         # if the history is too long, delete old values
-        while len(self.__row_hist) > self.win_size:
+        while len(self.__row_hist) > self.__win_size:
             del self.__row_hist[0]
 
         t_preds, input_state = self.make_prediction_from_row_hist(np.vstack(self.__row_hist), input_state)
@@ -428,3 +416,51 @@ class WatchPhonePocketKalman:
     @abstractmethod
     def process_msg(self, msg: np.array):
         return
+
+    @property
+    def uarm_orig(self):
+        return self.__shou_orig
+
+    @property
+    def uarm_vec(self):
+        return self.__uarm_vec
+
+    @property
+    def larm_vec(self):
+        return self.__larm_vec
+
+    @property
+    def sequence_len(self):
+        return self.__win_size
+
+    @property
+    def device(self):
+        return self.__device
+
+    @property
+    def batch_size(self):
+        return self.__batch_size
+
+    @property
+    def num_ensemble(self):
+        return self.__num_ensemble
+
+    @property
+    def win_size(self):
+        return self.__win_size
+
+    @property
+    def y_targets(self):
+        return self.__y_targets
+
+    @property
+    def x_inputs(self):
+        return self.__x_inputs
+
+    @property
+    def body_measurements(self):
+        return self.__body_measurements
+
+    @property
+    def dim_x(self):
+        return self.__dim_x
