@@ -124,7 +124,8 @@ class ImuPoseLSTM(torch.nn.Module):
                                   hidden_size=256,
                                   num_layers=2,
                                   batch_first=True,
-                                  bidirectional=False)
+                                  bidirectional=False,
+                                  dropout=dropout)
         self._activation_function = F.relu
         self.output_layer = torch.nn.Linear(256, output_size)
         self.output_size = output_size

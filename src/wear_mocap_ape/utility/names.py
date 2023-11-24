@@ -51,6 +51,13 @@ class NNS_INPUTS(Enum):
         "sw_6drr_cal_4", "sw_6drr_cal_5", "sw_6drr_cal_6",
         "sw_pres_cal"
     ]
+    # watch data only
+    WATCH_ONLY_ACC_ONLY = [
+        "sw_dt",
+        "sw_lacc_x", "sw_lacc_y", "sw_lacc_z",
+        "sw_6drr_cal_1", "sw_6drr_cal_2", "sw_6drr_cal_3",
+        "sw_6drr_cal_4", "sw_6drr_cal_5", "sw_6drr_cal_6"
+    ]
     # watch data and the PH_HIPS estimate
     WATCH_HIP = [
         "sw_dt",
@@ -63,7 +70,6 @@ class NNS_INPUTS(Enum):
         "sw_pres_cal",
         "ph_hips_yrot_cal_sin",
         "ph_hips_yrot_cal_cos"
-
     ]
     # watch and phone data
     WATCH_PHONE_CAL = [
