@@ -2,28 +2,28 @@ from enum import Enum
 
 
 class NNS_TARGETS(Enum):
-    ORI_CALIB_UARM_LARM = [
-        "gt_uarm_6drr_rh_1", "gt_uarm_6drr_rh_2", "gt_uarm_6drr_rh_3",  # uarm 6drr
-        "gt_uarm_6drr_rh_4", "gt_uarm_6drr_rh_5", "gt_uarm_6drr_rh_6",
-        "gt_larm_6drr_rh_1", "gt_larm_6drr_rh_2", "gt_larm_6drr_rh_3",  # larm 6drr
-        "gt_larm_6drr_rh_4", "gt_larm_6drr_rh_5", "gt_larm_6drr_rh_6"
-    ]
-    POS_RH_LARM_HAND = [
-        "gt_hand_orig_rua_x", "gt_hand_orig_rua_y", "gt_hand_orig_rua_z",
-        "gt_larm_orig_rua_x", "gt_larm_orig_rua_y", "gt_larm_orig_rua_z"
-    ]
-    POS_RH_LARM_HAND_HIPS = [
-        "gt_hand_orig_rua_x", "gt_hand_orig_rua_y", "gt_hand_orig_rua_z",
-        "gt_larm_orig_rua_x", "gt_larm_orig_rua_y", "gt_larm_orig_rua_z",
-        "gt_hips_yrot_cal_sin", "gt_hips_yrot_cal_cos"  # hips calibrated y rot
-    ]
-    ORI_RH_UARM_LARM_HIPS = [
-        "gt_uarm_6drr_rh_1", "gt_uarm_6drr_rh_2", "gt_uarm_6drr_rh_3",  # uarm 6drr
-        "gt_uarm_6drr_rh_4", "gt_uarm_6drr_rh_5", "gt_uarm_6drr_rh_6",
-        "gt_larm_6drr_rh_1", "gt_larm_6drr_rh_2", "gt_larm_6drr_rh_3",  # larm 6drr
-        "gt_larm_6drr_rh_4", "gt_larm_6drr_rh_5", "gt_larm_6drr_rh_6",
-        "gt_hips_yrot_cal_sin", "gt_hips_yrot_cal_cos"  # hips calibrated y rot
-    ]
+    # ORI_CALIB_UARM_LARM = [
+    #     "gt_uarm_6drr_rh_1", "gt_uarm_6drr_rh_2", "gt_uarm_6drr_rh_3",  # uarm 6drr
+    #     "gt_uarm_6drr_rh_4", "gt_uarm_6drr_rh_5", "gt_uarm_6drr_rh_6",
+    #     "gt_larm_6drr_rh_1", "gt_larm_6drr_rh_2", "gt_larm_6drr_rh_3",  # larm 6drr
+    #     "gt_larm_6drr_rh_4", "gt_larm_6drr_rh_5", "gt_larm_6drr_rh_6"
+    # ]
+    # POS_RH_LARM_HAND = [
+    #     "gt_hand_orig_rua_x", "gt_hand_orig_rua_y", "gt_hand_orig_rua_z",
+    #     "gt_larm_orig_rua_x", "gt_larm_orig_rua_y", "gt_larm_orig_rua_z"
+    # ]
+    # POS_RH_LARM_HAND_HIPS = [
+    #     "gt_hand_orig_rua_x", "gt_hand_orig_rua_y", "gt_hand_orig_rua_z",
+    #     "gt_larm_orig_rua_x", "gt_larm_orig_rua_y", "gt_larm_orig_rua_z",
+    #     "gt_hips_yrot_cal_sin", "gt_hips_yrot_cal_cos"  # hips calibrated y rot
+    # ]
+    # ORI_RH_UARM_LARM_HIPS = [
+    #     "gt_uarm_6drr_rh_1", "gt_uarm_6drr_rh_2", "gt_uarm_6drr_rh_3",  # uarm 6drr
+    #     "gt_uarm_6drr_rh_4", "gt_uarm_6drr_rh_5", "gt_uarm_6drr_rh_6",
+    #     "gt_larm_6drr_rh_1", "gt_larm_6drr_rh_2", "gt_larm_6drr_rh_3",  # larm 6drr
+    #     "gt_larm_6drr_rh_4", "gt_larm_6drr_rh_5", "gt_larm_6drr_rh_6",
+    #     "gt_hips_yrot_cal_sin", "gt_hips_yrot_cal_cos"  # hips calibrated y rot
+    # ]
     ORI_CAL_LARM_UARM_HIPS = [
         "gt_larm_6drr_cal_1", "gt_larm_6drr_cal_2", "gt_larm_6drr_cal_3",  # larm 6drr
         "gt_larm_6drr_cal_4", "gt_larm_6drr_cal_5", "gt_larm_6drr_cal_6",

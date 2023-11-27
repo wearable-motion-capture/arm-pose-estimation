@@ -14,7 +14,7 @@ def msg_from_nn_targets_est(est: np.array, body_measure: np.array, y_targets: NN
 
 
 def est_to_ori_cal_larm_uarm_hips(est: np.array, body_measure: np.array):
-    uarm_vec, larm_vec, uarm_orig = body_measure[0, :3], body_measure[0, 3:6], body_measure[0, 6:]
+    larm_vec, uarm_vec, uarm_orig = body_measure[0, :3], body_measure[0, 3:6], body_measure[0, 6:]
 
     # estimate mean of rotations if we got multiple MC predictions
     if est.shape[0] > 1:
@@ -48,7 +48,7 @@ def est_to_ori_cal_larm_uarm_hips(est: np.array, body_measure: np.array):
 
 
 def est_to_ori_cal_larm_uarm(est: np.array, body_measure: np.array):
-    uarm_vec, larm_vec, uarm_orig = body_measure[0, :3], body_measure[0, 3:6], body_measure[0, 6:]
+    larm_vec, uarm_vec, uarm_orig = body_measure[0, :3], body_measure[0, 3:6], body_measure[0, 6:]
 
     # estimate mean of rotations if we got multiple MC predictions
     if est.shape[0] > 1:
