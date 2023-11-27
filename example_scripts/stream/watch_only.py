@@ -5,7 +5,7 @@ import signal
 import threading
 import wear_mocap_ape.config as config
 
-from wear_mocap_ape.stream.publisher.watch_only_udp import WatchOnlyUDP
+from wear_mocap_ape.stream.publisher.watch_only_udp import WatchOnlyNnUDP
 from wear_mocap_ape.stream.listener.imu import ImuListener
 from wear_mocap_ape.data_types import messaging
 
@@ -38,7 +38,7 @@ imu_w_l = threading.Thread(
 )
 
 # the publisher estimates arm poses from queued data and publishes them via UDP to given IP and PORT
-joints_p = WatchOnlyUDP(
+joints_p = WatchOnlyNnUDP(
     ip=args.ip,
     port=config.PORT_PUB_LEFT_ARM
 )

@@ -12,7 +12,7 @@ from wear_mocap_ape.data_types import messaging
 from wear_mocap_ape.utility.names import NNS_TARGETS, NNS_INPUTS
 
 
-class WatchOnly(Estimator):
+class WatchOnlyNn(Estimator):
     def __init__(self,
                  model_hash: str = deploy_models.LSTM.WATCH_ONLY.value,
                  smooth: int = 10,
@@ -23,7 +23,6 @@ class WatchOnly(Estimator):
         self.__tag = tag
 
         # monte carlo predictions
-        self.__stream_mc = stream_monte_carlo
         self.__mc_samples = monte_carlo_samples
 
         # simple lookup for values of interest
@@ -35,12 +34,13 @@ class WatchOnly(Estimator):
         # load model from given parameters
         self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)
         super().__init__(
+            model_name=model_hash,
             x_inputs=NNS_INPUTS(params["x_inputs_v"]),
             y_targets=NNS_TARGETS(params["y_targets_v"]),
             smooth=smooth,
             normalize=params["normalize"],
             seq_len=params["sequence_len"],
-            stream_mc=self.__stream_mc,
+            stream_mc=stream_monte_carlo,
             tag=tag,
             bonemap=bonemap
         )

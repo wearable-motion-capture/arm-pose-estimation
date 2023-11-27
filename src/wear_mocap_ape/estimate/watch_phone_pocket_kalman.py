@@ -22,6 +22,7 @@ class WatchPhonePocketKalman(Estimator):
                  tag: str = "KALMAN POCKET PHONE"):
 
         super().__init__(
+            model_name=model_hash,
             x_inputs=NNS_INPUTS.WATCH_HIP,
             y_targets=NNS_TARGETS.ORI_CAL_LARM_UARM_HIPS,
             smooth=smooth,

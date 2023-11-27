@@ -63,7 +63,7 @@ wp2ul = WatchPhoneUarmUDP(
     tag="PUBLISH LEFT"
 )
 ul_thread = threading.Thread(
-    target=wp2ul.stream_loop,
+    target=wp2ul.processing_loop,
     args=(left_q,)
 )
 
@@ -75,7 +75,7 @@ wp2ur = WatchPhoneUarmUDP(
     left_hand_mode=False
 )
 ur_thread = threading.Thread(
-    target=wp2ur.stream_loop,
+    target=wp2ur.processing_loop,
     args=(right_q,)
 )
 

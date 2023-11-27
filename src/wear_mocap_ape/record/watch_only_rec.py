@@ -6,10 +6,10 @@ import numpy as np
 
 from wear_mocap_ape.data_deploy.nn import deploy_models
 from wear_mocap_ape.data_types.bone_map import BoneMap
-from wear_mocap_ape.estimate.watch_only import WatchOnly
+from wear_mocap_ape.estimate.watch_only import WatchOnlyNn
 
 
-class WatchOnlyRecorder(WatchOnly):
+class WatchOnlyRecorder(WatchOnlyNn):
     def __init__(self,
                  file: Path,
                  model_hash: str = deploy_models.LSTM.WATCH_ONLY.value,

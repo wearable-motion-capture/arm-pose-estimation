@@ -5,10 +5,10 @@ import struct
 import wear_mocap_ape.config as config
 from wear_mocap_ape.data_deploy.nn import deploy_models
 from wear_mocap_ape.data_types.bone_map import BoneMap
-from wear_mocap_ape.estimate.watch_only import WatchOnly
+from wear_mocap_ape.estimate.watch_only import WatchOnlyNn
 
 
-class WatchOnlyUDP(WatchOnly):
+class WatchOnlyNnUDP(WatchOnlyNn):
     def __init__(self,
                  ip: str,
                  port: int = config.PORT_PUB_LEFT_ARM,

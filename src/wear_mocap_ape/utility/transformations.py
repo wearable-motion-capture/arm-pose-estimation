@@ -190,7 +190,10 @@ def calib_watch_left_to_north_quat(sw_quat_fwd: np.array) -> float:
     # smartwatch rotation to global coordinates, which are [-w,x,z,y]
     r = android_quat_to_global_no_north(sw_quat_fwd)
     y_rot = reduce_global_quat_to_y_rot(r)
-    q_north = euler_to_quat(np.array([0, -y_rot, 0]))
+    if type(y_rot) is np.ndarray:
+        q_north = euler_to_quat(np.vstack([np.zeros(len(y_rot)), -y_rot, np.zeros(len(y_rot))]).T)
+    else:
+        q_north = euler_to_quat(np.array([0, -y_rot, 0]))
     return hamilton_product(np.array([0.7071068, 0, -0.7071068, 0]), q_north)  # rotation to match left hand calibration
 
 
