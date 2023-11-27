@@ -190,11 +190,7 @@ def uarm_larm_6drr_to_origins(preds: np.array, body_measure: np.array):
 def larm_uarm_6drr_to_origins(preds: np.array, body_measure: np.array):
     # split combined pred rows back into separate arrays
     larm_6drr, uarm_6drr = preds[:, :6], preds[:, 6:]
-
-    # get the default arm vectors from the row-by-row body measurements data
-    # lengths may vary if data is shuffled and from different participants
-    larm_vecs = body_measure[:, :3]
-    uarm_vecs = body_measure[:, 3:]
+    uarm_vecs, larm_vecs, uarm_orig_rh = body_measure[:, :3], body_measure[:, 3:6], body_measure[:, 6:]
 
     # transform 6dof rotation representations back into quaternions
     uarm_rot_mat = ts.six_drr_1x6_to_rot_mat_1x9(uarm_6drr)

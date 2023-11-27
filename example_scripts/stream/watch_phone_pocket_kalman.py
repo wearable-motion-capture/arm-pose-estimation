@@ -48,7 +48,7 @@ if __name__ == "__main__":
                                     port=config.PORT_PUB_LEFT_ARM,
                                     window_size=10,
                                     stream_mc=stream_mc_arg,
-                                    model_name="SW-model-sept-4")
+                                    model_hash="SW-model-sept-4")
     p_thread = threading.Thread(
         target=kpp.processing_loop,
         args=(left_q,)

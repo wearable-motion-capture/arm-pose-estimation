@@ -21,7 +21,7 @@ class WatchPhonePocketNnUDP(WatchPhonePocketNN):
         super().__init__(
             smooth=smooth,
             model_hash=model_hash,
-            stream_monte_carlo=stream_mc,
+            stream_mc=stream_mc,
             monte_carlo_samples=mc_samples,
             bonemap=bonemap
         )

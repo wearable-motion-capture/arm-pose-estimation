@@ -42,7 +42,7 @@ class BoneMap:
     DEFAULT_LARM_LEN = 0.22  # 0.22
     DEFAULT_UARM_LEN = 0.30
     # default left shoulder origin relative to hip
-    DEFAULT_L_SHOU_ORIG_RH = np.array([-0.1704612, 0.4309841, -0.00670862])
+    DEFAULT_UARM_ORIG_RH = np.array([-0.1704612, 0.4309841, -0.00670862])
 
     def __init__(self, skeleton_name: str):
 

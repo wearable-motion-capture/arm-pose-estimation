@@ -32,7 +32,7 @@ class WatchPhoneUarm:
         if bonemap is None:
             self.__larm_vec = np.array([BoneMap.DEFAULT_LARM_LEN, 0, 0])
             self.__uarm_vec = np.array([BoneMap.DEFAULT_UARM_LEN, 0, 0])
-            self.__uarm_orig = BoneMap.DEFAULT_L_SHOU_ORIG_RH
+            self.__uarm_orig = BoneMap.DEFAULT_UARM_ORIG_RH
         else:
             # get values from bone map
             self.__larm_vec = np.array([bonemap.left_lower_arm_length, 0, 0])

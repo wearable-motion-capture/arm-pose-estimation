@@ -11,7 +11,7 @@ class WatchPhonePocketKalmanUDP(WatchPhonePocketKalman):
                  port,
                  smooth: int = 1,
                  num_ensemble: int = 32,
-                 model_name="SW-model-sept-4",
+                 model_hash="SW-model-sept-4",
                  window_size: int = 10,
                  stream_mc: bool = True,
                  tag: str = "KALMAN UDP POCKET PHONE"):
@@ -19,9 +19,10 @@ class WatchPhonePocketKalmanUDP(WatchPhonePocketKalman):
         super().__init__(
             smooth=smooth,
             num_ensemble=num_ensemble,
-            model_name=model_name,
+            model_hash=model_hash,
             window_size=window_size,
-            stream_mc=stream_mc
+            stream_mc=stream_mc,
+            tag=tag
         )
         self.__tag = tag
         self.__port = port
