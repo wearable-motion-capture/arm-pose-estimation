@@ -13,14 +13,14 @@ class WatchOnlyNnUDP(WatchOnlyNn):
                  ip: str,
                  port: int = config.PORT_PUB_LEFT_ARM,
                  model_hash: str = deploy_models.LSTM.WATCH_ONLY.value,
-                 smooth: int = 10,
-                 stream_monte_carlo=True,
-                 monte_carlo_samples=25,
+                 smooth: int = 1,
+                 stream_mc=True,
+                 mc_samples=25,
                  bonemap: BoneMap = None,
                  tag: str = "PUB WATCH"):
         super().__init__(model_hash=model_hash, smooth=smooth,
-                         stream_monte_carlo=stream_monte_carlo,
-                         monte_carlo_samples=monte_carlo_samples,
+                         stream_monte_carlo=stream_mc,
+                         monte_carlo_samples=mc_samples,
                          bonemap=bonemap,
                          tag=tag)
         self.__tag = tag

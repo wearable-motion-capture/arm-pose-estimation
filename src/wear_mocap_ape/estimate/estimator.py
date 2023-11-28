@@ -102,6 +102,15 @@ class Estimator:
         if self._normalize:
             pred = pred * self._yy_s + self._yy_m
 
+        # store est in history if smoothing is required
+        if self._smooth > 1:
+            self._smooth_hist.append(pred)
+            while len(self._smooth_hist) < self._smooth:
+                self._smooth_hist.append(pred)
+            while len(self._smooth_hist) > self._smooth:
+                del self._smooth_hist[0]
+            pred = np.vstack(self._smooth_hist)
+
         return pred
 
     def msg_from_pred(self, pred: np.array, stream_mc: bool) -> np.array:
@@ -110,16 +119,6 @@ class Estimator:
             body_measurements=self._body_measurements,
             y_targets=self._y_targets
         )
-
-        # store est in history if smoothing is required
-        if self._smooth > 1:
-            self._smooth_hist.append(est)
-            while len(self._smooth_hist) < self._smooth:
-                self._smooth_hist.append(est)
-            while len(self._smooth_hist) > self._smooth:
-                del self._smooth_hist[0]
-            est = np.vstack(self._smooth_hist)
-
         msg = compose_msg.msg_from_nn_targets_est(est, self._body_measurements, self._y_targets)
 
         self._last_msg = msg.copy()

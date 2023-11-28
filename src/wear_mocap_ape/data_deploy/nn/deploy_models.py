@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class FF(Enum):
-    WATCH_ONLY = "e883a8ce8512969d05783b2c64bd50ed113072c4"
+    WATCH_ONLY = "a6f850f3dc40a86ae583f8a755954a1487df4134"
 
 
 class LSTM(Enum):
