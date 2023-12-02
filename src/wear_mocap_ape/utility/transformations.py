@@ -311,7 +311,7 @@ def mocap_pos_to_global(p: np.array):
     else:
         p[[0, 2]] = p[[2, 0]]
     # invert x and z axis
-    return p * np.array([-1, 1, -1], dtype=np.float64)
+    return p * np.array([-1, 1, 1], dtype=np.float64)
 
 
 def mocap_quat_to_global(q: np.array):
