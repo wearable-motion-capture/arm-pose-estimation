@@ -7,7 +7,7 @@ import threading
 
 import wear_mocap_ape.config as config
 from wear_mocap_ape.stream.listener.imu import ImuListener
-from wear_mocap_ape.stream.publisher.watch_phone_uarm_udp import WatchPhoneUarmUDP
+from wear_mocap_ape.stream.publisher.watch_phone_uarm_nn_udp import WatchPhoneUarmNnUDP
 from wear_mocap_ape.data_types import messaging
 
 
@@ -29,7 +29,7 @@ def run_watch_phone_uarm_udp(ip, smooth):
     )
 
     # left publisher
-    wp2ul = WatchPhoneUarmUDP(
+    wp2ul = WatchPhoneUarmNnUDP(
         ip=ip,
         port=config.PORT_PUB_LEFT_ARM,
         smooth=smooth,
