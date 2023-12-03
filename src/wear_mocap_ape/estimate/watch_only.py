@@ -28,9 +28,6 @@ class WatchOnlyNn(Estimator):
         # simple lookup for values of interest
         self.__slp = messaging.WATCH_ONLY_IMU_LOOKUP
 
-        # load the trained network
-        torch.set_default_dtype(torch.float64)
-
         # load model from given parameters
         self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)
         super().__init__(

@@ -8,12 +8,41 @@ FUNCTION_LOOKUP = {
     # NNS_TARGETS.ORI_RH_UARM_LARM_HIPS: lambda a, b: uarm_larm_hip_6dof_rh_to_origins_g(a, b),
     # NNS_TARGETS.POS_RH_LARM_HAND_HIPS: lambda a, b: larm_hand_hip_pos_rua_to_origins_g(a, b),
     NNS_TARGETS.ORI_CAL_LARM_UARM: lambda a, b: larm_uarm_6drr_cal_to_origins_cal(a, b),
-    NNS_TARGETS.ORI_CAL_LARM_UARM_HIPS: lambda a, b: larm_uarm_hip_6dof_cal_to_origins_cal(a, b)
+    NNS_TARGETS.ORI_CAL_LARM_UARM_HIPS: lambda a, b: larm_uarm_hip_6dof_cal_to_origins_cal(a, b),
+    NNS_TARGETS.ORI_POS_CAL_LARM_UARM_HIPS: lambda a, b: larm_uarm_hip_6dof_pos_cal(a, b)
 }
 
 
 def arm_pose_from_nn_targets(preds: np.array, body_measurements: np.array, y_targets: NNS_TARGETS):
     return FUNCTION_LOOKUP[y_targets](preds, body_measurements)
+
+
+def larm_uarm_hip_6dof_pos_cal(preds: np.array, body_measure: np.array):
+    # split combined pred rows back into separate arrays
+    hand_orig_cal = preds[:, :3]
+    larm_6drr_cal = preds[:, 3:9]
+    larm_orig_cal = preds[:, 9:12]
+    uarm_6drr_cal = preds[:, 12:18]
+    hips_sin = preds[:, 18]
+    hips_cos = preds[:, 19]
+
+    # transform to quats
+    uarm_quat_cal = ts.six_drr_1x6_to_quat(uarm_6drr_cal)
+    larm_quat_cal = ts.six_drr_1x6_to_quat(larm_6drr_cal)
+    hips_quat_cal = ts.hips_sin_cos_to_quat(hips_sin, hips_cos)
+
+    # get uarm orig
+    uarm_orig_rh = body_measure[:, 6:]
+    uarm_orig_cal = ts.quat_rotate_vector(hips_quat_cal, uarm_orig_rh)
+
+    return np.hstack([
+        hand_orig_cal,
+        larm_orig_cal,
+        uarm_orig_cal,
+        larm_quat_cal,
+        uarm_quat_cal,
+        hips_quat_cal
+    ])
 
 
 def larm_uarm_hip_6dof_cal_to_origins_cal(preds: np.array, body_measure: np.array):

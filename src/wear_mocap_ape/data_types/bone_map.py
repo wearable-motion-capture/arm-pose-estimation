@@ -61,7 +61,7 @@ class BoneMap:
             b_id = int(bone.get("id"))
             p_id = int(bone.find("parent_id").text)
             # parse bone offsets from XML
-            b_pos = np.array([float(x) for x in bone.find("offset").text.split(",")], dtype=np.float64)
+            b_pos = np.array([float(x) for x in bone.find("offset").text.split(",")])
             # if the bone is not the root object, add parent bone transform for global position
             b_pos += np.zeros(3) if p_id == 0 else self.__bonemap[p_id].default_pos
             # create bone object and add to bone map

@@ -10,7 +10,7 @@ class Bone:
     def __init__(self,
                  bone_id: int,
                  default_pos,
-                 default_rot=np.array([1, 0, 0, 0], dtype=np.float64)  # identity quaternion w,x,y,z
+                 default_rot=np.array([1, 0, 0, 0])  # identity quaternion w,x,y,z
                  ):
         self.bone_id = bone_id  # int
         self.default_pos = default_pos  # position as vec3

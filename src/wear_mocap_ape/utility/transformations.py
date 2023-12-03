@@ -102,7 +102,7 @@ def quat_rotate_vector(rot: np.array, vec: np.array) -> np.array:
         raise UserWarning("rot has to have length 4 (w,x,y,z). Rot is {}".format(rot))
 
     # the conjugate of the quaternion
-    r_s = rot * np.array([1, -1, -1, -1], dtype=np.float64)
+    r_s = rot * np.array([1, -1, -1, -1], dtype=np.float32)
 
     if len(vec.shape) > 1:
         # if vec is a column of vectors
@@ -142,7 +142,7 @@ def hamilton_product(a: np.array, b: np.array) -> np.array:
         a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
         a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
         a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]
-    ], dtype=np.float64)
+    ], dtype=np.float32)
     if len(h_p.shape) > 1:
         return h_p.transpose()
     else:
@@ -166,7 +166,7 @@ def euler_to_quat(e: np.array) -> np.array:
         sr * cp * cy - cr * sp * sy,
         cr * sp * cy + sr * cp * sy,
         cr * cp * sy - sr * sp * cy
-    ], dtype=np.float64)
+    ], dtype=np.float32)
 
     if len(q.shape) > 1:
         return q.transpose()
@@ -247,11 +247,11 @@ def quat_invert(q: np.array):
     :param q: input quaternion
     :return: inverse quaternion
     """
-    q_s = q * np.array([1, -1, -1, -1], dtype=np.float64)  # the conjugate of the quaternion
+    q_s = q * np.array([1, -1, -1, -1], dtype=np.float32)  # the conjugate of the quaternion
     if len(q.shape) > 1:
-        return q_s / np.sum(np.square(q, dtype=np.float64), axis=1, keepdims=True, dtype=np.float64)
+        return q_s / np.sum(np.square(q, dtype=np.float32), axis=1, keepdims=True, dtype=np.float32)
     else:
-        return q_s / np.sum(np.square(q, dtype=np.float64), dtype=np.float64)
+        return q_s / np.sum(np.square(q, dtype=np.float32), dtype=np.float32)
 
 
 def quat_to_euler(q: np.array):
@@ -296,7 +296,7 @@ def quat_to_euler(q: np.array):
     if len(q.shape) > 1:
         return np.column_stack([a_x, a_y, a_z])
     else:
-        return np.array([a_x, a_y, a_z], dtype=np.float64)
+        return np.array([a_x, a_y, a_z], dtype=np.float32)
 
 
 def mocap_pos_to_global(p: np.array):
@@ -310,8 +310,18 @@ def mocap_pos_to_global(p: np.array):
         p[:, [0, 2]] = p[:, [2, 0]]
     else:
         p[[0, 2]] = p[[2, 0]]
-    # invert x and z axis
-    return p * np.array([-1, 1, 1], dtype=np.float64)
+    # invert x-axis
+    return p * np.array([-1, 1, 1], dtype=np.float32)
+
+
+def revert_mocap_to_global(p: np.array):
+    # swap x and z axis
+    if len(p.shape) > 1:
+        p[:, [0, 2]] = p[:, [2, 0]]
+    else:
+        p[[0, 2]] = p[[2, 0]]
+    # invert z-axis
+    return p * np.array([-1, 1, 1], dtype=np.float32)
 
 
 def mocap_quat_to_global(q: np.array):
@@ -326,9 +336,9 @@ def mocap_quat_to_global(q: np.array):
     else:
         mc_q = np.array([q[3], q[0], q[1], q[2]])
     # rotate by -90 around y-axis to align z-axis of both coord systems ...
-    wordl_quat = np.array([-0.7071068, 0, 0.7071068, 0], dtype=np.float64)
+    wordl_quat = np.array([-0.7071068, 0, 0.7071068, 0], dtype=np.float32)
     # then flip x-axis and reverse angle to change coord system orientation
-    n_q = mc_q * np.array([-1, -1, 1, 1], dtype=np.float64)
+    n_q = mc_q * np.array([-1, -1, 1, 1], dtype=np.float32)
     return hamilton_product(wordl_quat, n_q)
 
 
@@ -368,7 +378,7 @@ def quat_a_to_b(vec_a: np.array, vec_b: np.array):
         w = np.dot(n_a, n_b)
 
         if w > 0.9999 or w < -0.9999:
-            return np.array([0, 0, 1, 0], dtype=np.float64)  # 180-degree rotation around y
+            return np.array([0, 0, 1, 0], dtype=np.float32)  # 180-degree rotation around y
 
         xyz = np.cross(n_a, n_b)
 
@@ -465,7 +475,7 @@ def exponential_map_to_quaternion(em: np.array):
     q_img = two_sinc_half_theta * em  # imaginary values x,y,z
     w = np.cos(.5 * theta)
     # prepend w to x,y,z to get full quaternion
-    return np.insert(q_img, 0, w, dtype=np.float64)
+    return np.insert(q_img, 0, w, dtype=np.float32)
 
 
 def six_drr_1x6_to_quat(six_drr: np.array):
@@ -489,7 +499,7 @@ def quat_to_rot_mat_1x9(quat: np.array):
     def trans(q):
         w, x, y, z = q
         nq = w * w + x * x + y * y + z * z
-        if nq < np.finfo(np.float64).eps:
+        if nq < np.finfo(np.float32).eps:
             return np.eye(3)
         s = 2.0 / nq
         _x = x * s

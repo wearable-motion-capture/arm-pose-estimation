@@ -37,6 +37,15 @@ class NNS_TARGETS(Enum):
         "gt_uarm_6drr_cal_1", "gt_uarm_6drr_cal_2", "gt_uarm_6drr_cal_3",  # uarm 6drr
         "gt_uarm_6drr_cal_4", "gt_uarm_6drr_cal_5", "gt_uarm_6drr_cal_6"
     ]
+    ORI_POS_CAL_LARM_UARM_HIPS = [
+        "gt_hand_orig_cal_x", "gt_hand_orig_cal_y", "gt_hand_orig_cal_z",
+        "gt_larm_6drr_cal_1", "gt_larm_6drr_cal_2", "gt_larm_6drr_cal_3",  # larm 6drr
+        "gt_larm_6drr_cal_4", "gt_larm_6drr_cal_5", "gt_larm_6drr_cal_6",
+        "gt_larm_orig_cal_x", "gt_larm_orig_cal_y", "gt_larm_orig_cal_z",
+        "gt_uarm_6drr_cal_1", "gt_uarm_6drr_cal_2", "gt_uarm_6drr_cal_3",  # uarm 6drr
+        "gt_uarm_6drr_cal_4", "gt_uarm_6drr_cal_5", "gt_uarm_6drr_cal_6",
+        "gt_hips_yrot_cal_sin", "gt_hips_yrot_cal_cos"  # hips calibrated y rot
+    ]
 
 
 class NNS_INPUTS(Enum):
