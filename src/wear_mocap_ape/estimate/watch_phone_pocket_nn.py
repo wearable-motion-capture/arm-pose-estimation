@@ -99,7 +99,7 @@ class WatchPhonePocketNN(Estimator):
             r_pres,
             hips_yrot_cal_sin,
             hips_yrot_cal_cos
-        ])
+        ], dtype=np.float32)
 
     def make_prediction_from_row_hist(self, xx):
         # cast to a torch tensor with batch size 1

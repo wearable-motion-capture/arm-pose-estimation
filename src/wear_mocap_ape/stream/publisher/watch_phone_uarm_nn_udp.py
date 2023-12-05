@@ -14,12 +14,14 @@ class WatchPhoneUarmNnUDP(WatchPhoneUarmNN):
                  port: int,
                  smooth: int = 1,
                  model_hash: str = LSTM.WATCH_PHONE_UARM.value,
+                 stream_mc: bool = True,
                  tag: str = "PUB WATCH PHONE",
                  bonemap: BoneMap = None):
         super().__init__(
             smooth=smooth,
             tag=tag,
             bonemap=bonemap,
+            stream_mc=stream_mc,
             model_hash=model_hash
         )
         self.__ip = ip

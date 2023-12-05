@@ -11,7 +11,7 @@ from wear_mocap_ape.stream.publisher.watch_phone_uarm_nn_udp import WatchPhoneUa
 from wear_mocap_ape.data_types import messaging
 
 
-def run_watch_phone_uarm_udp(ip, smooth):
+def run_watch_phone_uarm_udp(ip, smooth, stream_mc):
     # data processing happens in independent threads.
     # We exchange data via queues.
     left_q = queue.Queue()  # data for left-hand mode
@@ -33,7 +33,8 @@ def run_watch_phone_uarm_udp(ip, smooth):
         ip=ip,
         port=config.PORT_PUB_LEFT_ARM,
         smooth=smooth,
-        tag="PUBLISH LEFT"
+        tag="PUBLISH LEFT",
+        stream_mc=stream_mc
     )
     ul_thread = threading.Thread(
         target=wp2ul.processing_loop,
@@ -50,6 +51,8 @@ def run_watch_phone_uarm_udp(ip, smooth):
     atexit.register(terminate_all)
     signal.signal(signal.SIGTERM, terminate_all)
     signal.signal(signal.SIGINT, terminate_all)
+
+    return wp2ul
 
 
 if __name__ == "__main__":

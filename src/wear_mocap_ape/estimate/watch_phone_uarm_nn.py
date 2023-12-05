@@ -98,13 +98,13 @@ class WatchPhoneUarmNN(Estimator):
         ph_off_g = ts.hamilton_product(ts.quat_invert(ph_fwd_g), uarm_dst_g)
         ph_cal_g = ts.hamilton_product(ph_rot_g, ph_off_g)
 
-        return np.c_[
+        return np.hstack([
             sw_sensor_dat,
             ts.quat_to_6drr_1x6(sw_cal_g),
             r_pres,
             ph_sensor_dat,
             ts.quat_to_6drr_1x6(ph_cal_g)
-        ]
+        ], dtype=np.float32)
 
     def make_prediction_from_row_hist(self, xx):
         # cast to a torch tensor with batch size 1

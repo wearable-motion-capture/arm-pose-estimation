@@ -314,16 +314,6 @@ def mocap_pos_to_global(p: np.array):
     return p * np.array([-1, 1, 1], dtype=np.float32)
 
 
-def revert_mocap_to_global(p: np.array):
-    # swap x and z axis
-    if len(p.shape) > 1:
-        p[:, [0, 2]] = p[:, [2, 0]]
-    else:
-        p[[0, 2]] = p[[2, 0]]
-    # invert z-axis
-    return p * np.array([-1, 1, 1], dtype=np.float32)
-
-
 def mocap_quat_to_global(q: np.array):
     """
     Optitrack quaternion to rotation in world coords
