@@ -60,9 +60,14 @@ class WatchOnlyNn(Estimator):
             row[self.__slp["sw_forward_y"]],
             row[self.__slp["sw_forward_z"]]
         ])
-        quat_north = ts.calib_watch_left_to_north_quat(sw_fwd)
-        sw_quat_cal = ts.android_quat_to_global(sw_rot, quat_north)
-        sw_6drr_cal = ts.quat_to_6drr_1x6(sw_quat_cal)  # get 6dof rotation representation
+
+        # estimate north quat to align Z-axis of global and android coord system
+        r = ts.android_quat_to_global_no_north(sw_fwd)
+        y_rot = ts.reduce_global_quat_to_y_rot(r)
+        quat_north = ts.euler_to_quat(np.array([0, -y_rot, 0]))
+        # calibrate watch
+        sw_cal_g = ts.android_quat_to_global(sw_rot, quat_north)
+        sw_6drr_cal = ts.quat_to_6drr_1x6(sw_cal_g)
 
         # assemble the entire input vector of one time step
         return np.hstack([
@@ -73,7 +78,7 @@ class WatchOnlyNn(Estimator):
             row[self.__slp["sw_grav_x"]], row[self.__slp["sw_grav_y"]], row[self.__slp["sw_grav_z"]],
             sw_6drr_cal,
             r_pres
-        ])
+        ], dtype=np.float32)
 
     def make_prediction_from_row_hist(self, xx_hist: np.array) -> np.array:
         # cast to a torch tensor with batch size 1

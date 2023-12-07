@@ -71,4 +71,4 @@ if __name__ == "__main__":
     parser.add_argument('smooth', nargs='?', type=int, default=5, help=f'smooth predicted trajectories')
     args = parser.parse_args()
 
-    run_watch_phone_uarm_udp(ip=args.ip, smooth=args.smooth)
+    run_watch_phone_uarm_udp(ip=args.ip, smooth=args.smooth, stream_mc=True)
