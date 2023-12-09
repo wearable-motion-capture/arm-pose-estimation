@@ -310,8 +310,7 @@ def mocap_pos_to_global(p: np.array):
         p[:, [0, 2]] = p[:, [2, 0]]
     else:
         p[[0, 2]] = p[[2, 0]]
-    # invert x-axis
-    return p * np.array([-1, 1, 1], dtype=np.float32)
+    return p * np.array([1, 1, 1], dtype=np.float32)
 
 
 def mocap_quat_to_global(q: np.array):
@@ -326,7 +325,7 @@ def mocap_quat_to_global(q: np.array):
     else:
         mc_q = np.array([q[3], q[0], q[1], q[2]])
     # rotate by -90 around y-axis to align z-axis of both coord systems ...
-    wordl_quat = np.array([-0.7071068, 0, 0.7071068, 0], dtype=np.float32)
+    wordl_quat = np.array([0.7071068, 0, 0.7071068, 0], dtype=np.float32)
     # then flip x-axis and reverse angle to change coord system orientation
     n_q = mc_q * np.array([-1, -1, 1, 1], dtype=np.float32)
     return hamilton_product(wordl_quat, n_q)

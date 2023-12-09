@@ -9,6 +9,7 @@ import wear_mocap_ape.config as config
 from wear_mocap_ape.stream.listener.imu import ImuListener
 from wear_mocap_ape.stream.publisher.watch_phone_uarm_nn_udp import WatchPhoneUarmNnUDP
 from wear_mocap_ape.data_types import messaging
+from wear_mocap_ape.stream.publisher.watch_phone_uarm_udp import WatchPhoneUarmUDP
 
 
 def run_watch_phone_uarm_udp(ip, smooth, stream_mc):
@@ -33,8 +34,7 @@ def run_watch_phone_uarm_udp(ip, smooth, stream_mc):
         ip=ip,
         port=config.PORT_PUB_LEFT_ARM,
         smooth=smooth,
-        tag="PUBLISH LEFT",
-        stream_mc=stream_mc
+        tag="PUBLISH LEFT"
     )
     ul_thread = threading.Thread(
         target=wp2ul.processing_loop,
@@ -66,8 +66,7 @@ if __name__ == "__main__":
     parser.add_argument('ip', type=str,
                         help=f'put your local IP here. '
                              f'The script will publish arm '
-                             f'pose data on PORT {config.PORT_PUB_LEFT_ARM} (left hand)'
-                             f'or PORT {config.PORT_PUB_RIGHT_ARM} (right hand)')
+                             f'pose data on PORT {config.PORT_PUB_LEFT_ARM} (left hand)')
     parser.add_argument('smooth', nargs='?', type=int, default=5, help=f'smooth predicted trajectories')
     args = parser.parse_args()
 

@@ -11,7 +11,6 @@ from wear_mocap_ape.utility.names import NNS_INPUTS, NNS_TARGETS
 class WatchPhoneUarm(Estimator):
     def __init__(self,
                  smooth: int = 5,
-                 left_hand_mode=True,
                  tag: str = "PUB WATCH PHONE UARM",
                  bonemap: BoneMap = None):
 
@@ -28,17 +27,16 @@ class WatchPhoneUarm(Estimator):
         )
 
         self.__tag = tag
-        self.__left_hand_mode = left_hand_mode
 
         # simple lookup for values of interest
         self.__slp = messaging.WATCH_PHONE_IMU_LOOKUP
 
         # in left hand mode, the arm is stretched along the negative X-axis in T pose
-        if not left_hand_mode:
-            self._larm_vec[0] = -self._larm_vec[0]
-            self._uarm_vec[0] = -self._uarm_vec[0]
-            self._uarm_orig = self._uarm_orig * np.array([-1, 1, 1])  # invert x
-            self._body_measurements = np.r_[self._larm_vec, self._uarm_vec, self._uarm_orig][np.newaxis, :]
+        # if not left_hand_mode:
+        #     self._larm_vec[0] = -self._larm_vec[0]
+        #     self._uarm_vec[0] = -self._uarm_vec[0]
+        #     self._uarm_orig = self._uarm_orig * np.array([-1, 1, 1])  # invert x
+        #     self._body_measurements = np.r_[self._larm_vec, self._uarm_vec, self._uarm_orig][np.newaxis, :]
 
     def calibrate_orientation_quats(self,
                                     sw_quat: np.array,
@@ -47,17 +45,10 @@ class WatchPhoneUarm(Estimator):
                                     ph_fwd: np.array) -> (np.array, np.array):
 
         # estimate north quat to align Z-axis of global and android coord system
-        if self.__left_hand_mode:
-            quat_north = ts.calib_watch_left_to_north_quat(sw_fwd)
-            # the arm orientations if the calib position with left arm forward is perfect
-            larm_dst_g = np.array([-0.7071068, 0, -0.7071068, 0])
-            uarm_dst_g = np.array([0.7071068, 0, 0.7071068, 0])
-
-        else:
-            quat_north = ts.calib_watch_right_to_north_quat(sw_fwd)
-            # the arm orientation if calib position with right arm forward is perfect
-            larm_dst_g = np.array([-0.7071068, 0.0, 0.7071068, 0.0])
-            uarm_dst_g = np.array([0.7071068, 0.0, -0.7071068, 0.0])
+        quat_north = ts.calib_watch_left_to_north_quat(sw_fwd)
+        # the arm orientations if the calib position with left arm forward is perfect
+        larm_dst_g = np.array([-0.7071068, 0, -0.7071068, 0])
+        uarm_dst_g = np.array([0.7071068, 0, 0.7071068, 0])
 
         # calibrate watch with offset to perfect position
         sw_rot_g = ts.android_quat_to_global(sw_quat, quat_north)
@@ -74,9 +65,9 @@ class WatchPhoneUarm(Estimator):
         return sw_cal_g, ph_cal_g
 
     def parse_row_to_xx(self, row: np.array):
-        # if not type(row) is np.array:
-        #     row = np.array(row)
-        #
+        if not type(row) is np.array:
+            row = np.array(row)
+
         # # get relevant entries from the row
         # if len(row.shape) > 1:
         #     # get relevant entries from the row
@@ -152,13 +143,13 @@ class WatchPhoneUarm(Estimator):
         sw_cal_g, ph_cal_g = self.calibrate_orientation_quats(sw_quat=sw_rot, sw_fwd=sw_fwd,
                                                               ph_quat=ph_rot, ph_fwd=ph_fwd)
 
-        return np.c_[
+        return np.hstack([
             sw_sensor_dat,
             ts.quat_to_6drr_1x6(sw_cal_g),
             r_pres,
             ph_sensor_dat,
             ts.quat_to_6drr_1x6(ph_cal_g)
-        ]
+        ])
 
     def make_prediction_from_row_hist(self, row_hist):
         return np.c_[row_hist[:, 13:19], row_hist[:, -6:]]

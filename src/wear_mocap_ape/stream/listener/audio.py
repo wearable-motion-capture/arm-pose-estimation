@@ -15,11 +15,11 @@ from wear_mocap_ape.data_types import voice_commands
 
 
 class AudioListener:
-    def __init__(self, ip: str, port: int = config.PORT_LISTEN_WATCH_PHONE_AUDIO, tag: str = "AUDIO"):
+    def __init__(self, ip: str, port: int = config.PORT_LISTEN_AUDIO, tag: str = "AUDIO"):
         # Audio recording parameters
         # See https://github.com/googleapis/python-speech/blob/main/samples/microphone/transcribe_streaming_infinite.py
-        self.__sample_rate = 32000
-        self.__chunk_size = 800  # int(16000 / 10)  # 100ms
+        self.__sample_rate = 44000
+        self.__chunk_size = 2048  # int(16000 / 10)  # 100ms
         self.__language_code = "en-US"  # a BCP-47 language tag
         self.__ip = ip
         self.__port = port  # the dual Port
@@ -114,7 +114,7 @@ class AudioListener:
         # Instantiate PyAudio and initialize PortAudio system resources
         p = pyaudio.PyAudio()
         # Open output audio stream
-        stream = p.open(format=pyaudio.paInt16,
+        stream = p.open(format=pyaudio.paALSA,
                         frames_per_buffer=self.__chunk_size,
                         channels=1,
                         rate=self.__sample_rate,
@@ -127,6 +127,7 @@ class AudioListener:
             row = q.get()
             if row:
                 stream.write(row)
+                time.sleep(0.01)
             else:
                 break
 
@@ -185,5 +186,5 @@ class AudioListener:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    wp_audio = AudioListener(ip="10.218.100.139", port=config.PORT_LISTEN_WATCH_PHONE_AUDIO)
+    wp_audio = AudioListener(ip="192.168.1.162", port=config.PORT_LISTEN_AUDIO)
     wp_audio.play_stream_loop()

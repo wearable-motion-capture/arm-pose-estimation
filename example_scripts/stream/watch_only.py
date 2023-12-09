@@ -50,7 +50,7 @@ def run_watch_only_nn_udp(ip, smooth, stream_mc):
     atexit.register(terminate_all)
     signal.signal(signal.SIGTERM, terminate_all)
     signal.signal(signal.SIGINT, terminate_all)
-
+    return joints_p
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
