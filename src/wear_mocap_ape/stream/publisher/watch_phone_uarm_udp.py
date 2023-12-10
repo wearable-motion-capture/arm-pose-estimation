@@ -17,7 +17,6 @@ class WatchPhoneUarmUDP(WatchPhoneUarm):
                  bonemap: BoneMap = None):
         super().__init__(
             smooth=smooth,
-            left_hand_mode=left_hand_mode,
             tag=tag,
             bonemap=bonemap
         )
