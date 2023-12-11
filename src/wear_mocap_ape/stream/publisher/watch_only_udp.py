@@ -17,11 +17,13 @@ class WatchOnlyNnUDP(WatchOnlyNn):
                  stream_mc=True,
                  mc_samples=25,
                  bonemap: BoneMap = None,
+                 watch_phone: bool = False,
                  tag: str = "PUB WATCH"):
         super().__init__(model_hash=model_hash, smooth=smooth,
                          stream_monte_carlo=stream_mc,
                          monte_carlo_samples=mc_samples,
                          bonemap=bonemap,
+                         watch_phone=watch_phone,
                          tag=tag)
         self.__tag = tag
         self.__port = port

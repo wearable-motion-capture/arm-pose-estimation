@@ -7,11 +7,10 @@ import threading
 
 import wear_mocap_ape.config as config
 from wear_mocap_ape.stream.listener.imu import ImuListener
+from wear_mocap_ape.stream.publisher.watch_phone_uarm_nn_udp import WatchPhoneUarmNnUDP
 from wear_mocap_ape.data_types import messaging
-from wear_mocap_ape.stream.publisher.watch_phone_uarm_udp import WatchPhoneUarmUDP
 
-
-def run_watch_phone_uarm_udp(ip, smooth):
+def run_watch_phone_uarm_nn_udp(ip, smooth, stream_mc):
     # data processing happens in independent threads.
     # We exchange data via queues.
     left_q = queue.Queue()  # data for left-hand mode
@@ -28,10 +27,11 @@ def run_watch_phone_uarm_udp(ip, smooth):
     )
 
     # left publisher
-    wp2ul = WatchPhoneUarmUDP(
+    wp2ul = WatchPhoneUarmNnUDP(
         ip=ip,
         port=config.PORT_PUB_LEFT_ARM,
-        smooth=smooth
+        smooth=smooth,
+        stream_mc=stream_mc,
     )
     ul_thread = threading.Thread(
         target=wp2ul.processing_loop,
@@ -67,4 +67,4 @@ if __name__ == "__main__":
     parser.add_argument('smooth', nargs='?', type=int, default=5, help=f'smooth predicted trajectories')
     args = parser.parse_args()
 
-    run_watch_phone_uarm_udp(ip=args.ip, smooth=args.smooth)
+    run_watch_phone_uarm_nn_udp(ip=args.ip, smooth=args.smooth, stream_mc=True)

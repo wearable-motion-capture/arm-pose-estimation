@@ -14,45 +14,44 @@ from wear_mocap_ape.stream.publisher.watch_phone_pocket_nn_udp import WatchPhone
 
 def run_watch_phone_pocket_nn_udp(ip: str, smooth: int, stream_mc: bool) -> WatchPhonePocketNnUDP:
     # data for left-hand mode
-    left_q = queue.Queue()
+    q = queue.Queue()
 
     # listen for imu data from phone and watch
-    imu_l = ImuListener(
+    imu_listener = ImuListener(
         ip=ip,
         msg_size=messaging.watch_phone_imu_msg_len,
-        port=config.PORT_LISTEN_WATCH_PHONE_IMU_LEFT,
-        tag="LISTEN IMU LEFT"
+        port=config.PORT_LISTEN_WATCH_PHONE_IMU_LEFT
     )
-    l_thread = threading.Thread(
-        target=imu_l.listen,
-        args=(left_q,)
+    imu_thread = threading.Thread(
+        target=imu_listener.listen,
+        args=(q,)
     )
 
     # process into arm pose and body orientation
-    kpp = WatchPhonePocketNnUDP(ip=ip,
+    estimator = WatchPhonePocketNnUDP(ip=ip,
                                 port=config.PORT_PUB_LEFT_ARM,
                                 smooth=smooth,
                                 model_hash=deploy_models.LSTM.WATCH_PHONE_POCKET.value,
                                 stream_mc=stream_mc,
                                 mc_samples=25)
-    p_thread = threading.Thread(
-        target=kpp.processing_loop,
-        args=(left_q,)
+    udp_thread = threading.Thread(
+        target=estimator.processing_loop,
+        args=(q,)
     )
 
-    l_thread.start()
-    p_thread.start()
+    imu_thread.start()
+    udp_thread.start()
 
     def terminate_all(*args):
-        imu_l.terminate()
-        kpp.terminate()
+        imu_listener.terminate()
+        estimator.terminate()
 
     # make sure all handler exit on termination
     atexit.register(terminate_all)
     signal.signal(signal.SIGTERM, terminate_all)
     signal.signal(signal.SIGINT, terminate_all)
 
-    return kpp
+    return estimator
 
 
 if __name__ == "__main__":

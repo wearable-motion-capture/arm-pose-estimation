@@ -19,6 +19,7 @@ class WatchOnlyNn(Estimator):
                  stream_monte_carlo=True,
                  monte_carlo_samples=25,
                  bonemap: BoneMap = None,
+                 watch_phone: bool = False,
                  tag: str = "PUB WATCH"):
         self.__tag = tag
 
@@ -26,7 +27,10 @@ class WatchOnlyNn(Estimator):
         self.__mc_samples = monte_carlo_samples
 
         # simple lookup for values of interest
-        self.__slp = messaging.WATCH_ONLY_IMU_LOOKUP
+        if watch_phone:
+            self.__slp = messaging.WATCH_PHONE_IMU_LOOKUP
+        else:
+            self.__slp = messaging.WATCH_ONLY_IMU_LOOKUP
 
         # load model from given parameters
         self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)

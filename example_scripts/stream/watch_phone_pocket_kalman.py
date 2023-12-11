@@ -19,8 +19,7 @@ def run_watch_phone_pocket_kalman(ip: str, smooth: int, stream_mc: bool) -> Watc
     imu_l = ImuListener(
         ip=ip,
         msg_size=messaging.watch_phone_imu_msg_len,
-        port=config.PORT_LISTEN_WATCH_PHONE_IMU_LEFT,
-        tag="LISTEN IMU LEFT"
+        port=config.PORT_LISTEN_WATCH_PHONE_IMU_LEFT
     )
     l_thread = threading.Thread(
         target=imu_l.listen,
