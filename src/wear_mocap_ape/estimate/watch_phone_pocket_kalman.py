@@ -16,7 +16,7 @@ class WatchPhonePocketKalman(Estimator):
     def __init__(self,
                  smooth: int = 1,
                  num_ensemble: int = 32,
-                 model_hash: str = "SW-model-sept-4",
+                 model_hash: str = "SW-model-1211",
                  window_size: int = 10,
                  stream_mc: bool = True,
                  tag: str = "KALMAN POCKET PHONE"):
@@ -35,8 +35,8 @@ class WatchPhonePocketKalman(Estimator):
         self.__slp = messaging.WATCH_PHONE_IMU_LOOKUP
 
         self.__batch_size = 1
-        self.__dim_x = 14
-        self.__dim_z = 14
+        self.__dim_x = 27
+        self.__dim_z = 27
         self.__input_size_1 = 22
         self.__num_ensemble = num_ensemble
         self.__win_size = window_size
@@ -168,7 +168,7 @@ class WatchPhonePocketKalman(Estimator):
                 smp = output[3].cpu().detach().numpy()[0]
             else:
                 smp = output[3].detach().numpy()[0]
-            return smp  # return only sensor model prediction
+            return smp[:, :14]  # return only sensor model prediction
 
         ensemble = output[0]  # -> output ensemble
         ensemble_ = rearrange(ensemble, "bs (en k) dim -> bs en k dim", k=1)
@@ -182,7 +182,7 @@ class WatchPhonePocketKalman(Estimator):
 
         # get the output
         t_preds = ensemble.detach().numpy()[0]
-        return t_preds
+        return t_preds[:, :14]
 
     @abstractmethod
     def process_msg(self, msg: np.array):

@@ -33,7 +33,7 @@ def run_watch_phone_pocket_nn_udp(ip: str, smooth: int, stream_mc: bool) -> Watc
                                 smooth=smooth,
                                 model_hash=deploy_models.LSTM.WATCH_PHONE_POCKET.value,
                                 stream_mc=stream_mc,
-                                mc_samples=25)
+                                mc_samples=60)
     udp_thread = threading.Thread(
         target=estimator.processing_loop,
         args=(q,)

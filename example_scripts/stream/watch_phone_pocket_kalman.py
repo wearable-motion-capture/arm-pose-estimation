@@ -33,7 +33,7 @@ def run_watch_phone_pocket_kalman(ip: str, smooth: int, stream_mc: bool) -> Watc
                                     port=config.PORT_PUB_LEFT_ARM,
                                     window_size=10,
                                     stream_mc=stream_mc,
-                                    model_hash="SW-model-sept-4")
+                                    model_hash="SW-model-1211")
     p_thread = threading.Thread(
         target=kpp.processing_loop,
         args=(left_q,)
