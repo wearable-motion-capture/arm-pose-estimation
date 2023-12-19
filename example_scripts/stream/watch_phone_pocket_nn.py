@@ -63,13 +63,18 @@ if __name__ == "__main__":
     # Required IP argument
     parser.add_argument('ip', type=str, help=f'put your local IP here.')
     parser.add_argument('smooth', nargs='?', type=int, default=5, help=f'smooth predicted trajectories')
-    parser.add_argument('stream_mc', nargs='?', type=bool, default=True,
-                        help=f'whether you want to stream the full pose ensemble')
+    parser.add_argument('--stream_mc', action='store_true')
+    parser.add_argument('--no-stream_mc', dest='stream_mc', action='store_false')
+    parser.set_defaults(stream_mc=True)
+
     args = parser.parse_args()
 
     ip_arg = args.ip
     smooth_arg = args.smooth
     stream_mc_arg = args.stream_mc
+
+    print(stream_mc_arg)
+    print(smooth_arg)
 
     # run the predictions
     run_watch_phone_pocket_nn_udp(ip_arg, smooth_arg, stream_mc_arg)
