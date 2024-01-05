@@ -16,9 +16,10 @@ class WatchPhonePocketKalman(Estimator):
     def __init__(self,
                  smooth: int = 1,
                  num_ensemble: int = 32,
-                 model_hash: str = "SW-model-1211",
+                 model_hash: str = "SW-model-3.5",
                  window_size: int = 10,
                  stream_mc: bool = True,
+                 normalize: bool = True,
                  tag: str = "KALMAN POCKET PHONE"):
 
         super().__init__(
@@ -28,6 +29,7 @@ class WatchPhonePocketKalman(Estimator):
             smooth=smooth,
             seq_len=window_size,
             stream_mc=stream_mc,
+            normalize=normalize,
             tag=tag
         )
 
@@ -35,8 +37,10 @@ class WatchPhonePocketKalman(Estimator):
         self.__slp = messaging.WATCH_PHONE_IMU_LOOKUP
 
         self.__batch_size = 1
-        self.__dim_x = 27
-        self.__dim_z = 27
+        self.__dim_x = 14
+        self.__dim_z = 14
+        # self.__dim_x = 27
+        # self.__dim_z = 27
         self.__input_size_1 = 22
         self.__num_ensemble = num_ensemble
         self.__win_size = window_size

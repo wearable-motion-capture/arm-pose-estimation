@@ -14,6 +14,7 @@ class WatchPhonePocketKalmanUDP(WatchPhonePocketKalman):
                  model_hash="SW-model-sept-4",
                  window_size: int = 10,
                  stream_mc: bool = True,
+                 normalize: bool = True,
                  tag: str = "KALMAN UDP POCKET PHONE"):
 
         super().__init__(
@@ -22,6 +23,7 @@ class WatchPhonePocketKalmanUDP(WatchPhonePocketKalman):
             model_hash=model_hash,
             window_size=window_size,
             stream_mc=stream_mc,
+            normalize=normalize,
             tag=tag
         )
         self.__tag = tag

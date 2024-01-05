@@ -73,8 +73,5 @@ if __name__ == "__main__":
     smooth_arg = args.smooth
     stream_mc_arg = args.stream_mc
 
-    print(stream_mc_arg)
-    print(smooth_arg)
-
     # run the predictions
     run_watch_phone_pocket_nn_udp(ip_arg, smooth_arg, stream_mc_arg)

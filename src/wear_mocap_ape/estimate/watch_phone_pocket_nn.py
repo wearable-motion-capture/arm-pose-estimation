@@ -21,7 +21,6 @@ class WatchPhonePocketNN(Estimator):
                  tag: str = "NN POCKET PHONE"):
         self.__tag = tag
 
-        self._stream_mc = stream_mc
         self.__mc_samples = monte_carlo_samples
 
         # simple lookup for values of interest
@@ -77,11 +76,9 @@ class WatchPhonePocketNN(Estimator):
             row[self.__slp["ph_rotvec_y"]], row[self.__slp["ph_rotvec_z"]]
         ])
         # the device orientations if the calib position with left arm forward is perfect
-        hips_dst_g = np.array([1, 0, 0, 0])
         ph_rot_g = ts.android_quat_to_global(ph_rot, quat_north)
         ph_fwd_g = ts.android_quat_to_global(ph_fwd, quat_north)
-        ph_off_g = ts.hamilton_product(ts.quat_invert(ph_fwd_g), hips_dst_g)
-        ph_cal_g = ts.hamilton_product(ph_rot_g, ph_off_g)
+        ph_cal_g = ts.hamilton_product(ph_rot_g, ts.quat_invert(ph_fwd_g))
 
         # hip y rotation from phone
         hips_y_rot = ts.reduce_global_quat_to_y_rot(ph_cal_g)
