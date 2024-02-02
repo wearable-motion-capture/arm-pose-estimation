@@ -42,7 +42,7 @@ class BoneMap:
     DEFAULT_LARM_LEN = 0.22  # 0.22
     DEFAULT_UARM_LEN = 0.30
     # default left shoulder origin relative to hip
-    DEFAULT_L_SHOU_ORIG_RH = np.array([-0.1704612, 0.4309841, -0.00670862])
+    DEFAULT_UARM_ORIG_RH = np.array([-0.1704612, 0.4309841, -0.00670862])
 
     def __init__(self, skeleton_name: str):
 
@@ -61,7 +61,7 @@ class BoneMap:
             b_id = int(bone.get("id"))
             p_id = int(bone.find("parent_id").text)
             # parse bone offsets from XML
-            b_pos = np.array([float(x) for x in bone.find("offset").text.split(",")], dtype=np.float64)
+            b_pos = np.array([float(x) for x in bone.find("offset").text.split(",")])
             # if the bone is not the root object, add parent bone transform for global position
             b_pos += np.zeros(3) if p_id == 0 else self.__bonemap[p_id].default_pos
             # create bone object and add to bone map

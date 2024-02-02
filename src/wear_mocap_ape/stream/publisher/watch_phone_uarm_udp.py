@@ -11,13 +11,12 @@ class WatchPhoneUarmUDP(WatchPhoneUarm):
     def __init__(self,
                  ip: str,
                  port: int,
-                 smooth: int = 5,
+                 smooth: int = 1,
                  left_hand_mode=True,
                  tag: str = "PUB WATCH PHONE",
                  bonemap: BoneMap = None):
         super().__init__(
             smooth=smooth,
-            left_hand_mode=left_hand_mode,
             tag=tag,
             bonemap=bonemap
         )

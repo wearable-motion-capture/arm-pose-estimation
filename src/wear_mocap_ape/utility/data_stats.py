@@ -39,9 +39,8 @@ def get_norm_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, data_list: list
             if data_list is None:
                 return dat
             else:
-                # check if amount of data has increased
                 len_m_data = len(data_list)
-                if dat["data_list_len"] >= len_m_data:
+                if dat["data_list_len"] == len_m_data:
                     return dat
                 else:
                     logging.info("number of files changed")

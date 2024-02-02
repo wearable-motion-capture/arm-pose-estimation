@@ -5,23 +5,25 @@ import struct
 import wear_mocap_ape.config as config
 from wear_mocap_ape.data_deploy.nn import deploy_models
 from wear_mocap_ape.data_types.bone_map import BoneMap
-from wear_mocap_ape.estimate.watch_only import WatchOnly
+from wear_mocap_ape.estimate.watch_only import WatchOnlyNn
 
 
-class WatchOnlyUDP(WatchOnly):
+class WatchOnlyNnUDP(WatchOnlyNn):
     def __init__(self,
                  ip: str,
                  port: int = config.PORT_PUB_LEFT_ARM,
                  model_hash: str = deploy_models.LSTM.WATCH_ONLY.value,
-                 smooth: int = 10,
-                 stream_monte_carlo=True,
-                 monte_carlo_samples=25,
+                 smooth: int = 1,
+                 stream_mc=True,
+                 mc_samples=25,
                  bonemap: BoneMap = None,
+                 watch_phone: bool = False,
                  tag: str = "PUB WATCH"):
         super().__init__(model_hash=model_hash, smooth=smooth,
-                         stream_monte_carlo=stream_monte_carlo,
-                         monte_carlo_samples=monte_carlo_samples,
+                         stream_monte_carlo=stream_mc,
+                         monte_carlo_samples=mc_samples,
                          bonemap=bonemap,
+                         watch_phone=watch_phone,
                          tag=tag)
         self.__tag = tag
         self.__port = port
