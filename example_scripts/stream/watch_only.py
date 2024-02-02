@@ -64,4 +64,4 @@ if __name__ == "__main__":
                              f'pose data on PORT {config.PORT_PUB_LEFT_ARM}')
     args = parser.parse_args()
 
-    run_watch_only_nn_udp(ip=args.ip, smooth=5, stream_mc=True)
+    run_watch_only_nn_udp(ip=args.ip, smooth=10, stream_mc=True)
