@@ -9,11 +9,9 @@ class WatchPhoneUarmRecorder(WatchPhoneUarm):
     def __init__(self,
                  file: Path,
                  smooth: int = 5,
-                 left_hand_mode=True,
                  tag: str = "REC WATCH PHONE",
                  bonemap: BoneMap = None):
         super().__init__(smooth=smooth,
-                         left_hand_mode=left_hand_mode,
                          tag=tag,
                          bonemap=bonemap)
         self.__tag = tag
