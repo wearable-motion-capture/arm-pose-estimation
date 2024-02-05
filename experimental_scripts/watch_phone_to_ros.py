@@ -33,7 +33,7 @@ l_thread.start()
 # left ROS publisher
 wp2ul = WatchPhoneROS()
 ul_thread = threading.Thread(
-    target=wp2ul.stream_loop,
+    target=wp2ul.processing_loop,
     args=(left_q,)
 )
 ul_thread.start()

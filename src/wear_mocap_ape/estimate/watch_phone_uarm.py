@@ -31,13 +31,6 @@ class WatchPhoneUarm(Estimator):
         # simple lookup for values of interest
         self.__slp = messaging.WATCH_PHONE_IMU_LOOKUP
 
-        # in left hand mode, the arm is stretched along the negative X-axis in T pose
-        # if not left_hand_mode:
-        #     self._larm_vec[0] = -self._larm_vec[0]
-        #     self._uarm_vec[0] = -self._uarm_vec[0]
-        #     self._uarm_orig = self._uarm_orig * np.array([-1, 1, 1])  # invert x
-        #     self._body_measurements = np.r_[self._larm_vec, self._uarm_vec, self._uarm_orig][np.newaxis, :]
-
     def calibrate_orientation_quats(self,
                                     sw_quat: np.array,
                                     sw_fwd: np.array,
@@ -68,44 +61,6 @@ class WatchPhoneUarm(Estimator):
         if not type(row) is np.array:
             row = np.array(row)
 
-        # # get relevant entries from the row
-        # if len(row.shape) > 1:
-        #     # get relevant entries from the row
-        #     sw_fwd = np.c_[
-        #         row[:, self.__slp["sw_forward_w"]], row[:, self.__slp["sw_forward_x"]],
-        #         row[:, self.__slp["sw_forward_y"]], row[:, self.__slp["sw_forward_z"]]
-        #     ]
-        #     sw_rot = np.c_[
-        #         row[:, self.__slp["sw_rotvec_w"]], row[:, self.__slp["sw_rotvec_x"]],
-        #         row[:, self.__slp["sw_rotvec_y"]], row[:, self.__slp["sw_rotvec_z"]]
-        #     ]
-        #
-        #     ph_fwd = np.c_[
-        #         row[:, self.__slp["ph_forward_w"]], row[:, self.__slp["ph_forward_x"]],
-        #         row[:, self.__slp["ph_forward_y"]], row[:, self.__slp["ph_forward_z"]]
-        #     ]
-        #
-        #     ph_rot = np.c_[
-        #         row[:, self.__slp["ph_rotvec_w"]], row[:, self.__slp["ph_rotvec_x"]],
-        #         row[:, self.__slp["ph_rotvec_y"]], row[:, self.__slp["ph_rotvec_z"]]
-        #     ]
-        #
-        #     sw_sensor_dat = np.c_[
-        #         row[:, self.__slp["sw_dt"]],
-        #         row[:, self.__slp["sw_gyro_x"]], row[:, self.__slp["sw_gyro_y"]], row[:, self.__slp["sw_gyro_z"]],
-        #         row[:, self.__slp["sw_lvel_x"]], row[:, self.__slp["sw_lvel_y"]], row[:, self.__slp["sw_lvel_z"]],
-        #         row[:, self.__slp["sw_lacc_x"]], row[:, self.__slp["sw_lacc_y"]], row[:, self.__slp["sw_lacc_z"]],
-        #         row[:, self.__slp["sw_grav_x"]], row[:, self.__slp["sw_grav_y"]], row[:, self.__slp["sw_grav_z"]]
-        #     ]
-        #     r_pres = row[:, self.__slp["sw_pres"]] - row[:, self.__slp["sw_init_pres"]]
-        #
-        #     ph_sensor_dat = np.c_[
-        #         row[:, self.__slp["ph_gyro_x"]], row[:, self.__slp["ph_gyro_y"]], row[:, self.__slp["ph_gyro_z"]],
-        #         row[:, self.__slp["ph_lvel_x"]], row[:, self.__slp["ph_lvel_y"]], row[:, self.__slp["ph_lvel_z"]],
-        #         row[:, self.__slp["ph_lacc_x"]], row[:, self.__slp["ph_lacc_y"]], row[:, self.__slp["ph_lacc_z"]],
-        #         row[:, self.__slp["ph_grav_x"]], row[:, self.__slp["ph_grav_y"]], row[:, self.__slp["ph_grav_z"]]
-        #     ]
-        # else:
         sw_fwd = np.array([
             row[self.__slp["sw_forward_w"]], row[self.__slp["sw_forward_x"]],
             row[self.__slp["sw_forward_y"]], row[self.__slp["sw_forward_z"]]
