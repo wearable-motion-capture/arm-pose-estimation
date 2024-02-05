@@ -12,11 +12,9 @@ class WatchPhoneROS(WatchPhoneUarm):
                  ros_node_name="/wear_mocap",
                  ros_rate=20,
                  smooth: int = 5,
-                 left_hand_mode=True,
                  tag: str = "PUB WATCH PHONE",
                  bonemap: BoneMap = None):
         super().__init__(smooth=smooth,
-                         left_hand_mode=left_hand_mode,
                          tag=tag,
                          bonemap=bonemap)
 
