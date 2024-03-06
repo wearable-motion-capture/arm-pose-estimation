@@ -102,7 +102,7 @@ def quat_rotate_vector(rot: np.array, vec: np.array) -> np.array:
         raise UserWarning("rot has to have length 4 (w,x,y,z). Rot is {}".format(rot))
 
     # the conjugate of the quaternion
-    r_s = rot * np.array([1, -1, -1, -1], dtype=np.float64)
+    r_s = rot * np.array([1., -1., -1., -1.])
 
     if len(vec.shape) > 1:
         # if vec is a column of vectors

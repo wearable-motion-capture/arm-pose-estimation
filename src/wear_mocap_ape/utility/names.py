@@ -31,6 +31,10 @@ class NNS_TARGETS(Enum):
         "gt_uarm_6drr_cal_4", "gt_uarm_6drr_cal_5", "gt_uarm_6drr_cal_6",
         "gt_hips_yrot_cal_sin", "gt_hips_yrot_cal_cos"  # hips calibrated y rot
     ]
+    ACTION_LABEL = [
+        "activity"
+    ]
+
 
 class NNS_INPUTS(Enum):
     WATCH_ONLY_CAL = [
