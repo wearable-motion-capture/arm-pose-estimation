@@ -57,6 +57,34 @@ class DropoutCNN(torch.nn.Module):
         return x
 
 
+class OneHotLSTM(torch.nn.Module):
+    def __init__(self,
+                 input_size,
+                 hidden_layer_size,
+                 hidden_layer_count,
+                 output_size):
+        super().__init__()
+
+        self.lstm = torch.nn.LSTM(input_size,
+                                  hidden_size=hidden_layer_size,
+                                  num_layers=hidden_layer_count,
+                                  batch_first=True)
+        self.output_layer = torch.nn.Linear(hidden_layer_size, output_size)
+        self.output_size = output_size
+        self.input_size = input_size
+        self.hidden_layer_size = hidden_layer_size
+        self.hidden_layer_count = hidden_layer_count
+
+    def forward(self, x, hs=None):
+        """
+        :param x: expects data as a 3D tensor [batch_size, sequence, input]
+        :param hs: Defaults to zeros if (h_0, c_0) is not provided
+        :return:
+        """
+        yp, _ = self.lstm(x, hs)
+        return self.output_layer(yp)
+
+
 class DropoutLSTM(torch.nn.Module):
     def __init__(self,
                  input_size,

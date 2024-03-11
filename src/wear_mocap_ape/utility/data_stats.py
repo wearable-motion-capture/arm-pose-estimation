@@ -92,7 +92,7 @@ def get_norm_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, data_list: list
     return stats
 
 
-def get_norm_and_one_hot_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, data_list: list) -> dict:
+def get_norm_and_one_hot_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, data_list: list = None) -> dict:
     """
     Check if normalization stats for given params dict and m_data_list exist.
     If none exists, creates a dictionary with stats to normalize data columns:
@@ -135,7 +135,7 @@ def get_norm_and_one_hot_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, dat
     # create new stats file one
     logging.info("creating stats file {}".format(f_path))
     if data_list is None:
-        raise UserWarning("attempting to create stats file without data list")
+        raise UserWarning("Make sure to provide a data list if you try to load a stats file that does not exist")
 
     # estimate mean and std of complete data columns
     x_inputs_v = x_inputs.value
@@ -148,10 +148,9 @@ def get_norm_and_one_hot_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, dat
         xxs.append(xx)
         yy = m_data.loc[:, y_targets_v]
         yy.drop_duplicates(inplace=True)
-        for i, k in yy.iterrows():
-            y_label = k[y_targets_v].values
-            if y_label not in yys:
-                yys[y_label] = len(yys)
+        for v in yy.values:
+            if v not in yys:
+                yys[v] = len(yys)
 
     # replace stds of 0 with 1 for no change
     xx = np.vstack(xxs)
@@ -177,6 +176,6 @@ def get_norm_and_one_hot_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, dat
 
     # Store data on file (serialize)
     with open(f_path, 'wb') as handle:
-        pickle.dump(stats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(stats, handle)
     logging.info("saved data stats to {}".format(f_path))
     return stats
