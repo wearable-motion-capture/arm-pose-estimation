@@ -11,8 +11,8 @@ PATHS = {
 PORT_PUB_LEFT_ARM = 50003
 
 # Listener ports for receiving data
-PORT_LISTEN_WATCH_PHONE_IMU_LEFT = 65000  # watch and phone either mode
-PORT_LISTEN_WATCH_IMU_LEFT = 46000  # watch only
+PORT_LISTEN_WATCH_PHONE_IMU = 65000  # watch and phone in upper arm or pocket
+PORT_LISTEN_WATCH_IMU = 46000  # watch only
 
 # experimental modes
 PORT_LISTEN_AUDIO = 65001

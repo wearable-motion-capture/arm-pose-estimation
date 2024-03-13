@@ -43,7 +43,6 @@ class Estimator:
             self._xx_m, self._xx_s = stats["xx_m"], stats["xx_s"]
             self._yy_m, self._yy_s = stats["yy_m"], stats["yy_s"]
 
-
         # average over multiple time steps
         self._smooth = max(1, smooth)  # smooth should not be smaller 1
         self._smooth_hist = []

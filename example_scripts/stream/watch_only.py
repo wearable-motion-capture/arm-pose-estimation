@@ -20,7 +20,7 @@ def run_watch_only_nn_udp(ip, smooth, stream_mc):
     imu_l = ImuListener(
         ip=ip,
         msg_size=messaging.watch_only_imu_msg_len,
-        port=config.PORT_LISTEN_WATCH_IMU_LEFT  # the smartwatch app sends on this PORT
+        port=config.PORT_LISTEN_WATCH_IMU  # the smartwatch app sends on this PORT
     )
     imu_w_l = threading.Thread(
         target=imu_l.listen,

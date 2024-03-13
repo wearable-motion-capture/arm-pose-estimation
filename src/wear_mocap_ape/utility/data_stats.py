@@ -134,7 +134,7 @@ def get_norm_and_one_hot_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, dat
 
     # create new stats file one
     logging.info("creating stats file {}".format(f_path))
-    if data_list is None:
+    if data_list is None or not data_list:
         raise UserWarning("Make sure to provide a data list if you try to load a stats file that does not exist")
 
     # estimate mean and std of complete data columns
@@ -144,7 +144,7 @@ def get_norm_and_one_hot_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, dat
     yys = {}
     for m_data in data_list:
         m_data.dropna(inplace=True)
-        xx = m_data.loc[:, x_inputs_v].to_numpy()
+        xx = m_data.loc[:, x_inputs_v].to_numpy().astype(np.float32)
         xxs.append(xx)
         yy = m_data.loc[:, y_targets_v]
         yy.drop_duplicates(inplace=True)
@@ -165,6 +165,8 @@ def get_norm_and_one_hot_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, dat
         "data_list_len": len(data_list),
         "xx_m": xx.mean(axis=0),
         "xx_s": xx_s,
+        "yy_m": 0.0,
+        "yy_s": 1.0,
         "yy_len": len(yys),
         "yy_names": list(yys.keys()),
         "yy_map": yys
