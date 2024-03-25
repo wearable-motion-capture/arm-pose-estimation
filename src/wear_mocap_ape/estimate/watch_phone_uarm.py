@@ -16,7 +16,7 @@ class WatchPhoneUarm(Estimator):
 
         super().__init__(
             model_name="forward_kinematics",
-            x_inputs=NNS_INPUTS.WATCH_PHONE_CAL,
+            x_inputs=NNS_INPUTS.WATCH_PHONE_CAL_ALL,
             y_targets=NNS_TARGETS.ORI_CAL_LARM_UARM,
             smooth=smooth,
             normalize=False,
