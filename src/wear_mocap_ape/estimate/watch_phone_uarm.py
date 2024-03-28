@@ -11,11 +11,10 @@ from wear_mocap_ape.utility.names import NNS_INPUTS, NNS_TARGETS
 class WatchPhoneUarm(Estimator):
     def __init__(self,
                  smooth: int = 5,
-                 tag: str = "PUB WATCH PHONE UARM",
+                 tag: str = "Forward Kinematics",
                  bonemap: BoneMap = None):
 
         super().__init__(
-            model_name="forward_kinematics",
             x_inputs=NNS_INPUTS.WATCH_PHONE_CAL_ALL,
             y_targets=NNS_TARGETS.ORI_CAL_LARM_UARM,
             smooth=smooth,

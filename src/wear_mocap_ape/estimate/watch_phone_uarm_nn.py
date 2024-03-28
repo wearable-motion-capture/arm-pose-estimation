@@ -31,7 +31,6 @@ class WatchPhoneUarmNN(Estimator):
         self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)
 
         super().__init__(
-            model_name=model_hash,
             x_inputs=NNS_INPUTS(params["x_inputs_v"]),
             y_targets=NNS_TARGETS(params["y_targets_v"]),
             smooth=smooth,

@@ -1,4 +1,6 @@
 from abc import abstractmethod
+from pathlib import Path
+
 from einops import rearrange
 
 import numpy as np
@@ -14,17 +16,16 @@ from wear_mocap_ape.utility.names import NNS_TARGETS, NNS_INPUTS
 
 class WatchPhonePocketKalman(Estimator):
     def __init__(self,
+                 model_path: Path,
                  smooth: int = 1,
                  num_ensemble: int = 32,
-                 model_hash: str = "SW-model-3.5",
                  window_size: int = 10,
                  stream_mc: bool = True,
                  normalize: bool = True,
                  tag: str = "KALMAN POCKET PHONE"):
 
         super().__init__(
-            model_name=model_hash,
-            x_inputs=NNS_INPUTS.WATCH_HIP,
+            x_inputs=NNS_INPUTS.WATCH_PHONE_CAL_HIP,
             y_targets=NNS_TARGETS.ORI_CAL_LARM_UARM_HIPS,
             smooth=smooth,
             seq_len=window_size,
@@ -63,16 +64,15 @@ class WatchPhonePocketKalman(Estimator):
 
         # Load the pretrained model
         if torch.cuda.is_available():
-            checkpoint = torch.load(config.PATHS["deploy"] / "kalman" / model_hash)
+            checkpoint = torch.load(model_path)
             self.__model.load_state_dict(checkpoint["model"])
         else:
-            checkpoint = torch.load(config.PATHS["deploy"] / "kalman" / model_hash,
-                                    map_location=torch.device("cpu"))
+            checkpoint = torch.load(model_path, map_location=torch.device("cpu"))
             self.__model.load_state_dict(checkpoint["model"])
 
         # INIT MODEL
-        # for quicker access we store a matrix with relevant body measurements for quick multiplication
         self.__init_step = 0
+        # we initialize the filter with a history of zero-tensors
         self.__input_state = torch.tensor(
             np.zeros(
                 (self.__batch_size, self.__num_ensemble, self.__win_size, self.__dim_x)

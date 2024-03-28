@@ -11,7 +11,7 @@ class WatchPhonePocketKalmanUDP(WatchPhonePocketKalman):
                  port,
                  smooth: int = 1,
                  num_ensemble: int = 32,
-                 model_hash="SW-model-sept-4",
+                 model_path="SW-model-sept-4",
                  window_size: int = 10,
                  stream_mc: bool = True,
                  normalize: bool = True,
@@ -20,7 +20,7 @@ class WatchPhonePocketKalmanUDP(WatchPhonePocketKalman):
         super().__init__(
             smooth=smooth,
             num_ensemble=num_ensemble,
-            model_hash=model_hash,
+            model_path=model_path,
             window_size=window_size,
             stream_mc=stream_mc,
             normalize=normalize,
