@@ -12,8 +12,7 @@ class Utils:
         self.dim_x = dim_x
         self.dim_z = dim_z
 
-    @staticmethod
-    def multivariate_normal_sampler(mean, cov, k):
+    def multivariate_normal_sampler(self, mean, cov, k):
         sampler = MultivariateNormal(mean, cov)
         return sampler.sample((k,))
 
@@ -40,22 +39,23 @@ class ProcessModelSeqMLP(nn.Module):
         self.num_heads = num_heads
         self.win_size = win_size
 
-        self.bayes_1 = LinearFlipout(in_features=self.dim_x * win_size, out_features=256)
-        self.bayes_2 = LinearFlipout(in_features=256, out_features=512)
-        self.fc_out = torch.nn.Linear(512, self.dim_x)
+        self.bayes1 = LinearFlipout(in_features=self.dim_x * win_size, out_features=256)
+        self.bayes3 = LinearFlipout(in_features=256, out_features=512)
+        self.bayes_m2 = torch.nn.Linear(512, self.dim_x)
 
-    def forward(self, x):
-        x = rearrange(x, "n en k dim -> (n en) (k dim)")
-        x, _ = self.bayes_1(x)
+    def forward(self, input):
+        input = rearrange(input, "n en k dim -> (n en) (k dim)")
+        # branch of the state
+        x, _ = self.bayes1(input)
         x = nn.functional.leaky_relu(x)
-        x, _ = self.bayes_2(x)
+        x, _ = self.bayes3(x)
         x = nn.functional.leaky_relu(x)
-        x = self.fc_out(x)
+        x = self.bayes_m2(x)
         output = rearrange(x, "(bs en) dim -> bs en dim", en=self.num_ensemble)
         return output
 
 
-class ObservationNoise(nn.Module):
+class NewObservationNoise(nn.Module):
     def __init__(self, dim_z, r_diag):
         """
         observation noise model is used to learn the observation noise covariance matrix
@@ -64,21 +64,20 @@ class ObservationNoise(nn.Module):
         input -> [batch_size, 1, encoding/dim_z]
         output -> [batch_size, dim_z, dim_z]
         """
-        super(ObservationNoise, self).__init__()
+        super(NewObservationNoise, self).__init__()
         self.dim_z = dim_z
         self.r_diag = r_diag
 
-        self.fc_1 = nn.Linear(self.dim_z, 32)
-        self.fc_2 = nn.Linear(32, self.dim_z)
+        self.fc1 = nn.Linear(self.dim_z, 32)
+        self.fc2 = nn.Linear(32, self.dim_z)
 
     def forward(self, inputs):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
         constant = np.ones(self.dim_z) * 1e-3
         init = np.sqrt(np.square(self.r_diag) - constant)
-        diag = self.fc_1(inputs)
+        diag = self.fc1(inputs)
         diag = nn.functional.relu(diag)
-        diag = self.fc_2(diag)
+        diag = self.fc2(diag)
         diag = torch.square(diag + torch.Tensor(constant).to(device)) + torch.Tensor(
             init
         ).to(device)
@@ -103,10 +102,10 @@ class SensorModelSeq(nn.Module):
         self.dim_z = dim_z
         self.num_ensemble = num_ensemble
 
-        self.fc_1 = nn.Linear(input_size_1 * win_size, 256)
-        self.bayes_1 = LinearFlipout(256, 256)
-        self.bayes_2 = LinearFlipout(256, 64)
-        self.bayes_3 = LinearFlipout(64, self.dim_z)
+        self.fc2 = nn.Linear(input_size_1 * win_size, 256)
+        self.fc3 = LinearFlipout(256, 256)
+        self.fc5 = LinearFlipout(256, 64)
+        self.fc6 = LinearFlipout(64, self.dim_z)
 
     def forward(self, x):
         batch_size = x.shape[0]
@@ -114,14 +113,14 @@ class SensorModelSeq(nn.Module):
         x = repeat(x, "bs dim -> bs k dim", k=self.num_ensemble)
         x = rearrange(x, "bs k dim -> (bs k) dim")
 
-        x = self.fc_1(x)
+        x = self.fc2(x)
         x = nn.functional.leaky_relu(x)
-        x, _ = self.bayes_1(x)
+        x, _ = self.fc3(x)
         x = nn.functional.leaky_relu(x)
-        x, _ = self.bayes_2(x)
+        x, _ = self.fc5(x)
         x = nn.functional.leaky_relu(x)
         encoding = x
-        obs, _ = self.bayes_3(x)
+        obs, _ = self.fc6(x)
         obs = rearrange(
             obs, "(bs k) dim -> bs k dim", bs=batch_size, k=self.num_ensemble
         )
@@ -142,7 +141,7 @@ class KalmanSmartwatchModel(nn.Module):
         self.dim_x = dim_x
         self.dim_z = dim_z
         self.win_size = win_size
-        self.r_diag = np.ones(self.dim_z).astype(np.float32) * 0.05
+        self.r_diag = np.ones((self.dim_z)).astype(np.float32) * 0.05
         self.r_diag = self.r_diag.astype(np.float32)
 
         # instantiate model
@@ -152,11 +151,11 @@ class KalmanSmartwatchModel(nn.Module):
         self.sensor_model = SensorModelSeq(
             self.num_ensemble, self.dim_z, win_size, input_size_1
         )
-        self.observation_noise = ObservationNoise(
-            self.dim_z, self.r_diag
-        )
+        self.observation_noise = NewObservationNoise(self.dim_z, self.r_diag)
 
     def forward(self, inputs, states):
+        # decompose inputs and states
+        batch_size = inputs[0].shape[0]
         raw_obs = inputs
         state_old = states
 
