@@ -6,7 +6,6 @@ from einops import rearrange
 import numpy as np
 import torch
 
-from in_dev_functions.cleanup_kalman import kalman_models_v2
 from wear_mocap_ape.estimate import kalman_models
 
 from wear_mocap_ape.estimate.estimator import Estimator
@@ -45,7 +44,7 @@ class WatchPhonePocketKalman(Estimator):
         self.__utils = kalman_models.Utils(
             self.__num_ensemble
         )
-        self.__model = kalman_models_v2.KalmanSmartwatchModel(
+        self.__model = kalman_models.KalmanSmartwatchModel(
             self.__num_ensemble,
             self.__win_size,
         )

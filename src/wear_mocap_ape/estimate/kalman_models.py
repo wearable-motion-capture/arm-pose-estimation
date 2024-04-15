@@ -2,32 +2,7 @@ from bayesian_torch.layers.flipout_layers.linear_flipout import LinearFlipout
 
 import torch
 import torch.nn as nn
-from einops import repeat, rearrange
 from torch.distributions import MultivariateNormal
-
-
-class Utils:
-    def __init__(self, num_ensemble, dim_x: int = 14, dim_z: int = 14):
-        self.num_ensemble = num_ensemble
-        self.dim_x = dim_x
-        self.dim_z = dim_z
-
-    def multivariate_normal_sampler(self, mean, cov, k):
-        sampler = MultivariateNormal(mean, cov)
-        return sampler.sample((k,))
-
-    def format_state(self, state):
-        state = repeat(state, "k dim -> n k dim", n=self.num_ensemble)
-        state = rearrange(state, "n k dim -> (n k) dim")
-        cov = torch.eye(self.dim_x) * 0.1
-        init_dist = self.multivariate_normal_sampler(
-            torch.zeros(self.dim_x), cov, self.num_ensemble
-        )
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        init_dist = init_dist.to(device)
-        state = state + init_dist
-        state = state.to(dtype=torch.float32)
-        return state
 
 
 class ProcessModelWindow(nn.Module):
@@ -231,3 +206,23 @@ class KalmanSmartwatchModel(nn.Module):
             ensemble_z,
         )
         return output
+
+
+# TODO: move this to estimator or filter
+class Utils:
+    def __init__(self, num_ensemble, dim_x: int = 14, dim_z: int = 14):
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._num_ensemble = num_ensemble
+        self._dim_x = dim_x
+        self._dim_z = dim_z
+
+    def format_state(self, state: torch.Tensor):
+        k = state.size(0)
+        state = state.repeat(self._num_ensemble, 1, 1)
+        state = torch.reshape(state, (self._num_ensemble * k, self._dim_x))
+        cov = torch.eye(self._dim_x) * 0.1
+
+        mns = MultivariateNormal(torch.zeros(self._dim_x), cov)
+        init_dist = mns.sample((self._num_ensemble,)).to(self._device)
+
+        return state + init_dist
