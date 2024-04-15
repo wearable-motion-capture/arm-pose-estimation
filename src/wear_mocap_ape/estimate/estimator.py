@@ -14,7 +14,6 @@ from wear_mocap_ape.utility.names import NNS_INPUTS, NNS_TARGETS
 
 class Estimator:
     def __init__(self,
-                 model_name: str,
                  x_inputs: NNS_INPUTS,
                  y_targets: NNS_TARGETS,
                  normalize: bool = True,
@@ -27,7 +26,6 @@ class Estimator:
         self.__tag = tag
         self._active = True
         self._prev_time = datetime.now()
-        self._model_name = model_name
 
         self._y_targets = y_targets
         self._x_inputs = x_inputs
@@ -42,7 +40,6 @@ class Estimator:
             # data is normalized and has to be transformed with pre-calculated mean and std
             self._xx_m, self._xx_s = stats["xx_m"], stats["xx_s"]
             self._yy_m, self._yy_s = stats["yy_m"], stats["yy_s"]
-
 
         # average over multiple time steps
         self._smooth = max(1, smooth)  # smooth should not be smaller 1
@@ -70,6 +67,13 @@ class Estimator:
         self._body_measurements = np.r_[self._larm_vec, self._uarm_vec, self._uarm_orig][np.newaxis, :]
 
         self._device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    def set_norm_stats(self, stats: dict):
+        """overwrites the default norm stats loaded during the initialization"""
+        # data is normalized and has to be transformed with pre-calculated mean and std
+        self._xx_m, self._xx_s = stats["xx_m"], stats["xx_s"]
+        self._yy_m, self._yy_s = stats["yy_m"], stats["yy_s"]
+        logging.info("Replaced norm stats xx m+/-s and yy m+/-s")
 
     def get_last_msg(self):
         return self._last_msg
@@ -208,7 +212,3 @@ class Estimator:
     @property
     def y_targets(self):
         return self._y_targets
-
-    @property
-    def model_name(self):
-        return self._model_name

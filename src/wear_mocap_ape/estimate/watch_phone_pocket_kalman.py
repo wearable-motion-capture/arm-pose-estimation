@@ -1,11 +1,13 @@
 from abc import abstractmethod
+from pathlib import Path
+
 from einops import rearrange
 
 import numpy as np
 import torch
 
 from wear_mocap_ape.estimate import kalman_models
-from wear_mocap_ape import config
+
 from wear_mocap_ape.estimate.estimator import Estimator
 from wear_mocap_ape.utility import transformations as ts
 from wear_mocap_ape.data_types import messaging
@@ -14,17 +16,16 @@ from wear_mocap_ape.utility.names import NNS_TARGETS, NNS_INPUTS
 
 class WatchPhonePocketKalman(Estimator):
     def __init__(self,
+                 model_path: Path,
                  smooth: int = 1,
                  num_ensemble: int = 32,
-                 model_hash: str = "SW-model-3.5",
                  window_size: int = 10,
                  stream_mc: bool = True,
                  normalize: bool = True,
                  tag: str = "KALMAN POCKET PHONE"):
 
         super().__init__(
-            model_name=model_hash,
-            x_inputs=NNS_INPUTS.WATCH_HIP,
+            x_inputs=NNS_INPUTS.WATCH_PHONE_CAL_HIP,
             y_targets=NNS_TARGETS.ORI_CAL_LARM_UARM_HIPS,
             smooth=smooth,
             seq_len=window_size,
@@ -36,26 +37,16 @@ class WatchPhonePocketKalman(Estimator):
         self.__tag = tag
         self.__slp = messaging.WATCH_PHONE_IMU_LOOKUP
 
-        self.__batch_size = 1
-        self.__dim_x = 14
-        self.__dim_z = 14
-        # self.__dim_x = 27
-        # self.__dim_z = 27
-        self.__input_size_1 = 22
         self.__num_ensemble = num_ensemble
         self.__win_size = window_size
+        self.__dim_x = 14  # state size
 
         self.__utils = kalman_models.Utils(
-            self.__num_ensemble,
-            self.__dim_x,
-            self.__dim_z
+            self.__num_ensemble
         )
         self.__model = kalman_models.KalmanSmartwatchModel(
             self.__num_ensemble,
             self.__win_size,
-            self.__dim_x,
-            self.__dim_z,
-            self.__input_size_1
         )
         self.__model.eval()
         if torch.cuda.is_available():
@@ -63,19 +54,18 @@ class WatchPhonePocketKalman(Estimator):
 
         # Load the pretrained model
         if torch.cuda.is_available():
-            checkpoint = torch.load(config.PATHS["deploy"] / "kalman" / model_hash)
+            checkpoint = torch.load(model_path)
             self.__model.load_state_dict(checkpoint["model"])
         else:
-            checkpoint = torch.load(config.PATHS["deploy"] / "kalman" / model_hash,
-                                    map_location=torch.device("cpu"))
+            checkpoint = torch.load(model_path, map_location=torch.device("cpu"))
             self.__model.load_state_dict(checkpoint["model"])
 
         # INIT MODEL
-        # for quicker access we store a matrix with relevant body measurements for quick multiplication
         self.__init_step = 0
+        # we initialize the filter with a history of zero-tensors
         self.__input_state = torch.tensor(
             np.zeros(
-                (self.__batch_size, self.__num_ensemble, self.__win_size, self.__dim_x)
+                (1, self.__num_ensemble, self.__win_size, self.__dim_x)
             ), dtype=torch.float32
         ).to(self._device)
 
@@ -83,7 +73,7 @@ class WatchPhonePocketKalman(Estimator):
         super().reset()
         self.__input_state = torch.tensor(
             np.zeros(
-                (self.__batch_size, self.__num_ensemble, self.__win_size, self.__dim_x)
+                (1, self.__num_ensemble, self.__win_size, self.__dim_x)
             ), dtype=torch.float32
         ).to(self._device)
         self.__init_step = 0
@@ -148,8 +138,8 @@ class WatchPhonePocketKalman(Estimator):
         ])
 
     def make_prediction_from_row_hist(self, xx_hist: np.array):
-        xx_seq = rearrange(xx_hist, "(bs seq) (en feat) -> bs seq en feat", bs=1, en=1)
-        xx_seq = torch.tensor(xx_seq, dtype=torch.float32).to(self._device)
+        # transform hist into expected Kalman layout -> batch size, window_size, ensembles, raw_obs
+        xx_seq = torch.tensor(xx_hist, dtype=torch.float32).to(self._device)[None, :, None, :]
 
         with torch.no_grad():
             output = self.__model(xx_seq, self.__input_state)
@@ -159,10 +149,7 @@ class WatchPhonePocketKalman(Estimator):
             # there will be no prediction in this time window
             pred_ = output[3]
             pred_ = rearrange(pred_, "bs en dim -> (bs en) dim")
-            pred_ = self.__utils.format_state(pred_)
-            pred_ = rearrange(
-                pred_, "(bs en) (k dim) -> bs en k dim", bs=self.__batch_size, k=1
-            )
+            pred_ = self.__utils.format_state(pred_)[None, :, None, :]  # -> bs en k dim
             self.__input_state = torch.cat(
                 (self.__input_state[:, :, 1:, :], pred_), axis=2
             ).to(self._device)
@@ -175,9 +162,8 @@ class WatchPhonePocketKalman(Estimator):
             return smp[:, :14]  # return only sensor model prediction
 
         ensemble = output[0]  # -> output ensemble
-        ensemble_ = rearrange(ensemble, "bs (en k) dim -> bs en k dim", k=1)
         self.__input_state = torch.cat(
-            (self.__input_state[:, :, 1:, :], ensemble_), axis=2
+            (self.__input_state[:, :, 1:, :], ensemble[:, :, None, :]), axis=2
         ).to(self._device)
 
         # if on GPU copy the tensor to host memory first

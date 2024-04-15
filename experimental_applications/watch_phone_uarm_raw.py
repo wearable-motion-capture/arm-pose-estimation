@@ -20,7 +20,7 @@ def run_watch_phone_uarm_udp(ip, smooth):
     imu_l = ImuListener(
         ip=ip,
         msg_size=messaging.watch_phone_imu_msg_len,
-        port=config.PORT_LISTEN_WATCH_PHONE_IMU_LEFT,
+        port=config.PORT_LISTEN_WATCH_PHONE_IMU,
     )
     l_thread = threading.Thread(
         target=imu_l.listen,

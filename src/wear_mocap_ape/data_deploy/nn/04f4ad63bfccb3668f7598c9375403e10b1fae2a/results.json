@@ -13,7 +13,7 @@
     "early_stopping": 10,
     "hash": "04f4ad63bfccb3668f7598c9375403e10b1fae2a",
     "y_targets_n": "ORI_CAL_LARM_UARM",
-    "x_inputs_n": "WATCH_ONLY",
+    "x_inputs_n": "WATCH_ONLY_CAL",
     "y_targets_v": [
         "gt_larm_6drr_cal_1",
         "gt_larm_6drr_cal_2",

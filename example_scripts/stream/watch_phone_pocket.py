@@ -19,7 +19,7 @@ def run_watch_phone_pocket_kalman(ip: str, smooth: int, stream_mc: bool) -> Watc
     imu_l = ImuListener(
         ip=ip,
         msg_size=messaging.watch_phone_imu_msg_len,
-        port=config.PORT_LISTEN_WATCH_PHONE_IMU_LEFT
+        port=config.PORT_LISTEN_WATCH_PHONE_IMU
     )
     l_thread = threading.Thread(
         target=imu_l.listen,
@@ -27,13 +27,15 @@ def run_watch_phone_pocket_kalman(ip: str, smooth: int, stream_mc: bool) -> Watc
     )
 
     # process into arm pose and body orientation
-    kpp = WatchPhonePocketKalmanUDP(ip=ip,
-                                    smooth=smooth,
-                                    num_ensemble=48,
-                                    port=config.PORT_PUB_LEFT_ARM,
-                                    window_size=10,
-                                    stream_mc=stream_mc,
-                                    model_hash="SW-v3.8-model-436400")
+    kpp = WatchPhonePocketKalmanUDP(
+        model_path=config.PATHS["deploy"] / "kalman" / "SW-v3.8-model-436400",
+        ip=ip,
+        smooth=smooth,
+        num_ensemble=48,
+        port=config.PORT_PUB_LEFT_ARM,
+        window_size=10,
+        stream_mc=stream_mc,
+    )
     p_thread = threading.Thread(
         target=kpp.processing_loop,
         args=(left_q,)

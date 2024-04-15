@@ -1,7 +1,8 @@
-from enum import Enum
+from aenum import Enum, NoAlias
 
 
 class NNS_TARGETS(Enum):
+    _settings_ = NoAlias
     ORI_CAL_LARM_UARM_HIPS = [
         "gt_larm_6drr_cal_1", "gt_larm_6drr_cal_2", "gt_larm_6drr_cal_3",  # larm 6drr
         "gt_larm_6drr_cal_4", "gt_larm_6drr_cal_5", "gt_larm_6drr_cal_6",
@@ -24,11 +25,14 @@ class NNS_TARGETS(Enum):
         "gt_uarm_6drr_cal_4", "gt_uarm_6drr_cal_5", "gt_uarm_6drr_cal_6",
         "gt_hips_yrot_cal_sin", "gt_hips_yrot_cal_cos"  # hips calibrated y rot
     ]
+    HACKATHON_ACTION_LABEL = "activity"
+    HAIRCARE_ACTION_LABEL = "activity"
 
 
 class NNS_INPUTS(Enum):
+    _settings_ = NoAlias
     # watch data only
-    WATCH_ONLY = [
+    WATCH_ONLY_CAL = [
         "sw_dt",
         "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
         "sw_lvel_x", "sw_lvel_y", "sw_lvel_z",
@@ -46,7 +50,7 @@ class NNS_INPUTS(Enum):
     ]
 
     # watch data and the PH_HIPS estimate
-    WATCH_HIP = [
+    WATCH_PHONE_CAL_HIP = [
         "sw_dt",
         "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
         "sw_lvel_x", "sw_lvel_y", "sw_lvel_z",
@@ -77,7 +81,7 @@ class NNS_INPUTS(Enum):
     ]
 
     # watch and phone data
-    WATCH_PHONE_CAL = [
+    WATCH_PHONE_CAL_ALL = [
         "sw_dt",
         "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
         "sw_lvel_x", "sw_lvel_y", "sw_lvel_z",

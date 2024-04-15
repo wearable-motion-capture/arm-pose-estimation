@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(description='records data from the watch in sta
 parser.add_argument('ip', type=str,
                     help=f'put your local IP here. '
                          f'The script will listen to watch data on '
-                         f'PORT {config.PORT_LISTEN_WATCH_IMU_LEFT}')
+                         f'PORT {config.PORT_LISTEN_WATCH_IMU}')
 parser.add_argument('file', type=str,
                     help=f'recorded data will be written into this file')
 args = parser.parse_args()
@@ -31,7 +31,7 @@ q = queue.Queue()
 imu_l = ImuListener(
     ip=args.ip,
     msg_size=messaging.watch_only_imu_msg_len,
-    port=config.PORT_LISTEN_WATCH_IMU_LEFT  # the smartwatch app sends on this PORT
+    port=config.PORT_LISTEN_WATCH_IMU  # the smartwatch app sends on this PORT
 )
 imu_w_l = threading.Thread(
     target=imu_l.listen,

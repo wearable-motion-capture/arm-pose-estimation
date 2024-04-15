@@ -57,6 +57,106 @@ class DropoutCNN(torch.nn.Module):
         return x
 
 
+class OneHotLSTM(torch.nn.Module):
+    def __init__(self,
+                 input_size,
+                 hidden_layer_size,
+                 hidden_layer_count,
+                 output_size):
+        super().__init__()
+
+        self.lstm = torch.nn.LSTM(input_size,
+                                  hidden_size=hidden_layer_size,
+                                  num_layers=hidden_layer_count,
+                                  batch_first=True)
+        self.output_layer = torch.nn.Linear(hidden_layer_size, output_size)
+        self.output_size = output_size
+        self.input_size = input_size
+        self.hidden_layer_size = hidden_layer_size
+        self.hidden_layer_count = hidden_layer_count
+
+    def forward(self, x, hs=None):
+        """
+        :param x: expects data as a 3D tensor [batch_size, sequence, input]
+        :param hs: Defaults to zeros if (h_0, c_0) is not provided
+        :return:
+        """
+        yp, _ = self.lstm(x, hs)
+        return self.output_layer(yp)
+
+
+class OneHot2DFF(torch.nn.Module):
+
+    def __init__(self,
+                 output_size,
+                 hidden_layer_size,
+                 hidden_layer_count,
+                 input_size,
+                 seq_len):
+        super(OneHot2DFF, self).__init__()
+
+        self.output_size = output_size
+        self._input_layer = torch.nn.Linear(input_size * seq_len, hidden_layer_size)
+        self._activation_function = F.leaky_relu
+        # add hidden layers according to count variable
+        self._hidden_layers = torch.nn.ModuleList()
+        for hl in range(hidden_layer_count):
+            self._hidden_layers.append(torch.nn.Linear(hidden_layer_size, hidden_layer_size))
+        # end with dropout and then two final layers
+        self._output_layer = torch.nn.Linear(hidden_layer_size, output_size)
+
+    def forward(self, x):
+        """
+        simple forward pass
+        :param x: input
+        :return: output layer
+        """
+        xf = torch.flatten(x, start_dim=1)
+        x = self._activation_function(self._input_layer(xf))
+        # propagate stacked hidden layers
+        for h in self._hidden_layers:
+            x = self._activation_function(h(x))
+        # final layer with a sequence length of 1
+        x = self._output_layer(x)[:, None, :]
+        return x
+
+
+class OneHotFF(torch.nn.Module):
+    def __init__(self,
+                 output_size,
+                 hidden_layer_size,
+                 hidden_layer_count,
+                 input_size):
+        super(OneHotFF, self).__init__()
+
+        self.output_size = output_size
+        self._input_layer = torch.nn.Linear(input_size, hidden_layer_size)
+        self._activation_function = F.sigmoid
+
+        # add hidden layers according to count variable
+        self._hidden_layers = torch.nn.ModuleList()
+        for hl in range(hidden_layer_count):
+            self._hidden_layers.append(torch.nn.Linear(hidden_layer_size, hidden_layer_size))
+
+        # end with dropout and then two final layers
+        self._output_layer = torch.nn.Linear(hidden_layer_size, output_size)
+
+    def forward(self, x):
+        """
+        simple forward pass
+        :param x: input
+        :return: output layer
+        """
+        x = self._activation_function(self._input_layer(x))
+        # propagate stacked hidden layers
+        for h in self._hidden_layers:
+            x = self._activation_function(h(x))
+        # final layer
+        x = self._output_layer(x)
+        # x = F.log_softmax(x, dim=2)
+        return x
+
+
 class DropoutLSTM(torch.nn.Module):
     def __init__(self,
                  input_size,
