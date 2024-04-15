@@ -31,8 +31,8 @@ class WatchPhoneUarmNN(Estimator):
         self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)
 
         super().__init__(
-            x_inputs=NNS_INPUTS(params["x_inputs_v"]),
-            y_targets=NNS_TARGETS(params["y_targets_v"]),
+            x_inputs=NNS_INPUTS[params["x_inputs_n"]],
+            y_targets=NNS_TARGETS[params["y_targets_n"]],
             smooth=smooth,
             normalize=params["normalize"],
             seq_len=params["sequence_len"],
@@ -103,11 +103,11 @@ class WatchPhoneUarmNN(Estimator):
             r_pres,
             ph_sensor_dat,
             ts.quat_to_6drr_1x6(ph_cal_g)
-        ], dtype=np.float32)
+        ])
 
     def make_prediction_from_row_hist(self, xx):
         # cast to a torch tensor with batch size 1
-        xx = torch.tensor(xx[None, :, :])
+        xx = torch.tensor(xx[None, :, :], dtype=torch.float32)
         with torch.no_grad():
             # make mote carlo predictions if the model makes use of dropout
             t_preds = self.__nn_model.monte_carlo_predictions(x=xx, n_samples=self.__mc_samples)

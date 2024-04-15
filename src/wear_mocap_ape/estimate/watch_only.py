@@ -35,8 +35,8 @@ class WatchOnlyNn(Estimator):
         # load model from given parameters
         self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)
         super().__init__(
-            x_inputs=NNS_INPUTS(params["x_inputs_v"]),
-            y_targets=NNS_TARGETS(params["y_targets_v"]),
+            x_inputs=NNS_INPUTS[params["x_inputs_n"]],
+            y_targets=NNS_TARGETS[params["y_targets_n"]],
             smooth=smooth,
             normalize=params["normalize"],
             seq_len=params["sequence_len"],
