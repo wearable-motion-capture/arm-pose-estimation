@@ -1,5 +1,3 @@
-from abc import abstractmethod
-
 import torch
 import numpy as np
 
@@ -12,7 +10,7 @@ from wear_mocap_ape.data_types import messaging
 from wear_mocap_ape.utility.names import NNS_TARGETS, NNS_INPUTS
 
 
-class WatchOnlyNn(Estimator):
+class WatchOnlyNN(Estimator):
     def __init__(self,
                  model_hash: str = deploy_models.LSTM.WATCH_ONLY.value,
                  smooth: int = 10,
@@ -98,7 +96,3 @@ class WatchOnlyNn(Estimator):
         # we are only interested in the last prediction of the sequence
         t_preds = t_preds[:, -1, :]
         return t_preds
-
-    @abstractmethod
-    def process_msg(self, msg: np.array):
-        return

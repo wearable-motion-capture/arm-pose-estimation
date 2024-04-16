@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from pathlib import Path
 
 from einops import rearrange
@@ -173,7 +172,3 @@ class WatchPhonePocketKalman(Estimator):
         # get the output
         t_preds = ensemble.detach().numpy()[0]
         return t_preds[:, :14]
-
-    @abstractmethod
-    def process_msg(self, msg: np.array):
-        return

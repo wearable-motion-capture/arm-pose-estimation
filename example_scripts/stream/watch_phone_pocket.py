@@ -1,58 +1,44 @@
 import argparse
-import atexit
 import logging
-import queue
-import signal
-import threading
 
 from wear_mocap_ape import config
 from wear_mocap_ape.data_types import messaging
+from wear_mocap_ape.estimate.watch_phone_pocket_kalman import WatchPhonePocketKalman
 from wear_mocap_ape.stream.listener.imu import ImuListener
-from wear_mocap_ape.stream.publisher.watch_phone_pocket_kalman_udp import WatchPhonePocketKalmanUDP
+from wear_mocap_ape.stream.publisher.imu_udp import IMUPublisherUDP
 
 
-def run_watch_phone_pocket_kalman(ip: str, smooth: int, stream_mc: bool) -> WatchPhonePocketKalmanUDP:
-    # data for left-hand mode
-    left_q = queue.Queue()
-
-    # listen for imu data from phone and watch
-    imu_l = ImuListener(
+def run_watch_phone_pocket_kalman(ip: str, smooth: int, stream_mc: bool):
+    # the listener fills the que with received and parsed smartwatch data
+    lstn = ImuListener(
         ip=ip,
         msg_size=messaging.watch_phone_imu_msg_len,
         port=config.PORT_LISTEN_WATCH_PHONE_IMU
     )
-    l_thread = threading.Thread(
-        target=imu_l.listen,
-        args=(left_q,)
-    )
+    sensor_q = lstn.listen_in_thread()
 
-    # process into arm pose and body orientation
-    kpp = WatchPhonePocketKalmanUDP(
+    # the estimator transforms sensor data into pose estimates and fills them into the output queue
+    est = WatchPhonePocketKalman(
         model_path=config.PATHS["deploy"] / "kalman" / "SW-v3.8-model-436400",
-        ip=ip,
         smooth=smooth,
         num_ensemble=48,
-        port=config.PORT_PUB_LEFT_ARM,
         window_size=10,
         stream_mc=stream_mc,
     )
-    p_thread = threading.Thread(
-        target=kpp.processing_loop,
-        args=(left_q,)
+    msg_q = est.process_in_threat(sensor_q)
+
+    # the publisher publishes pose estimates from the queue via UDP
+    pub = IMUPublisherUDP(
+        ip=ip,
+        port=config.PORT_PUB_LEFT_ARM
     )
+    pub.publish_in_thread(msg_q)
 
-    l_thread.start()
-    p_thread.start()
-
-    def terminate_all(*args):
-        imu_l.terminate()
-        kpp.terminate()
-
-    # make sure all handler exit on termination
-    atexit.register(terminate_all)
-    signal.signal(signal.SIGTERM, terminate_all)
-    signal.signal(signal.SIGINT, terminate_all)
-    return kpp
+    # wait for any key to end the threads
+    input("press enter to exit")
+    lstn.terminate()
+    est.terminate()
+    pub.terminate()
 
 
 if __name__ == "__main__":
@@ -63,8 +49,6 @@ if __name__ == "__main__":
     # Required IP argument
     parser.add_argument('ip', type=str, help=f'put your local IP here.')
     parser.add_argument('smooth', nargs='?', type=int, default=5, help=f'smooth predicted trajectories')
-    parser.add_argument('stream_mc', nargs='?', type=bool, default=True,
-                        help=f'whether you want to stream the full pose ensemble')
     args = parser.parse_args()
 
-    run_watch_phone_pocket_kalman(ip=args.ip, smooth=args.smooth, stream_mc=args.stream_mc)
+    run_watch_phone_pocket_kalman(ip=args.ip, smooth=args.smooth, stream_mc=True)

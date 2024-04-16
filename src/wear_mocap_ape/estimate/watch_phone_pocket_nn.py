@@ -112,7 +112,3 @@ class WatchPhonePocketNN(Estimator):
         # we are only interested in the last prediction of the sequence
         t_preds = t_preds[:, -1, :]
         return t_preds
-
-    @abstractmethod
-    def process_msg(self, msg: np.array):
-        return

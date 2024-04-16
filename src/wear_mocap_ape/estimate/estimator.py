@@ -1,4 +1,5 @@
 import logging
+import threading
 from abc import abstractmethod
 from datetime import datetime
 
@@ -135,7 +136,13 @@ class Estimator:
                     msg += list(e_row[:6])
         return msg
 
-    def processing_loop(self, sensor_q: queue = None):
+    def process_in_threat(self, sensor_q: queue):
+        msg_q = queue.Queue()
+        t = threading.Thread(target=self.processing_loop, args=(sensor_q, msg_q))
+        t.start()
+        return msg_q
+
+    def processing_loop(self, sensor_q: queue, msg_q: queue):
         logging.info(f"[{self.__tag}] wearable streaming loop")
 
         # used to estimate delta time and processing speed in Hz
@@ -148,7 +155,6 @@ class Estimator:
 
         self.reset()
         while self._active:
-
             # processing speed output
             now = datetime.now()
             if (now - start).seconds >= 5:
@@ -166,7 +172,7 @@ class Estimator:
             xx = self.parse_row_to_xx(row)
             pred = self.add_xx_to_row_hist_and_make_prediction(xx)
             msg = self.msg_from_pred(pred, self._stream_mc)
-            self.process_msg(msg)
+            msg_q.put(msg)
             dat += 1
 
     @abstractmethod
@@ -175,10 +181,6 @@ class Estimator:
 
     @abstractmethod
     def parse_row_to_xx(self, row) -> np.array:
-        return
-
-    @abstractmethod
-    def process_msg(self, msg: np.array):
         return
 
     @property

@@ -1,8 +1,7 @@
-from abc import abstractmethod
-
 import numpy as np
 import torch
 
+from wear_mocap_ape.data_deploy.nn import deploy_models
 from wear_mocap_ape.data_types.bone_map import BoneMap
 from wear_mocap_ape.estimate import models
 from wear_mocap_ape.estimate.estimator import Estimator
@@ -13,7 +12,7 @@ from wear_mocap_ape.utility.names import NNS_TARGETS, NNS_INPUTS
 
 class WatchPhoneUarmNN(Estimator):
     def __init__(self,
-                 model_hash: str,
+                 model_hash: str = deploy_models.LSTM.WATCH_PHONE_UARM,
                  smooth: int = 1,
                  stream_mc=True,
                  monte_carlo_samples=25,
@@ -120,7 +119,3 @@ class WatchPhoneUarmNN(Estimator):
         # we are only interested in the last prediction of the sequence
         t_preds = t_preds[:, -1, :]
         return t_preds
-
-    @abstractmethod
-    def process_msg(self, msg: np.array):
-        return
