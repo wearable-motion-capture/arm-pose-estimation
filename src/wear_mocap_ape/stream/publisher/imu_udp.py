@@ -34,13 +34,18 @@ class IMUPublisherUDP:
 
         self.__active = True
         while self.__active:
-            # get the most recent smartwatch data row from the queue
-            msg = q.get()
-            while q.qsize() > 5:
-                msg = q.get()
+
+            try:
+                # get the most recent smartwatch data row from the queue
+                msg = q.get(timeout=2)
+                while q.qsize() > 5:
+                    msg = q.get(timeout=2)
+            except queue.Empty:
+                logging.info(f"[{self.__tag}] no data")
+                continue
 
             msg = struct.pack('f' * len(msg), *msg)
             try:
                 self.__udp_socket.sendto(msg, (self.__ip, self.__port))
             except TimeoutError:
-                logging.info(f"[{self.__tag}] timed out")
+                logging.info(f"[{self.__tag}] send timed out")

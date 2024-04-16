@@ -26,7 +26,6 @@ class Estimator:
 
         self.__tag = tag
         self._active = True
-        self._prev_time = datetime.now()
 
         self._y_targets = y_targets
         self._x_inputs = x_inputs
@@ -147,7 +146,6 @@ class Estimator:
 
         # used to estimate delta time and processing speed in Hz
         start = datetime.now()
-        self._prev_time = start
         dat = 0
 
         # this loops while the socket is listening and/or receiving data
@@ -155,18 +153,22 @@ class Estimator:
 
         self.reset()
         while self._active:
+
+            try:
+                # get the most recent smartwatch data row from the queue
+                row = sensor_q.get(timeout=2)
+                while sensor_q.qsize() > 5:
+                    row = sensor_q.get(timeout=2)
+            except queue.Empty:
+                logging.info(f"[{self.__tag}] no data")
+                continue
+
             # processing speed output
             now = datetime.now()
             if (now - start).seconds >= 5:
                 start = now
                 logging.info(f"[{self.__tag}] {dat / 5} Hz")
                 dat = 0
-            self._prev_time = now
-
-            # get the most recent smartwatch data row from the queue
-            row = sensor_q.get()
-            while sensor_q.qsize() > 5:
-                row = sensor_q.get()
 
             # finally get predicted positions etc
             xx = self.parse_row_to_xx(row)

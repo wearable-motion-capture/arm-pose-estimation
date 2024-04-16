@@ -48,18 +48,18 @@ class ImuListener:
         dat, start = 0, datetime.now()
         self.__active = True
         while self.__active:
-            # log message frequency updates
-            now = datetime.now()
-            if (now - start).seconds >= 5:
-                logging.info(f"[{self.__tag}] {dat / 5} Hz")
-                dat, start = 0, now
-
             # receive and queue the data
             try:
                 data, _ = s.recvfrom(self.__msg_size)
             except socket.timeout:
                 logging.info(f"[{self.__tag}] timed out")
                 continue
+
+            # log message frequency updates
+            now = datetime.now()
+            if (now - start).seconds >= 5:
+                logging.info(f"[{self.__tag}] {dat / 5} Hz")
+                dat, start = 0, now
 
             if not data:
                 logging.info(f"[{self.__tag}] Stream closed")
