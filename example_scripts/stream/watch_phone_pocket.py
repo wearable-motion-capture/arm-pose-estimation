@@ -23,9 +23,9 @@ def run_watch_phone_pocket_kalman(ip: str, smooth: int, stream_mc: bool):
         smooth=smooth,
         num_ensemble=48,
         window_size=10,
-        stream_mc=stream_mc,
+        add_mc_samples=stream_mc,
     )
-    msg_q = est.process_in_threat(sensor_q)
+    msg_q = est.process_in_thread(sensor_q)
 
     # the publisher publishes pose estimates from the queue via UDP
     pub = IMUPublisherUDP(
@@ -35,7 +35,7 @@ def run_watch_phone_pocket_kalman(ip: str, smooth: int, stream_mc: bool):
     pub.publish_in_thread(msg_q)
 
     # wait for any key to end the threads
-    input("press enter to exit")
+    input("[TERMINATION TRIGGER] press enter to exit")
     lstn.terminate()
     est.terminate()
     pub.terminate()

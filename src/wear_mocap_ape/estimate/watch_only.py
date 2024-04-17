@@ -14,7 +14,7 @@ class WatchOnlyNN(Estimator):
     def __init__(self,
                  model_hash: str = deploy_models.LSTM.WATCH_ONLY.value,
                  smooth: int = 10,
-                 stream_monte_carlo=True,
+                 add_mc_samples=True,
                  monte_carlo_samples=25,
                  bonemap: BoneMap = None,
                  watch_phone: bool = False,
@@ -38,7 +38,7 @@ class WatchOnlyNN(Estimator):
             smooth=smooth,
             normalize=params["normalize"],
             seq_len=params["sequence_len"],
-            stream_mc=stream_monte_carlo,
+            add_mc_samples=add_mc_samples,
             tag=tag,
             bonemap=bonemap
         )
@@ -94,5 +94,4 @@ class WatchOnlyNN(Estimator):
         t_preds = t_preds.numpy()
 
         # we are only interested in the last prediction of the sequence
-        t_preds = t_preds[:, -1, :]
-        return t_preds
+        return t_preds[:, -1, :]

@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 import wear_mocap_ape.config as config
-from wear_mocap_ape.record.watch_only_rec import WatchOnlyRecorder
+from wear_mocap_ape.record.est_output import EstOutputRecorder
 
 from wear_mocap_ape.stream.listener.imu import ImuListener
 from wear_mocap_ape.data_types import messaging
@@ -41,7 +41,7 @@ imu_w_l = threading.Thread(
     args=(q,)
 )
 
-watch_rec = WatchOnlyRecorder(file=args.file)
+watch_rec = EstOutputRecorder(file=args.file)
 
 prev_time = datetime.now()
 active = True

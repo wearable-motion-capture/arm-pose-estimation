@@ -25,9 +25,9 @@ def run_watch_phone_uarm_nn_udp(ip, smooth, stream_mc):
     # the estimator transforms sensor data into pose estimates and fills them into the output queue
     est = WatchPhoneUarmNN(
         smooth=smooth,
-        stream_mc=stream_mc,
+        add_mc_samples=stream_mc,
     )
-    msg_q = est.process_in_threat(sensor_q)
+    msg_q = est.process_in_thread(sensor_q)
 
     # the publisher publishes pose estimates from the queue via UDP
     pub = IMUPublisherUDP(
@@ -37,7 +37,7 @@ def run_watch_phone_uarm_nn_udp(ip, smooth, stream_mc):
     pub.publish_in_thread(msg_q)
 
     # wait for any key to end the threads
-    input("press enter to exit")
+    input("[TERMINATION TRIGGER] press enter to exit")
     lstn.terminate()
     est.terminate()
     pub.terminate()

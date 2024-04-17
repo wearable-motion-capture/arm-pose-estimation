@@ -16,7 +16,7 @@ class WatchPhonePocketKalman(Estimator):
                  smooth: int = 1,
                  num_ensemble: int = 32,
                  window_size: int = 10,
-                 stream_mc: bool = True,
+                 add_mc_samples: bool = True,
                  normalize: bool = True,
                  tag: str = "KALMAN POCKET PHONE"):
 
@@ -25,7 +25,7 @@ class WatchPhonePocketKalman(Estimator):
             y_targets=NNS_TARGETS.ORI_CAL_LARM_UARM_HIPS,
             smooth=smooth,
             seq_len=window_size,
-            stream_mc=stream_mc,
+            add_mc_samples=add_mc_samples,
             normalize=normalize,
             tag=tag
         )

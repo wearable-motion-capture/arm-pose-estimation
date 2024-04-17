@@ -19,7 +19,7 @@ class WatchPhoneUarm(Estimator):
             smooth=smooth,
             normalize=False,
             seq_len=1,
-            stream_mc=False,
+            add_mc_samples=False,
             tag=tag,
             bonemap=bonemap
         )

@@ -1,12 +1,12 @@
 import logging
 import threading
-from abc import abstractmethod
-from datetime import datetime
-
 import torch
 import queue
+
 import numpy as np
 
+from abc import abstractmethod
+from datetime import datetime
 from wear_mocap_ape.data_types.bone_map import BoneMap
 from wear_mocap_ape.estimate import estimate_joints, compose_msg
 from wear_mocap_ape.utility import data_stats
@@ -20,12 +20,12 @@ class Estimator:
                  normalize: bool = True,
                  smooth: int = 1,
                  seq_len: int = 1,
-                 stream_mc: bool = True,
+                 add_mc_samples: bool = True,
                  bonemap: BoneMap = None,
                  tag: str = "Estimator"):
 
         self.__tag = tag
-        self._active = True
+        self._active = False
 
         self._y_targets = y_targets
         self._x_inputs = x_inputs
@@ -47,7 +47,8 @@ class Estimator:
 
         # monte carlo predictions
         self._last_msg = None
-        self._stream_mc = stream_mc
+        # if this flag is true, the output messages contain all mc predictions
+        self._add_mc_samples = add_mc_samples
 
         self._row_hist = []
         self._sequence_len = max(1, seq_len)  # seq_len should not be smaller 1
@@ -85,7 +86,7 @@ class Estimator:
         self._active = False
 
     def reset(self):
-        self._active = True
+        self._active = False
         self._row_hist = []
         self._smooth_hist = []
 
@@ -118,7 +119,7 @@ class Estimator:
 
         return pred
 
-    def msg_from_pred(self, pred: np.array, stream_mc: bool) -> np.array:
+    def msg_from_pred(self, pred: np.array, add_mc_samples: bool) -> np.array:
         est = estimate_joints.arm_pose_from_nn_targets(
             preds=pred,
             body_measurements=self._body_measurements,
@@ -127,7 +128,7 @@ class Estimator:
         msg = compose_msg.msg_from_nn_targets_est(est, self._body_measurements, self._y_targets)
 
         self._last_msg = msg.copy()
-        if stream_mc:
+        if add_mc_samples:
             msg = list(msg)
             # now we attach the monte carlo predictions for XYZ positions
             if est.shape[0] > 1:
@@ -135,7 +136,7 @@ class Estimator:
                     msg += list(e_row[:6])
         return msg
 
-    def process_in_threat(self, sensor_q: queue):
+    def process_in_thread(self, sensor_q: queue):
         msg_q = queue.Queue()
         t = threading.Thread(target=self.processing_loop, args=(sensor_q, msg_q))
         t.start()
@@ -149,9 +150,8 @@ class Estimator:
         dat = 0
 
         # this loops while the socket is listening and/or receiving data
-        self._active = True
-
         self.reset()
+        self._active = True
         while self._active:
 
             try:
@@ -173,7 +173,7 @@ class Estimator:
             # finally get predicted positions etc
             xx = self.parse_row_to_xx(row)
             pred = self.add_xx_to_row_hist_and_make_prediction(xx)
-            msg = self.msg_from_pred(pred, self._stream_mc)
+            msg = self.msg_from_pred(pred, self._add_mc_samples)
             msg_q.put(msg)
             dat += 1
 

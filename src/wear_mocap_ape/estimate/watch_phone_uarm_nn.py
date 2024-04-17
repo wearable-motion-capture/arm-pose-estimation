@@ -14,13 +14,13 @@ class WatchPhoneUarmNN(Estimator):
     def __init__(self,
                  model_hash: str = deploy_models.LSTM.WATCH_PHONE_UARM,
                  smooth: int = 1,
-                 stream_mc=True,
+                 add_mc_samples=True,
                  monte_carlo_samples=25,
                  bonemap: BoneMap = None,
                  tag: str = "NN UARM PHONE"):
         self.__tag = tag
 
-        self._stream_mc = stream_mc
+        self._stream_mc = add_mc_samples
         self.__mc_samples = monte_carlo_samples
 
         # simple lookup for values of interest
@@ -35,7 +35,7 @@ class WatchPhoneUarmNN(Estimator):
             smooth=smooth,
             normalize=params["normalize"],
             seq_len=params["sequence_len"],
-            stream_mc=stream_mc,
+            add_mc_samples=add_mc_samples,
             tag=tag,
             bonemap=bonemap
         )
