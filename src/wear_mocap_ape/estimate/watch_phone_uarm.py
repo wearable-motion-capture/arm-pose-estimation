@@ -1,4 +1,3 @@
-from abc import abstractmethod
 import numpy as np
 
 from wear_mocap_ape.data_types.bone_map import BoneMap
@@ -20,7 +19,7 @@ class WatchPhoneUarm(Estimator):
             smooth=smooth,
             normalize=False,
             seq_len=1,
-            stream_mc=False,
+            add_mc_samples=False,
             tag=tag,
             bonemap=bonemap
         )
@@ -107,7 +106,3 @@ class WatchPhoneUarm(Estimator):
 
     def make_prediction_from_row_hist(self, row_hist):
         return np.c_[row_hist[:, 13:19], row_hist[:, -6:]]
-
-    @abstractmethod
-    def process_msg(self, msg: np.array):
-        return

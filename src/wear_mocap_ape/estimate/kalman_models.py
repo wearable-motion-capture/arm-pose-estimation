@@ -144,21 +144,33 @@ class KalmanSmartwatchModel(nn.Module):
     def __init__(self, num_ensemble, win_size, dim_x: int = 14, dim_z: int = 14, raw_obs_size: int = 22):
         super(KalmanSmartwatchModel, self).__init__()
 
-        self.num_ensemble = num_ensemble
-        self.dim_x = dim_x
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._num_ensemble = num_ensemble
+        self._dim_x = dim_x
         self.dim_z = dim_z
         self.win_size = win_size
 
         # instantiate modules
         self.process_model = ProcessModelWindow(
-            self.num_ensemble, self.dim_x, self.win_size
+            self._num_ensemble, self._dim_x, self.win_size
         )
         self.sensor_model = SensorModelWindow(
-            self.num_ensemble, self.dim_z, win_size, raw_obs_size
+            self._num_ensemble, self.dim_z, win_size, raw_obs_size
         )
         self.observation_noise = ObservationNoise(
             self.dim_z
         )
+
+    def format_state(self, state: torch.Tensor):
+        k = state.size(0)
+        state = state.repeat(self._num_ensemble, 1, 1)
+        state = torch.reshape(state, (self._num_ensemble * k, self._dim_x))
+        cov = torch.eye(self._dim_x) * 0.1
+
+        mns = MultivariateNormal(torch.zeros(self._dim_x), cov)
+        init_dist = mns.sample((self._num_ensemble,)).to(self._device)
+
+        return state + init_dist
 
     def forward(self, raw_obs, state_prev):
         """
@@ -185,9 +197,9 @@ class KalmanSmartwatchModel(nn.Module):
         y = ensemble_z.transpose(1, 2)
         R = self.observation_noise(z)
 
-        innovation = (1 / (self.num_ensemble - 1)) * torch.matmul(H_AT, H_A) + R
+        innovation = (1 / (self._num_ensemble - 1)) * torch.matmul(H_AT, H_A) + R
         inv_innovation = torch.linalg.inv(innovation)
-        K = (1 / (self.num_ensemble - 1)) * torch.matmul(
+        K = (1 / (self._num_ensemble - 1)) * torch.matmul(
             torch.matmul(AT, H_A), inv_innovation
         )
 
@@ -195,7 +207,7 @@ class KalmanSmartwatchModel(nn.Module):
         # finally, correct the state prediction
         state_corrected = state_pred + gain
 
-        ##### gather output #####
+        # gather output
         m_state_corrected = torch.mean(state_corrected, axis=1)[:, None, :]
         m_state_pred = state_m[:, None, :]
         output = (
@@ -206,23 +218,3 @@ class KalmanSmartwatchModel(nn.Module):
             ensemble_z,
         )
         return output
-
-
-# TODO: move this to estimator or filter
-class Utils:
-    def __init__(self, num_ensemble, dim_x: int = 14, dim_z: int = 14):
-        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._num_ensemble = num_ensemble
-        self._dim_x = dim_x
-        self._dim_z = dim_z
-
-    def format_state(self, state: torch.Tensor):
-        k = state.size(0)
-        state = state.repeat(self._num_ensemble, 1, 1)
-        state = torch.reshape(state, (self._num_ensemble * k, self._dim_x))
-        cov = torch.eye(self._dim_x) * 0.1
-
-        mns = MultivariateNormal(torch.zeros(self._dim_x), cov)
-        init_dist = mns.sample((self._num_ensemble,)).to(self._device)
-
-        return state + init_dist

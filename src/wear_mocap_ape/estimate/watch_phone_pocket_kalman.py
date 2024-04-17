@@ -1,8 +1,4 @@
-from abc import abstractmethod
 from pathlib import Path
-
-from einops import rearrange
-
 import numpy as np
 import torch
 
@@ -20,7 +16,7 @@ class WatchPhonePocketKalman(Estimator):
                  smooth: int = 1,
                  num_ensemble: int = 32,
                  window_size: int = 10,
-                 stream_mc: bool = True,
+                 add_mc_samples: bool = True,
                  normalize: bool = True,
                  tag: str = "KALMAN POCKET PHONE"):
 
@@ -29,7 +25,7 @@ class WatchPhonePocketKalman(Estimator):
             y_targets=NNS_TARGETS.ORI_CAL_LARM_UARM_HIPS,
             smooth=smooth,
             seq_len=window_size,
-            stream_mc=stream_mc,
+            add_mc_samples=add_mc_samples,
             normalize=normalize,
             tag=tag
         )
@@ -39,11 +35,8 @@ class WatchPhonePocketKalman(Estimator):
 
         self.__num_ensemble = num_ensemble
         self.__win_size = window_size
-        self.__dim_x = 14  # state size
+        self.__dim_x = 14  # state size fixed for our current use-case but kept dynamic for possible improvements
 
-        self.__utils = kalman_models.Utils(
-            self.__num_ensemble
-        )
         self.__model = kalman_models.KalmanSmartwatchModel(
             self.__num_ensemble,
             self.__win_size,
@@ -146,21 +139,23 @@ class WatchPhonePocketKalman(Estimator):
 
         # not enough history yet. Make sensor model predictions until we have a time-window worth of data
         if self.__init_step <= self.__win_size:
-            # there will be no prediction in this time window
-            pred_ = output[3]
-            pred_ = rearrange(pred_, "bs en dim -> (bs en) dim")
-            pred_ = self.__utils.format_state(pred_)[None, :, None, :]  # -> bs en k dim
+            self.__init_step += 1  # increase initialization step counter
+
+            # update the input state
+            pred = output[3][0]  # batch size is always 1 (use [0])
+            pred = self.__model.format_state(pred)[None, :, None, :]  # -> bs en k dim
             self.__input_state = torch.cat(
-                (self.__input_state[:, :, 1:, :], pred_), axis=2
+                (self.__input_state[:, :, 1:, :], pred), axis=2
             ).to(self._device)
-            self.__init_step += 1
+
+            # return only sensor model prediction
+            smp = output[3]
             # if on GPU copy the tensor to host memory first
             if self._device.type == 'cuda':
-                smp = output[3].cpu().detach().numpy()[0]
-            else:
-                smp = output[3].detach().numpy()[0]
-            return smp[:, :14]  # return only sensor model prediction
+                smp = smp.cpu()
+            return smp.detach().numpy()[0][:, :14]
 
+        # if we reach this, the initialization is done. Use the previous prediction as the input state
         ensemble = output[0]  # -> output ensemble
         self.__input_state = torch.cat(
             (self.__input_state[:, :, 1:, :], ensemble[:, :, None, :]), axis=2
@@ -171,9 +166,4 @@ class WatchPhonePocketKalman(Estimator):
             ensemble = ensemble.cpu()
 
         # get the output
-        t_preds = ensemble.detach().numpy()[0]
-        return t_preds[:, :14]
-
-    @abstractmethod
-    def process_msg(self, msg: np.array):
-        return
+        return ensemble.detach().numpy()[0][:, :14]

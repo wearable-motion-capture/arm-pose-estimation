@@ -15,7 +15,7 @@ class WatchPhonePocketNN(Estimator):
     def __init__(self,
                  model_hash: str,
                  smooth: int = 1,
-                 stream_mc=True,
+                 add_mc_samples=True,
                  monte_carlo_samples=25,
                  bonemap: BoneMap = None,
                  tag: str = "NN POCKET PHONE"):
@@ -35,7 +35,7 @@ class WatchPhonePocketNN(Estimator):
             smooth=smooth,
             normalize=params["normalize"],
             seq_len=params["sequence_len"],
-            stream_mc=stream_mc,
+            add_mc_samples=add_mc_samples,
             tag=tag,
             bonemap=bonemap
         )
@@ -112,7 +112,3 @@ class WatchPhonePocketNN(Estimator):
         # we are only interested in the last prediction of the sequence
         t_preds = t_preds[:, -1, :]
         return t_preds
-
-    @abstractmethod
-    def process_msg(self, msg: np.array):
-        return

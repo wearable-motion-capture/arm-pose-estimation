@@ -6,51 +6,41 @@ import signal
 import threading
 
 import wear_mocap_ape.config as config
+from wear_mocap_ape.estimate.watch_phone_uarm_nn import WatchPhoneUarmNN
 from wear_mocap_ape.stream.listener.imu import ImuListener
+from wear_mocap_ape.stream.publisher.imu_udp import IMUPublisherUDP
 from wear_mocap_ape.stream.publisher.watch_phone_uarm_nn_udp import WatchPhoneUarmNnUDP
 from wear_mocap_ape.data_types import messaging
 
 
 def run_watch_phone_uarm_nn_udp(ip, smooth, stream_mc):
-    # data processing happens in independent threads.
-    # We exchange data via queues.
-    left_q = queue.Queue()  # data for left-hand mode
-
-    # left listener
-    imu_l = ImuListener(
+    # the listener fills the que with received and parsed smartwatch data
+    lstn = ImuListener(
         ip=ip,
         msg_size=messaging.watch_phone_imu_msg_len,
-        port=config.PORT_LISTEN_WATCH_PHONE_IMU,
+        port=config.PORT_LISTEN_WATCH_PHONE_IMU
     )
-    l_thread = threading.Thread(
-        target=imu_l.listen,
-        args=(left_q,)
-    )
+    sensor_q = lstn.listen_in_thread()
 
-    # left publisher
-    wp2ul = WatchPhoneUarmNnUDP(
+    # the estimator transforms sensor data into pose estimates and fills them into the output queue
+    est = WatchPhoneUarmNN(
+        smooth=smooth,
+        add_mc_samples=stream_mc,
+    )
+    msg_q = est.process_in_thread(sensor_q)
+
+    # the publisher publishes pose estimates from the queue via UDP
+    pub = IMUPublisherUDP(
         ip=ip,
         port=config.PORT_PUB_LEFT_ARM,
-        smooth=smooth,
-        stream_mc=stream_mc,
     )
-    ul_thread = threading.Thread(
-        target=wp2ul.processing_loop,
-        args=(left_q,)
-    )
-    l_thread.start()
-    ul_thread.start()
+    pub.publish_in_thread(msg_q)
 
-    def terminate_all(*args):
-        imu_l.terminate()
-        wp2ul.terminate()
-
-    # make sure all handler exit on termination
-    atexit.register(terminate_all)
-    signal.signal(signal.SIGTERM, terminate_all)
-    signal.signal(signal.SIGINT, terminate_all)
-
-    return wp2ul
+    # wait for any key to end the threads
+    input("[TERMINATION TRIGGER] press enter to exit")
+    lstn.terminate()
+    est.terminate()
+    pub.terminate()
 
 
 if __name__ == "__main__":

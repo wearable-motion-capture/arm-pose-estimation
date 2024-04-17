@@ -2,6 +2,7 @@ import array
 import logging
 import socket
 import queue
+import threading
 from datetime import datetime
 
 
@@ -27,6 +28,16 @@ class ImuListener:
     def terminate(self):
         self.__active = False
 
+    def listen_in_thread(self):
+        """ the listener fills the que with received and parsed smartwatch data """
+        sensor_q = queue.Queue()
+        imu_w_l = threading.Thread(
+            target=self.listen,
+            args=(sensor_q,)
+        )
+        imu_w_l.start()
+        return sensor_q
+
     def listen(self, q: queue):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.bind((self.__ip, self.__port))
@@ -37,18 +48,18 @@ class ImuListener:
         dat, start = 0, datetime.now()
         self.__active = True
         while self.__active:
-            # log message frequency updates
-            now = datetime.now()
-            if (now - start).seconds >= 5:
-                logging.info(f"[{self.__tag}] {dat / 5} Hz")
-                dat, start = 0, now
-
             # receive and queue the data
             try:
                 data, _ = s.recvfrom(self.__msg_size)
             except socket.timeout:
                 logging.info(f"[{self.__tag}] timed out")
                 continue
+
+            # log message frequency updates
+            now = datetime.now()
+            if (now - start).seconds >= 5:
+                logging.info(f"[{self.__tag}] {dat / 5} Hz")
+                dat, start = 0, now
 
             if not data:
                 logging.info(f"[{self.__tag}] Stream closed")
