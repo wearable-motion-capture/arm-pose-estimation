@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 from wear_mocap_ape.data_deploy.nn import deploy_models
-from wear_mocap_ape.estimate import models
+from wear_mocap_ape.estimate import nn_models
 from wear_mocap_ape.data_types.bone_map import BoneMap
 from wear_mocap_ape.estimate.estimator import Estimator
 from wear_mocap_ape.utility import transformations as ts

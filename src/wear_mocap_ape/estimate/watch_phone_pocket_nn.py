@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from wear_mocap_ape.data_types.bone_map import BoneMap
-from wear_mocap_ape.estimate import models
+from wear_mocap_ape.estimate import nn_models
 from wear_mocap_ape.estimate.estimator import Estimator
 from wear_mocap_ape.utility import transformations as ts
 from wear_mocap_ape.data_types import messaging
