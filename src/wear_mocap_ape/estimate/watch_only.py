@@ -31,7 +31,7 @@ class WatchOnlyNN(Estimator):
             self.__slp = messaging.WATCH_ONLY_IMU_LOOKUP
 
         # load model from given parameters
-        self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)
+        self.__nn_model, params = nn_models.load_deployed_model_from_hash(hash_str=model_hash)
         super().__init__(
             x_inputs=NNS_INPUTS[params["x_inputs_n"]],
             y_targets=NNS_TARGETS[params["y_targets_n"]],
