@@ -1,15 +1,10 @@
 import argparse
-import atexit
 import logging
-import queue
-import signal
-import threading
 
 import wear_mocap_ape.config as config
 from wear_mocap_ape.estimate.watch_phone_uarm_nn import WatchPhoneUarmNN
 from wear_mocap_ape.stream.listener.imu import ImuListener
 from wear_mocap_ape.stream.publisher.imu_udp import IMUPublisherUDP
-from wear_mocap_ape.stream.publisher.watch_phone_uarm_nn_udp import WatchPhoneUarmNnUDP
 from wear_mocap_ape.data_types import messaging
 
 
@@ -55,7 +50,7 @@ if __name__ == "__main__":
                         help=f'put your local IP here. '
                              f'The script will publish arm '
                              f'pose data on PORT {config.PORT_PUB_LEFT_ARM} (left hand)')
-    parser.add_argument('smooth', nargs='?', type=int, default=10, help=f'smooth predicted trajectories')
+    parser.add_argument('smooth', nargs='?', type=int, default=5, help=f'smooth predicted trajectories')
     args = parser.parse_args()
 
     run_watch_phone_uarm_nn_udp(ip=args.ip, smooth=args.smooth, stream_mc=True)

@@ -3,7 +3,7 @@ import torch
 
 from wear_mocap_ape.data_deploy.nn import deploy_models
 from wear_mocap_ape.data_types.bone_map import BoneMap
-from wear_mocap_ape.estimate import models
+from wear_mocap_ape.estimate import nn_models
 from wear_mocap_ape.estimate.estimator import Estimator
 from wear_mocap_ape.utility import transformations as ts
 from wear_mocap_ape.data_types import messaging
@@ -12,10 +12,10 @@ from wear_mocap_ape.utility.names import NNS_TARGETS, NNS_INPUTS
 
 class WatchPhoneUarmNN(Estimator):
     def __init__(self,
-                 model_hash: str = deploy_models.LSTM.WATCH_PHONE_UARM,
+                 model_hash: str = deploy_models.LSTM.WATCH_PHONE_UARM.value,
                  smooth: int = 1,
                  add_mc_samples=True,
-                 monte_carlo_samples=25,
+                 monte_carlo_samples=50,
                  bonemap: BoneMap = None,
                  tag: str = "NN UARM PHONE"):
         self.__tag = tag
@@ -27,7 +27,7 @@ class WatchPhoneUarmNN(Estimator):
         self.__slp = messaging.WATCH_PHONE_IMU_LOOKUP
 
         # load model from given parameters
-        self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)
+        self.__nn_model, params = nn_models.load_deployed_model_from_hash(hash_str=model_hash)
 
         super().__init__(
             x_inputs=NNS_INPUTS[params["x_inputs_n"]],
