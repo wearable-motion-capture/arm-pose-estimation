@@ -1,5 +1,3 @@
-from abc import abstractmethod
-
 import numpy as np
 import torch
 
@@ -27,11 +25,11 @@ class WatchPhonePocketNN(Estimator):
         self.__slp = messaging.WATCH_PHONE_IMU_LOOKUP
 
         # load model from given parameters
-        self.__nn_model, params = models.load_deployed_model_from_hash(hash_str=model_hash)
+        self.__nn_model, params = nn_models.load_deployed_model_from_hash(hash_str=model_hash)
 
         super().__init__(
-            x_inputs=NNS_INPUTS(params["x_inputs_v"]),
-            y_targets=NNS_TARGETS(params["y_targets_v"]),
+            x_inputs=NNS_INPUTS[params["x_inputs_n"]],
+            y_targets=NNS_TARGETS[params["y_targets_n"]],
             smooth=smooth,
             normalize=params["normalize"],
             seq_len=params["sequence_len"],
@@ -99,7 +97,7 @@ class WatchPhonePocketNN(Estimator):
 
     def make_prediction_from_row_hist(self, xx):
         # cast to a torch tensor with batch size 1
-        xx = torch.tensor(xx[None, :, :])
+        xx = torch.tensor(xx[None, :, :], dtype=torch.float32)
         with torch.no_grad():
             # make mote carlo predictions if the model makes use of dropout
             t_preds = self.__nn_model.monte_carlo_predictions(x=xx, n_samples=self.__mc_samples)
