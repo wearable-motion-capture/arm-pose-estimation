@@ -26,7 +26,7 @@ class NNS_TARGETS(Enum):
         "gt_hips_yrot_cal_sin", "gt_hips_yrot_cal_cos"  # hips calibrated y rot
     ]
     HACKATHON_ACTION_LABEL = "activity"
-    HAIRCARE_ACTION_LABEL = "activity"
+    PGSTUDY_ACTION_LABEL = "activity"
 
 
 class NNS_INPUTS(Enum):
@@ -96,4 +96,15 @@ class NNS_INPUTS(Enum):
         "ph_grav_x", "ph_grav_y", "ph_grav_z",
         "ph_6drr_cal_1", "ph_6drr_cal_2", "ph_6drr_cal_3",
         "ph_6drr_cal_4", "ph_6drr_cal_5", "ph_6drr_cal_6"
+    ]
+
+    WATCH_ONLY_RAW = [
+        "sw_dt",
+        "sw_gyro_x", "sw_gyro_y", "sw_gyro_z",
+        "sw_lvel_x", "sw_lvel_y", "sw_lvel_z",
+        "sw_lacc_x", "sw_lacc_y", "sw_lacc_z",
+        "sw_grav_x", "sw_grav_y", "sw_grav_z",
+        "sw_6drr_raw_1", "sw_6drr_raw_2", "sw_6drr_raw_3",
+        "sw_6drr_raw_4", "sw_6drr_raw_5", "sw_6drr_raw_6",
+        "sw_pres_cal"
     ]

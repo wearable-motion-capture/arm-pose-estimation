@@ -92,7 +92,10 @@ def get_norm_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, data_list: list
     return stats
 
 
-def get_norm_and_one_hot_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, data_list: list = None) -> dict:
+def get_norm_and_one_hot_stats(x_inputs: NNS_INPUTS,
+                               y_targets: NNS_TARGETS,
+                               data_list: list = None,
+                               force_new: bool = False) -> dict:
     """
     Check if normalization stats for given params dict and m_data_list exist.
     If none exists, creates a dictionary with stats to normalize data columns:
@@ -110,6 +113,7 @@ def get_norm_and_one_hot_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, dat
     :param x_inputs:
     :param y_targets:
     :param data_list: list of files to analyze
+    :param force_new: force to create a new file
     :return: stats dictionary
     """
 
@@ -124,10 +128,11 @@ def get_norm_and_one_hot_stats(x_inputs: NNS_INPUTS, y_targets: NNS_TARGETS, dat
 
             if data_list is None:
                 return dat
+            elif force_new:
+                logging.info("force new stats file")
             else:
                 # check if amount of data has increased
-                len_m_data = len(data_list)
-                if dat["data_list_len"] == len_m_data:
+                if dat["data_list_len"] == len(data_list):
                     return dat
                 else:
                     logging.info("number of files changed")
