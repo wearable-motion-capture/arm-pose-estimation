@@ -4,7 +4,7 @@ import logging
 import wear_mocap_ape.config as config
 from wear_mocap_ape.estimate.watch_phone_uarm_nn import WatchPhoneUarmNN
 from wear_mocap_ape.stream.listener.imu import ImuListener
-from wear_mocap_ape.stream.publisher.imu_udp import IMUPublisherUDP
+from wear_mocap_ape.stream.publisher.pose_est_udp import PoseEstPublisherUDP
 from wear_mocap_ape.data_types import messaging
 
 
@@ -25,7 +25,7 @@ def run_watch_phone_uarm_nn_udp(ip, smooth, stream_mc):
     msg_q = est.process_in_thread(sensor_q)
 
     # the publisher publishes pose estimates from the queue via UDP
-    pub = IMUPublisherUDP(
+    pub = PoseEstPublisherUDP(
         ip=ip,
         port=config.PORT_PUB_LEFT_ARM,
     )

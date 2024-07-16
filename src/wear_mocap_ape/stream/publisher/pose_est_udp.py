@@ -7,7 +7,7 @@ import threading
 import wear_mocap_ape.config as config
 
 
-class IMUPublisherUDP:
+class PoseEstPublisherUDP:
     def __init__(self,
                  ip: str,
                  port: int = config.PORT_PUB_LEFT_ARM,
