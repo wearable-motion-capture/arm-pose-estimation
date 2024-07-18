@@ -83,7 +83,7 @@ class WatchOnlyNN(Estimator):
 
     def make_prediction_from_row_hist(self, xx_hist: np.array) -> np.array:
         # cast to a torch tensor with batch size 1
-        xx = torch.tensor(xx_hist[None, :, :])
+        xx = torch.tensor(xx_hist[None, :, :], dtype=torch.float32)
         with torch.no_grad():
             # make mote carlo predictions if the model makes use of dropout
             t_preds = self.__nn_model.monte_carlo_predictions(x=xx, n_samples=self.__mc_samples)
