@@ -91,6 +91,10 @@ class Estimator:
         self._smooth_hist = []
 
     def add_xx_to_row_hist_and_make_prediction(self, xx) -> np.array:
+        """
+        :return: An array containing the prediction(s) from xx in the order of self.y_targets
+        """
+
         self._row_hist.append(xx)
         # if not enough data is available yet, simply repeat the input as a first estimate
         while len(self._row_hist) < self._sequence_len:
@@ -120,6 +124,20 @@ class Estimator:
         return pred
 
     def msg_from_pred(self, pred: np.array, add_mc_samples: bool) -> np.array:
+        """
+        estimates the standardized pose msg from an input prediction. The message is composed as follows:
+        hand rot quaternion [0,1,2,3]
+        hand orig vector [4,5,6]
+        larm rot quaternion [7,8,9,10]
+        larm orig vector [11,12,13]
+        uarm rot quaternion [14,15,16,17]
+        uarm orig vector [18,19,20]
+        hips rot quaternion [21,22,23,24]
+        :param pred: prediction output of a neural network
+        :param add_mc_samples: whether all monte-carlo outputs should be part of the message (attached at the tail)
+        :return: array containing the standardized message as described above
+        """
+
         est = estimate_joints.arm_pose_from_nn_targets(
             preds=pred,
             body_measurements=self._body_measurements,
