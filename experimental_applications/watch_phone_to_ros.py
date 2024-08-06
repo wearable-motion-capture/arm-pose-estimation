@@ -8,8 +8,10 @@ from wear_mocap_ape.stream.publisher.watch_phone_uarm_ros import WatchPhoneROS
 from wear_mocap_ape.data_types import messaging
 
 # parse command line arguments
-parser = argparse.ArgumentParser(description='streams microphone data from the watch in standalone mode, '
-                                             'transcribes it, and checks for a list of keywords for voice commands.')
+parser = argparse.ArgumentParser(description='streams sensor data from wearable devices in Pocket mode, \
+                                              estimates the arm pose and body orientation from them, \
+                                              and publishes the pose estimates as a ROS topic')
+                                              
 # Required IP argument
 parser.add_argument('ip', type=str, help=f'put your local IP here.')
 args = parser.parse_args()
@@ -17,7 +19,7 @@ ip = args.ip
 
 left_q = queue.Queue()  # data for left-hand mode
 
-# left listener
+# IMU listener receives messages from the phone
 imu_l = ImuListener(
     ip=ip,
     msg_size=messaging.watch_phone_imu_msg_len,
@@ -30,7 +32,7 @@ l_thread = threading.Thread(
 )
 l_thread.start()
 
-# left ROS publisher
+# Pose estimator and ROS publisher
 wp2ul = WatchPhoneROS()
 ul_thread = threading.Thread(
     target=wp2ul.processing_loop,
